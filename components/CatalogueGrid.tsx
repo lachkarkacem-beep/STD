@@ -3,22 +3,16 @@
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import ProductThumb from "@/components/ProductThumb";
-import type { Category, Product } from "@/lib/catalog";
+import { dimLine, has3D, viewerSrc, type Category, type Product } from "@/lib/catalog";
 
 export default function CatalogueGrid({
   products,
   categories,
   initialCat,
-  has3D,
-  viewerSrc,
-  dimLine,
 }: {
   products: Product[];
   categories: Category[];
   initialCat: string | null;
-  has3D: (p: Product) => boolean;
-  viewerSrc: (p: Product, opts?: { thumb?: boolean }) => string;
-  dimLine: (p: Product) => string;
 }) {
   const [cat, setCat] = useState<string | null>(initialCat);
 

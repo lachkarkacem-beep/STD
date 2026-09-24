@@ -1,14 +1,14 @@
 import { createServerClient, type CookieOptions } from "@supabase/ssr";
 import { cookies } from "next/headers";
-import type { Database } from "@/lib/supabase/types";
 
 // Use inside Server Components, Server Actions and Route Handlers.
 // Server Components can't write cookies, so a set()/remove() call from one
 // is swallowed here — middleware is what actually refreshes the session.
+// Untyped on purpose, see lib/supabase/client.ts.
 export function createClient() {
   const cookieStore = cookies();
 
-  return createServerClient<Database>(
+  return createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {

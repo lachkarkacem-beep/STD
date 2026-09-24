@@ -1,4 +1,4 @@
-import { getCategories, getProducts, dimLine, has3D, viewerSrc } from "@/lib/catalog";
+import { getCategories, getProducts } from "@/lib/catalog";
 import CatalogueGrid from "@/components/CatalogueGrid";
 
 export default function CataloguePage({
@@ -16,9 +16,6 @@ export default function CataloguePage({
         products={products}
         categories={categories}
         initialCat={searchParams.cat ?? null}
-        has3D={has3D}
-        viewerSrc={viewerSrc}
-        dimLine={dimLine}
       />
     </div>
   );
