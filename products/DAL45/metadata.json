@@ -1,0 +1,45 @@
+{
+  "id": "DAL45",
+  "name": "Dallage 45",
+  "category": "Dallages",
+  "shape": "Carrée",
+  "dimensions_cm": {
+    "width": 45,
+    "depth": 45,
+    "height": 3
+  },
+  "dimension_type": "slab",
+  "weight_kg_per_m2": 75,
+  "pieces_per_m2": 5,
+  "assets": {
+    "product_image": "products/DAL45/product.jpg",
+    "viewer": "viewer.html?ref=DAL45",
+    "glb": null,
+    "obj": null,
+    "mtl": null
+  },
+  "model3D": {
+    "source": "procedural",
+    "dimensions_authority": "catalog",
+    "parameters": {
+      "kind": "slab",
+      "pattern": "plain",
+      "prebuilt": true,
+      "hollow": false,
+      "field": {
+        "cols": 4,
+        "rows": 2,
+        "joint": 0.4
+      },
+      "bboxWidth": 181.2,
+      "bboxDepth": 90.4,
+      "bboxHeight": 3
+    }
+  },
+  "description": "Dalle de 45 × 45 cm, épaisseur 3 cm. Pose de 5 pièces au m² pour 75 kg au m². Le visualiseur présente 8 dalles posées, le motif ne se complétant qu'au passage du joint.",
+  "available": true,
+  "catalog": {
+    "page": 25,
+    "reference_printed": "Dallage 45"
+  }
+}

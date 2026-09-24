@@ -1,0 +1,149 @@
+import db from "@/public/3d/products/products.json";
+
+export type Dimensions = {
+  width?: number;
+  depth?: number;
+  height?: number;
+  diameter?: number;
+};
+
+export type Product = {
+  id: string;
+  name: string;
+  category: string;
+  shape?: string;
+  dimensions: Dimensions;
+  weight?: number;
+  weightPerM2?: number;
+  piecesPerM2?: number;
+  image?: string;
+  model3D?: string;
+  description: string;
+  available: boolean;
+  dimensionType: string;
+  geometry?: Record<string, unknown>;
+  notes?: string;
+};
+
+export type Category = { id: string; label: string; note: string };
+
+export type CatalogDb = {
+  company: {
+    name: string;
+    line: string;
+    tagline: string;
+    intro: string;
+  };
+  categories: Category[];
+  products: Product[];
+  model3DPolicy?: { procedural?: string; exports?: string };
+};
+
+const catalog = db as unknown as CatalogDb;
+
+export function getCompany() {
+  return catalog.company;
+}
+
+export function getCategories() {
+  return catalog.categories;
+}
+
+export function getProducts() {
+  return catalog.products;
+}
+
+export function getProduct(ref: string) {
+  return catalog.products.find((p) => p.id === ref) ?? null;
+}
+
+// The only products with a working procedural 3D model are the ones that
+// carry a `geometry` spec — 6 legacy references (B105, B84, B42, B62, B58,
+// B30) still point at a "planter-bXX.html" file that was never generated,
+// so `model3D` alone is not a reliable signal.
+export function has3D(p: Product) {
+  return !!p.geometry;
+}
+
+export function viewerSrc(p: Product, opts: { finish?: string | null; thumb?: boolean } = {}) {
+  const params = new URLSearchParams({ ref: p.id });
+  if (opts.finish) params.set("finish", opts.finish);
+  if (opts.thumb) params.set("thumb", "1");
+  return `/3d/viewer.html?${params.toString()}`;
+}
+
+export function dimLine(p: Product) {
+  const d = p.dimensions;
+  switch (p.dimensionType) {
+    case "cylinder":
+      return `Ø ${d.diameter ?? d.width} × H ${d.height} cm`;
+    case "column":
+      return `Ø ${d.diameter} × H ${d.height} cm`;
+    case "well":
+      return `Ø ${d.width} × H ${d.height} cm`;
+    case "slab":
+    case "plinthe":
+      return `${d.width} × ${d.depth} cm · ép. ${d.height} cm`;
+    default:
+      return `${d.width} × ${d.depth} × ${d.height} cm`;
+  }
+}
+
+export function specRows(p: Product) {
+  const d = p.dimensions;
+  const dims = (() => {
+    if (p.dimensionType === "cylinder")
+      return [
+        { label: "Hauteur", value: `${d.height} cm` },
+        { label: "Diamètre", value: `${d.diameter ?? d.width} cm` },
+      ];
+    if (p.dimensionType === "column")
+      return [
+        { label: "Hauteur", value: `${d.height} cm` },
+        { label: "Diamètre de fût", value: `${d.diameter} cm` },
+        { label: "Socle", value: `${d.width} × ${d.depth} cm` },
+      ];
+    if (p.dimensionType === "slab" || p.dimensionType === "plinthe")
+      return [
+        { label: "Longueur", value: `${d.width} cm` },
+        { label: "Largeur", value: `${d.depth} cm` },
+        { label: "Épaisseur", value: `${d.height} cm` },
+      ];
+    if (p.dimensionType === "well")
+      return [
+        { label: "Hauteur", value: `${d.height} cm` },
+        { label: "Diamètre margelle", value: `${d.diameter} cm` },
+        { label: "Diamètre dallage", value: `${d.width} cm` },
+      ];
+    return [
+      { label: "Largeur", value: `${d.width} cm` },
+      { label: "Profondeur", value: `${d.depth} cm` },
+      { label: "Hauteur", value: `${d.height} cm` },
+    ];
+  })();
+
+  const weight = p.weightPerM2
+    ? [
+        { label: "Poids au m²", value: `${p.weightPerM2} kg` },
+        { label: "Pièces au m²", value: String(p.piecesPerM2).replace(".", ",") },
+      ]
+    : [{ label: "Poids", value: `${p.weight} kg` }];
+
+  return [
+    ...dims,
+    ...weight,
+    { label: "Forme", value: p.shape || "—" },
+    { label: "Disponibilité", value: p.available ? "Disponible" : "Sur commande" },
+  ];
+}
+
+export function relatedProducts(p: Product, count = 4) {
+  return catalog.products
+    .filter((x) => x.category === p.category && x.id !== p.id)
+    .sort(
+      (a, b) =>
+        Math.abs((a.dimensions.height ?? 0) - (p.dimensions.height ?? 0)) -
+        Math.abs((b.dimensions.height ?? 0) - (p.dimensions.height ?? 0))
+    )
+    .slice(0, count);
+}

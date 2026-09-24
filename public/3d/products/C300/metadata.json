@@ -1,0 +1,40 @@
+{
+  "id": "C300",
+  "name": "Colonne — fût lisse",
+  "category": "Colonnes",
+  "shape": "Ronde",
+  "dimensions_cm": {
+    "width": 47,
+    "depth": 47,
+    "height": 243,
+    "diameter": 30
+  },
+  "dimension_type": "column",
+  "weight_kg": 130,
+  "assets": {
+    "product_image": "products/C300/product.jpg",
+    "viewer": "viewer.html?ref=C300",
+    "glb": null,
+    "obj": null,
+    "mtl": null
+  },
+  "model3D": {
+    "source": "procedural",
+    "dimensions_authority": "catalog",
+    "fitted_to_catalog_box": false,
+    "parameters": {
+      "kind": "column",
+      "conical": false,
+      "fluted": false,
+      "capital": "abacus",
+      "prebuilt": true,
+      "hollow": false
+    }
+  },
+  "description": "Colonne en pierre reconstituée, fût droit de 30 cm de diamètre, fût lisse. Socle carré de 47 × 47 cm, hauteur 243 cm.",
+  "available": true,
+  "catalog": {
+    "page": 27,
+    "reference_printed": "C300"
+  }
+}

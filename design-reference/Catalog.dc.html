@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="_ds/nocturne-86bf45be-d899-4a85-a74e-08a812a6fd7d/styles.css">
+  <script src="_ds/nocturne-86bf45be-d899-4a85-a74e-08a812a6fd7d/_ds_bundle.js"></script>
+  <style>
+    body { margin: 0; background: var(--color-bg); color: var(--color-text); font-family: var(--font-body); }
+    a { color: var(--color-accent-300); text-decoration: none; }
+    a:hover { color: var(--color-accent-200); }
+  </style>
+</helmet>
+
+<div style="min-height:100vh; background:var(--color-bg)">
+
+  <nav class="nav" style="display:flex; align-items:baseline; gap:var(--space-8); padding:var(--space-6) var(--space-8)">
+    <a class="nav-brand" href="Home.dc.html" style="font-family:var(--font-heading); font-weight:500; font-size:18px; color:var(--color-text)">{{ companyName }}</a>
+    <span style="font-size:12px; color:var(--color-neutral-500)">Catalogue · pages 1 à {{ catalogPage }}</span>
+    <div style="margin-left:auto; display:flex; gap:var(--space-6); align-items:center">
+      <a href="Home.dc.html" style="font-size:13px; color:var(--color-neutral-300)">Accueil</a>
+      <a href="#contact" style="font-size:13px; color:var(--color-neutral-300)">Contact</a>
+    </div>
+  </nav>
+
+  <div style="padding:40px var(--space-8) var(--space-8); max-width:1180px">
+    <h1 style="font-family:var(--font-heading); font-weight:500; font-size:clamp(26px,3.4vw,38px); letter-spacing:-.02em; margin:0 0 var(--space-4)">Collection</h1>
+    <p style="margin:0; font-size:14px; line-height:1.6; color:var(--color-neutral-400); max-width:62ch">Cotes du catalogue en centimètres, largeur × profondeur × hauteur. Chaque fiche ouvre une vue 3D orientable, exportable, et disponible dans cinq coloris.</p>
+  </div>
+
+  <div style="display:grid; grid-template-columns:minmax(0,232px) minmax(0,1fr); gap:var(--space-8); align-items:start; padding:0 var(--space-8) 56px">
+
+    <aside style="position:sticky; top:var(--space-6); display:flex; flex-direction:column; gap:var(--space-8)">
+      <div class="field" style="display:flex; flex-direction:column; gap:var(--space-3)">
+        <label for="q" style="font-size:11px; letter-spacing:.1em; text-transform:uppercase; color:var(--color-neutral-500)">Recherche</label>
+        <input id="q" class="input" type="search" placeholder="Référence ou désignation" value="{{ query }}" onInput="{{ onQuery }}" style="width:100%">
+      </div>
+
+      <div style="display:flex; flex-direction:column; gap:var(--space-4)">
+        <span style="font-size:11px; letter-spacing:.1em; text-transform:uppercase; color:var(--color-neutral-500)">Catégorie</span>
+        <div style="display:flex; flex-direction:column; gap:var(--space-2)">
+          <sc-for list="{{ categoryOptions }}" as="opt" hint-placeholder-count="3">
+            <button type="button" onClick="{{ opt.select }}" style="{{ opt.style }}">
+              <span>{{ opt.label }}</span>
+              <span style="margin-left:auto; color:var(--color-neutral-500)">{{ opt.count }}</span>
+            </button>
+          </sc-for>
+        </div>
+      </div>
+
+      <div style="display:flex; flex-direction:column; gap:var(--space-4)">
+        <span style="font-size:11px; letter-spacing:.1em; text-transform:uppercase; color:var(--color-neutral-500)">Hauteur</span>
+        <div style="display:flex; flex-direction:column; gap:var(--space-2)">
+          <sc-for list="{{ heightOptions }}" as="opt" hint-placeholder-count="4">
+            <button type="button" onClick="{{ opt.select }}" style="{{ opt.style }}">
+              <span>{{ opt.label }}</span>
+              <span style="margin-left:auto; color:var(--color-neutral-500)">{{ opt.count }}</span>
+            </button>
+          </sc-for>
+        </div>
+      </div>
+
+      <div style="display:flex; flex-direction:column; gap:var(--space-4)">
+        <span style="font-size:11px; letter-spacing:.1em; text-transform:uppercase; color:var(--color-neutral-500)">Largeur</span>
+        <div style="display:flex; flex-direction:column; gap:var(--space-2)">
+          <sc-for list="{{ widthOptions }}" as="opt" hint-placeholder-count="4">
+            <button type="button" onClick="{{ opt.select }}" style="{{ opt.style }}">
+              <span>{{ opt.label }}</span>
+              <span style="margin-left:auto; color:var(--color-neutral-500)">{{ opt.count }}</span>
+            </button>
+          </sc-for>
+        </div>
+      </div>
+
+      <button type="button" class="btn btn-secondary btn-block" onClick="{{ resetFilters }}">Réinitialiser</button>
+    </aside>
+
+    <main>
+      <div style="display:flex; align-items:baseline; gap:var(--space-4); padding-bottom:var(--space-6); margin-bottom:var(--space-8); border-bottom:1px solid var(--color-divider)">
+        <span style="font-size:13px; font-weight:500">{{ resultLine }}</span>
+        <span style="font-size:12px; color:var(--color-neutral-500); margin-left:auto">{{ activeLine }}</span>
+      </div>
+
+      <sc-if value="{{ hasResults }}" hint-placeholder-val="{{ true }}">
+        <div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(250px,1fr)); gap:var(--space-6)">
+          <sc-for list="{{ results }}" as="p" hint-placeholder-count="6">
+            <a class="card" href="{{ p.href }}" style="display:flex; flex-direction:column; padding:0; overflow:hidden; color:var(--color-text)">
+              <sc-if value="{{ p.has3D }}" hint-placeholder-val="{{ true }}">
+                <div class="thumb-slot" data-src="{{ p.thumbSrc }}" data-ref="{{ p.id }}" style="position:relative; width:100%; aspect-ratio:4/3; background:#1b1d2a; overflow:hidden"></div>
+              </sc-if>
+              <sc-if value="{{ p.no3D }}" hint-placeholder-val="{{ false }}">
+                <div style="width:100%; aspect-ratio:4/3; background:var(--color-neutral-900); display:flex; align-items:flex-end; padding:var(--space-6)">
+                  <span style="font-size:12px; color:var(--color-neutral-500)">Vue 3D bientôt disponible</span>
+                </div>
+              </sc-if>
+              <div style="padding:var(--space-6); display:flex; flex-direction:column; gap:var(--space-2); border-top:1px solid var(--color-divider)">
+                <span class="card-kicker" style="color:var(--color-accent-300)">Réf. {{ p.id }}</span>
+                <span style="font-weight:500; font-size:14px; line-height:1.35; text-wrap:pretty">{{ p.name }}</span>
+                <span style="font-size:12px; color:var(--color-neutral-500)">{{ p.dimLine }}</span>
+                <span style="font-size:12px; color:var(--color-neutral-500)">{{ p.weightLine }}</span>
+              </div>
+            </a>
+          </sc-for>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ noResults }}" hint-placeholder-val="{{ false }}">
+        <div style="padding:56px 0; display:flex; flex-direction:column; gap:var(--space-4); align-items:flex-start">
+          <span style="font-family:var(--font-heading); font-weight:500; font-size:18px">Aucune référence ne correspond</span>
+          <span style="font-size:13px; color:var(--color-neutral-400)">Élargissez la recherche ou réinitialisez les filtres.</span>
+          <button type="button" class="btn btn-primary" onClick="{{ resetFilters }}">Réinitialiser</button>
+        </div>
+      </sc-if>
+
+      <section id="contact" style="margin-top:56px; padding-top:var(--space-8); border-top:1px solid var(--color-divider); display:grid; grid-template-columns:repeat(auto-fit,minmax(240px,1fr)); gap:var(--space-8)">
+        <div style="display:flex; flex-direction:column; gap:var(--space-3)">
+          <h2 style="font-family:var(--font-heading); font-weight:500; font-size:18px; margin:0">Devis et commandes</h2>
+          <p style="margin:0; font-size:13px; line-height:1.6; color:var(--color-neutral-400); max-width:46ch">Indiquez les références, les coloris et les quantités souhaitées. Les modèles 3D peuvent être fournis en GLB ou OBJ pour vos études d'implantation.</p>
+        </div>
+        <div style="display:flex; flex-direction:column; gap:var(--space-2); font-size:13px">
+          <span style="font-size:11px; letter-spacing:.1em; text-transform:uppercase; color:var(--color-neutral-500)">À compléter</span>
+          <span style="color:var(--color-neutral-400)">Téléphone, adresse et e-mail de contact restent à renseigner.</span>
+        </div>
+      </section>
+    </main>
+  </div>
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{}">
+class Component extends DCLogic {
+  state = { db: null, query: '', cat: 'all', height: 'all', width: 'all' };
+
+  componentDidMount() {
+    const cat = new URLSearchParams(location.search).get('cat');
+    fetch('products/products.json')
+      .then(r => r.json())
+      .then(db => this.setState({ db, cat: cat || 'all' }))
+      .catch(e => console.error('products.json failed to load', e));
+  }
+
+  componentDidUpdate() { this.syncThumbs(); }
+  componentWillUnmount() { this._io?.disconnect(); }
+
+  // A browser allows only ~16 live WebGL contexts, so one viewer per card does
+  // not survive a catalog of any size: past the cap the oldest are force-lost
+  // and those cards go blank. Thumbnails are pooled — mounted when scrolled
+  // into view, torn down when they leave, never more than POOL alive.
+  syncThumbs() {
+    const POOL = 6;
+    const slots = Array.from(document.querySelectorAll('.thumb-slot'));
+    if (!slots.length) return;
+    this._live = this._live || [];
+
+    const unmount = slot => { if (slot && slot.firstChild) slot.textContent = ''; };
+
+    const mount = slot => {
+      const want = slot.dataset.src;
+      const cur = slot.firstChild;
+      // React reuses these nodes across filter changes and only rewrites
+      // data-src, so a surviving iframe may belong to a different product.
+      // Showing B105 on a card labelled B 42 is worse than showing nothing.
+      if (cur && cur.getAttribute('src') === want) return;
+      if (cur) slot.textContent = '';
+      const f = document.createElement('iframe');
+      f.src = want;
+      f.title = slot.dataset.ref;
+      f.setAttribute('scrolling', 'no');
+      f.tabIndex = -1;
+      f.style.cssText = 'width:100%;height:100%;border:0;display:block;pointer-events:none';
+      slot.appendChild(f);
+      const i = this._live.indexOf(slot);
+      if (i > -1) this._live.splice(i, 1);
+      this._live.push(slot);
+      while (this._live.length > POOL) unmount(this._live.shift());
+    };
+
+    if (!this._io) {
+      this._io = new IntersectionObserver(entries => {
+        for (const e of entries) {
+          if (e.isIntersecting) mount(e.target);
+          else {
+            const i = this._live.indexOf(e.target);
+            if (i > -1) this._live.splice(i, 1);
+            unmount(e.target);
+          }
+        }
+      }, { rootMargin: '200px 0px' });
+    }
+
+    const seen = new Set(slots);
+    this._observed = this._observed || new Set();
+    for (const s of slots) {
+      if (!this._observed.has(s)) { this._io.observe(s); this._observed.add(s); }
+    }
+    for (const s of Array.from(this._observed)) {
+      if (!seen.has(s)) { this._io.unobserve(s); this._observed.delete(s); }
+    }
+    this._live = this._live.filter(s => seen.has(s));
+
+    // An IntersectionObserver only fires on a transition. Filtering moves cards
+    // into the viewport without any scroll, so already-observed nodes get no
+    // callback and would stay blank. Mount what is on screen right now.
+    const margin = 200;
+    for (const s of slots) {
+      const r = s.getBoundingClientRect();
+      if (r.bottom > -margin && r.top < innerHeight + margin) mount(s);
+      else if (s.firstChild) {
+        const i = this._live.indexOf(s);
+        if (i > -1) this._live.splice(i, 1);
+        unmount(s);
+      }
+    }
+  }
+
+  // The columns and fence posts push the range to 290 cm, so a single
+  // "plus de 45 cm" bucket would hold half the catalog.
+  heightBuckets() {
+    return [
+      { id: 'all',  label: 'Toutes',        test: () => true },
+      { id: 'h30',  label: "Jusqu'à 30 cm", test: p => p.dimensions.height <= 30 },
+      { id: 'h45',  label: '31 à 45 cm',    test: p => p.dimensions.height > 30 && p.dimensions.height <= 45 },
+      { id: 'h100', label: '46 à 100 cm',   test: p => p.dimensions.height > 45 && p.dimensions.height <= 100 },
+      { id: 'h101', label: 'Plus de 1 m',   test: p => p.dimensions.height > 100 }
+    ];
+  }
+  widthBuckets() {
+    return [
+      { id: 'all', label: 'Toutes',        test: () => true },
+      { id: 'w50', label: "Jusqu'à 50 cm", test: p => p.dimensions.width <= 50 },
+      { id: 'w80', label: '51 à 80 cm',    test: p => p.dimensions.width > 50 && p.dimensions.width <= 80 },
+      { id: 'w81', label: 'Plus de 80 cm', test: p => p.dimensions.width > 80 }
+    ];
+  }
+
+  matches(p, { skip } = {}) {
+    const s = this.state;
+    const q = s.query.trim().toLowerCase();
+    if (skip !== 'query' && q) {
+      const hay = (p.id + ' ' + p.name + ' ' + p.category + ' ' + (p.shape || '')).toLowerCase();
+      if (!hay.includes(q)) return false;
+    }
+    if (skip !== 'cat' && s.cat !== 'all' && p.category !== s.cat) return false;
+    if (skip !== 'height') {
+      const b = this.heightBuckets().find(b => b.id === s.height);
+      if (b && !b.test(p)) return false;
+    }
+    if (skip !== 'width') {
+      const b = this.widthBuckets().find(b => b.id === s.width);
+      if (b && !b.test(p)) return false;
+    }
+    return true;
+  }
+
+  optStyle(active) {
+    return [
+      'display:flex', 'align-items:center', 'gap:8px', 'width:100%',
+      'padding:7px 10px', 'font:inherit', 'font-size:13px',
+      'font-weight:' + (active ? '500' : '400'),
+      'text-align:left', 'cursor:pointer',
+      'border-radius:var(--radius-sm)',
+      'border:1px solid ' + (active ? 'var(--color-accent)' : 'var(--color-divider)'),
+      'background:' + (active ? 'color-mix(in srgb, var(--color-accent) 14%, transparent)' : 'transparent'),
+      'color:var(--color-text)'
+    ].join(';');
+  }
+
+  renderVals() {
+    const db = this.state.db;
+    const all = db?.products || [];
+    const s = this.state;
+
+    // Counts ignore their own dimension, so each number describes what picking
+    // that option would actually yield.
+    const buildOpts = (buckets, key, skip) => buckets.map(b => ({
+      id: b.id, label: b.label,
+      count: all.filter(p => this.matches(p, { skip }) && b.test(p)).length,
+      style: this.optStyle(s[key] === b.id),
+      select: () => this.setState({ [key]: b.id })
+    }));
+
+    const catOpts = [{ id: 'all', label: 'Toutes' }]
+      .concat((db?.categories || []).map(c => ({ id: c.id, label: c.label })))
+      .map(o => ({
+        id: o.id, label: o.label,
+        count: all.filter(p => this.matches(p, { skip: 'cat' }) && (o.id === 'all' || p.category === o.id)).length,
+        style: this.optStyle(s.cat === o.id),
+        select: () => this.setState({ cat: o.id })
+      }));
+
+    const results = all.filter(p => this.matches(p));
+    const activeBits = [];
+    if (s.cat !== 'all') activeBits.push(s.cat);
+    if (s.height !== 'all') activeBits.push(this.heightBuckets().find(b => b.id === s.height).label);
+    if (s.width !== 'all') activeBits.push(this.widthBuckets().find(b => b.id === s.width).label);
+
+    return {
+      companyName: db?.company?.name ?? 'Lachkar',
+      catalogPage: db?.company?.catalogPage ?? 1,
+      query: s.query,
+      onQuery: e => this.setState({ query: e.target.value }),
+      resetFilters: () => this.setState({ query: '', cat: 'all', height: 'all', width: 'all' }),
+      categoryOptions: catOpts,
+      heightOptions: buildOpts(this.heightBuckets(), 'height', 'height'),
+      widthOptions: buildOpts(this.widthBuckets(), 'width', 'width'),
+      results: results.map(p => ({
+        ...p,
+        href: 'Product.dc.html?ref=' + p.id,
+        has3D: !!p.model3D,
+        no3D: !p.model3D,
+        // Grid thumbnails run in thumb mode: no export toolbar, no hint line.
+        thumbSrc: p.model3D
+          ? p.model3D + (p.model3D.includes('?') ? '&' : '?') + 'thumb=1'
+          : null,
+        dimLine: (() => {
+          const d = p.dimensions;
+          switch (p.dimensionType) {
+            case 'cylinder': return `Ø ${d.diameter ?? d.width} × H ${d.height} cm`;
+            case 'column':   return `Ø ${d.diameter} × H ${d.height} cm`;
+            case 'well':     return `Ø ${d.width} × H ${d.height} cm`;
+            case 'slab':
+            case 'plinthe':  return `${d.width} × ${d.depth} cm · ép. ${d.height} cm`;
+            default:         return `${d.width} × ${d.depth} × ${d.height} cm`;
+          }
+        })(),
+        weightLine: p.weightPerM2 ? p.weightPerM2 + ' kg/m²' : (p.weight ? p.weight + ' kg' : '')
+      })),
+      hasResults: !!db && results.length > 0,
+      noResults: !!db && results.length === 0,
+      resultLine: db ? (results.length + (results.length === 1 ? ' référence' : ' références')) : '',
+      activeLine: activeBits.join(' · ')
+    };
+  }
+}
+
+</script>
+</body>
+</html>

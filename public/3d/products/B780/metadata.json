@@ -1,0 +1,38 @@
+{
+  "id": "B780",
+  "name": "Jardinière rectangulaire longue à paroi lisse",
+  "category": "Bacs à fleurs",
+  "shape": "Rectangulaire",
+  "dimensions_cm": {
+    "width": 100,
+    "depth": 32,
+    "height": 36
+  },
+  "dimension_type": "box",
+  "weight_kg": 80,
+  "assets": {
+    "product_image": "products/B780/product.jpg",
+    "viewer": "viewer.html?ref=B780",
+    "glb": null,
+    "obj": null,
+    "mtl": null
+  },
+  "model3D": {
+    "source": "procedural",
+    "dimensions_authority": "catalog",
+    "fitted_to_catalog_box": true,
+    "parameters": {
+      "kind": "fluted",
+      "taper": 0.88,
+      "flutes": 0,
+      "rim": "plain",
+      "foot": "feet"
+    }
+  },
+  "description": "Jardinière d'un mètre, profondeur 32 cm, à paroi lisse.",
+  "available": true,
+  "catalog": {
+    "page": 4,
+    "reference_printed": "B780"
+  }
+}

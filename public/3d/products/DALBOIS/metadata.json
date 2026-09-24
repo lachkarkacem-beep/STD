@@ -1,0 +1,45 @@
+{
+  "id": "DALBOIS",
+  "name": "Dallage Bois",
+  "category": "Dallages",
+  "shape": "Carrée",
+  "dimensions_cm": {
+    "width": 50,
+    "depth": 50,
+    "height": 4
+  },
+  "dimension_type": "slab",
+  "weight_kg_per_m2": 84,
+  "pieces_per_m2": 4,
+  "assets": {
+    "product_image": "products/DALBOIS/product.jpg",
+    "viewer": "viewer.html?ref=DALBOIS",
+    "glb": null,
+    "obj": null,
+    "mtl": null
+  },
+  "model3D": {
+    "source": "procedural",
+    "dimensions_authority": "catalog",
+    "parameters": {
+      "kind": "slab",
+      "pattern": "bois",
+      "prebuilt": true,
+      "hollow": false,
+      "field": {
+        "cols": 4,
+        "rows": 2,
+        "joint": 0.4
+      },
+      "bboxWidth": 201.2,
+      "bboxDepth": 100.4,
+      "bboxHeight": 4
+    }
+  },
+  "description": "Dalle de 50 × 50 cm, épaisseur 4 cm. Pose de 4 pièces au m² pour 84 kg au m². Le visualiseur présente 8 dalles posées, le motif ne se complétant qu'au passage du joint.",
+  "available": true,
+  "catalog": {
+    "page": 26,
+    "reference_printed": "Dallage Bois"
+  }
+}

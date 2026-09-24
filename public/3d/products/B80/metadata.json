@@ -1,0 +1,40 @@
+{
+  "id": "B80",
+  "name": "Bac carré à cannelures",
+  "category": "Bacs à fleurs",
+  "shape": "Carré",
+  "dimensions_cm": {
+    "width": 60,
+    "depth": 60,
+    "height": 37
+  },
+  "dimension_type": "box",
+  "weight_kg": 75,
+  "assets": {
+    "product_image": "products/B80/product.jpg",
+    "viewer": "viewer.html?ref=B80",
+    "glb": null,
+    "obj": null,
+    "mtl": null
+  },
+  "model3D": {
+    "source": "procedural",
+    "dimensions_authority": "catalog",
+    "fitted_to_catalog_box": true,
+    "parameters": {
+      "kind": "fluted",
+      "taper": 0.84,
+      "flutes": 20,
+      "rim": "plain",
+      "foot": "feet",
+      "fluteFrom": 0.02,
+      "fluteTo": 0.92
+    }
+  },
+  "description": "Bac carré de 60 cm à paroi évasée et cannelures verticales, pour sujets à port étalé.",
+  "available": true,
+  "catalog": {
+    "page": 4,
+    "reference_printed": "B80"
+  }
+}

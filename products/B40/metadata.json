@@ -1,0 +1,41 @@
+{
+  "id": "B40",
+  "name": "Jardinière rectangulaire compacte",
+  "category": "Bacs à fleurs",
+  "shape": "Rectangulaire",
+  "dimensions_cm": {
+    "width": 70,
+    "depth": 30,
+    "height": 30
+  },
+  "dimension_type": "box",
+  "weight_kg": 35,
+  "assets": {
+    "product_image": "products/B40/product.jpg",
+    "viewer": "viewer.html?ref=B40",
+    "glb": null,
+    "obj": null,
+    "mtl": null
+  },
+  "model3D": {
+    "source": "procedural",
+    "dimensions_authority": "catalog",
+    "fitted_to_catalog_box": true,
+    "parameters": {
+      "kind": "fluted",
+      "taper": 0.88,
+      "flutes": 20,
+      "fluteDepth": 0.009,
+      "rim": "plain",
+      "foot": "feet",
+      "fluteFrom": 0.02,
+      "fluteTo": 0.92
+    }
+  },
+  "description": "Petit format de 70 cm, cannelé, à lèvre plate.",
+  "available": true,
+  "catalog": {
+    "page": 3,
+    "reference_printed": "B40"
+  }
+}

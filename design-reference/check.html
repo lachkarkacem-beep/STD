@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Contrôle — tous les modèles</title>
+  <style>
+    body { font: 13px/1.5 ui-monospace, Menlo, monospace; background:#f3f2f2; color:#201e1d; margin:0; padding:16px; }
+    table { border-collapse: collapse; width: 100%; }
+    th, td { text-align:left; padding:5px 9px; border-bottom:1px solid #d8d5d2; white-space:nowrap; }
+    th { font-weight:700; border-bottom:2px solid #201e1d; }
+    .ok { color:#166534; } .bad { color:#b8250f; font-weight:700; }
+    #frames { position:fixed; left:-9999px; top:0; width:420px; height:320px; }
+    iframe { width:420px; height:320px; border:0; }
+    #sum { margin:0 0 12px; font-weight:700; }
+  </style>
+</head>
+<body>
+  <p id="sum">Contrôle en cours…</p>
+  <table><thead><tr>
+    <th>Réf</th><th>Page</th><th>Attendu (L×P×H cm)</th><th>Mesuré</th>
+    <th>Maillages</th><th>Creux</th><th>Coloris</th><th>État</th><th>GLB</th><th>Nœuds</th>
+  </tr></thead><tbody id="rows"></tbody></table>
+  <div id="frames"></div>
+
+  <script type="module">
+    const db = await fetch('products/products.json').then(r => r.json());
+    const rows = document.getElementById('rows');
+    const frames = document.getElementById('frames');
+    const TEST_FINISH = 'noir';
+    let pass = 0, fail = 0;
+
+    const td = (t, cls) => { const e = document.createElement('td'); e.textContent = t; if (cls) e.className = cls; return e; };
+
+    async function check(p) {
+      const sep = p.model3D.includes('?') ? '&' : '?';
+      const src = `${p.model3D}${sep}finish=${TEST_FINISH}`;
+      const f = document.createElement('iframe');
+      f.src = src;
+      frames.appendChild(f);
+
+      let glb = null, glbErr = null, roots = null;
+      const res = await new Promise(resolve => {
+        const t0 = Date.now();
+        const tick = () => {
+          let w = null;
+          try { w = f.contentWindow; } catch (_) {}
+          const stage = w?.document?.querySelector('three-d-stage');
+          const obj = stage && (stage._object || stage.__obj);
+          if (obj) {
+            const THREE = w.__THREE_FOR_CHECK;
+            let box = null;
+            try { box = new THREE.Box3().setFromObject(obj, true); } catch (_) {}
+            let meshes = 0; const mats = {};
+            obj.traverse(o => {
+              if (o.isMesh) meshes++;
+              const m = o.material;
+              if (m && m.name && !(m.name in mats)) mats[m.name] = '#' + m.color.getHexString();
+            });
+
+            // Real cavity test, not a naming convention: drop a ray down the
+            // centre from above. If the vessel is open for planting, the first
+            // surface hit is the soil. Anything else means a lid or a solid top.
+            let openCavity = false, firstHit = '—';
+            try {
+              const c = box.getCenter(new THREE.Vector3());
+              const ray = new THREE.Raycaster(
+                new THREE.Vector3(c.x, box.max.y + 0.5, c.z),
+                new THREE.Vector3(0, -1, 0)
+              );
+              const hits = ray.intersectObject(obj, true);
+              if (hits.length) {
+                firstHit = hits[0].object.name || '(sans nom)';
+                openCavity = /soil/.test(firstHit);
+              }
+            } catch (_) {}
+
+            // Rib adherence. Sampling the flute's extreme vertices compares
+            // points at different places around its circumference, so it reads
+            // an offset of one radius even when the rib is perfect. Measure the
+            // AXIS instead: a half-cylinder bulges from its axis, so the axis
+            // must lie on the wall plane at both ends.
+            let ribGap = null;
+            try {
+              const shell = obj.getObjectByName('shell');
+              let flute = null;
+              obj.traverse(o => {
+                if (!flute && /^flute-holder-0-/.test(o.name || '') && o.children[0]) flute = o.children[0];
+              });
+              if (shell && flute) {
+                shell.updateMatrixWorld(true); flute.updateMatrixWorld(true);
+
+                // Wall plane from the shell's front-face vertices (z > 0).
+                const sp = shell.geometry.attributes.position;
+                const sv = new THREE.Vector3();
+                let lo = null, hi = null;
+                for (let i = 0; i < sp.count; i++) {
+                  sv.fromBufferAttribute(sp, i).applyMatrix4(shell.matrixWorld);
+                  if (sv.z <= 0) continue;
+                  if (!lo || sv.y < lo.y) lo = { y: sv.y, z: sv.z };
+                  if (!hi || sv.y > hi.y) hi = { y: sv.y, z: sv.z };
+                }
+
+                // Axis endpoints: local (0, ±h/2, 0) through the world matrix.
+                const h = flute.geometry.parameters.height;
+                const a0 = new THREE.Vector3(0, -h / 2, 0).applyMatrix4(flute.matrixWorld);
+                const a1 = new THREE.Vector3(0,  h / 2, 0).applyMatrix4(flute.matrixWorld);
+
+                if (lo && hi && hi.y !== lo.y) {
+                  const wallZ = y => lo.z + (hi.z - lo.z) * ((y - lo.y) / (hi.y - lo.y));
+                  ribGap = {
+                    bottom: +((a0.z - wallZ(a0.y)) * 100).toFixed(2),
+                    top:    +((a1.z - wallZ(a1.y)) * 100).toFixed(2)
+                  };
+                }
+              }
+            } catch (_) {}
+
+            // Chamfer orientation. A raycast proves a bar is PRESENT at a
+            // position; it cannot tell a closed diamond from a big X. A corner
+            // chamfer must run ACROSS its diagonal, so its axis has to be
+            // perpendicular to its own offset from the tile centre. This is
+            // the assertion whose absence let the Tapis motif ship as an X.
+            let chamfer = null;
+            try {
+              let worst = 0, count = 0;
+              obj.traverse(o => {
+                if (!o.isMesh) return;
+                if (!/^(losange|octogone-pan)$/.test(o.name || '')) return;
+                const x = o.position.x, z = o.position.z;
+                const r = Math.hypot(x, z);
+                if (r < 1e-4) return;                    // centred bars are radial by design
+                const th = o.rotation.y;
+                const ax = Math.cos(th), az = -Math.sin(th);
+                const dot = Math.abs((x / r) * ax + (z / r) * az);
+                worst = Math.max(worst, dot);
+                count++;
+              });
+              if (count) chamfer = { worst: +worst.toFixed(3), count };
+            } catch (_) {}
+
+            // Continuity across the joint. Orientation was not enough: every
+            // element of the Tapis motif was built a bar-width short, biased
+            // onto the joint-facing end, so the rug broke at every crossing
+            // while the harness reported OK.
+            //
+            // "Everything must reach the joint" is the wrong rule — a chamfer,
+            // a plain field or a grenaillage is interior by design, and that
+            // rule raised six false alarms. So the requirement is DECLARED per
+            // motif: only the elements that genuinely run across the joint are
+            // named, with which edge each must meet. x2 = both x edges,
+            // x+ = the joint-facing edge only.
+            let joint = null;
+            try {
+              const SPEC = {
+                tapis: { 'bordure-x': 'x2', 'bordure-z': 'z2',
+                         'octogone-x': 'x+', 'octogone-z': 'z+' },
+                bois:  { 'plank': 'x2' }
+              };
+              const spec = SPEC[p.geometry && p.geometry.pattern];
+              const tiles = obj.getObjectByName('dalles');
+              const tile = tiles && tiles.children.find(t => Math.abs(t.rotation.y) < 1e-3);
+              const corps = tile && tile.getObjectByName('corps');
+              if (spec && corps) {
+                const cb = new THREE.Box3().setFromObject(corps, true);
+                let worst = 0, culprit = '', tested = 0;
+                tile.traverse(m => {
+                  if (!m.isMesh) return;
+                  const key = Object.keys(spec).find(k => m.name === k || m.name.indexOf(k + '-') === 0);
+                  if (!key) return;
+                  const mb = new THREE.Box3().setFromObject(m, true);
+                  const rule = spec[key];
+                  const gaps = [];
+                  if (rule === 'x2') gaps.push(cb.max.x - mb.max.x, mb.min.x - cb.min.x);
+                  else if (rule === 'x+') gaps.push(cb.max.x - mb.max.x);
+                  else if (rule === 'z2') gaps.push(cb.max.z - mb.max.z, mb.min.z - cb.min.z);
+                  else if (rule === 'z+') gaps.push(cb.max.z - mb.max.z);
+                  for (const g of gaps) { tested++; if (g > worst) { worst = g; culprit = m.name; } }
+                });
+                if (tested) joint = { worst: +(worst * 100).toFixed(2), culprit, tested };
+              }
+            } catch (_) {}
+
+            resolve({ box, meshes, mats, openCavity, firstHit, ribGap, chamfer, joint });
+            return;
+          }
+          if (Date.now() - t0 > 15000) { resolve(null); return; }
+          setTimeout(tick, 250);
+        };
+        setTimeout(tick, 400);
+      });
+
+      // Prove the deliverable: run the real GLB exporter, and count how many
+      // nodes sit at the root of the exported tree (a tidy file has a handful
+      // of named parts, not a hundred anonymous holders).
+      if (res) {
+        try {
+          glb = await f.contentWindow.__glbProbe();
+          const o = f.contentWindow.document.querySelector('three-d-stage');
+          const obj = o._object || o.__obj;
+          roots = obj.children.length;
+        } catch (e) { glbErr = e.message || String(e); }
+      }
+
+      const tr = document.createElement('tr');
+      const d = p.dimensions;
+      const want = `${d.width}×${d.depth}×${d.height}`;
+      tr.appendChild(td(p.id));
+      tr.appendChild(td(String(p.catalogPage ?? '—')));
+      tr.appendChild(td(want));
+
+      if (!res) {
+        tr.appendChild(td('—')); tr.appendChild(td('0'));
+        tr.appendChild(td('—')); tr.appendChild(td('—'));
+        tr.appendChild(td('ÉCHEC construction', 'bad'));
+        tr.appendChild(td('—')); tr.appendChild(td('—'));
+        fail++;
+      } else {
+        const s = res.box ? {
+          x: (res.box.max.x - res.box.min.x) * 100,
+          y: (res.box.max.y - res.box.min.y) * 100,
+          z: (res.box.max.z - res.box.min.z) * 100
+        } : null;
+        const got = s ? `${s.x.toFixed(1)}×${s.z.toFixed(1)}×${s.y.toFixed(1)}` : '—';
+
+        // Tolerance: 2% on each axis, except where the product legitimately
+        // sits inside its envelope (hexagon/round section) or projects past it.
+        const loose = p.geometry?.prebuilt || p.geometry?.section === 'preserve'
+                   || p.shape === 'Hexagonal' || p.shape === 'Ronde' || p.shape === 'Rond';
+        const near = (a, b) => Math.abs(a - b) <= Math.max(0.6, b * 0.02);
+        // geometry.bbox* override the printed cotes where the modelled object
+        // is legitimately not one printed piece: the well's arch stands above
+        // its cited masonry, and paving is shown as a laid field of tiles.
+        // The expectations are computed from the data, never measured.
+        const targetH = p.geometry?.bboxHeight ?? d.height;
+        const targetW = p.geometry?.bboxWidth ?? d.width;
+        const targetD = p.geometry?.bboxDepth ?? d.depth;
+        const dimOk = !s ? false
+          : loose ? near(s.y, targetH) && s.x <= targetW * 1.25 && s.z <= targetD * 1.25
+                  : near(s.x, targetW) && near(s.z, targetD) && near(s.y, targetH);
+
+        // geometry.hollow === false marks a product that is not a vessel.
+        const isVessel = !(p.geometry && p.geometry.hollow === false);
+        const hollow = isVessel ? res.openCavity : true;
+        const bodyHex = (res.mats.body || '').toLowerCase();
+        const finishOk = bodyHex === '#33322f';
+
+        tr.appendChild(td(got, dimOk ? 'ok' : 'bad'));
+        tr.appendChild(td(String(res.meshes)));
+        tr.appendChild(td(!isVessel ? 's.o.' : (hollow ? 'oui' : 'NON — ' + res.firstHit), hollow ? 'ok' : 'bad'));
+        tr.appendChild(td(finishOk ? 'oui' : (bodyHex || 'NON'), finishOk ? 'ok' : 'bad'));
+
+        // The axis must lie on the wall plane at both ends. A flipped lean
+        // showed ±5 cm here; anything over 3 mm of drift is a real defect.
+        const g = res.ribGap;
+        const ribOk = !g || (Math.abs(g.top - g.bottom) < 0.3 &&
+                             Math.abs(g.top) < 0.3 && Math.abs(g.bottom) < 0.3);
+
+        // Perpendicular means |dot| ≈ 0; the shipped bug measured 1.000.
+        const ch = res.chamfer;
+        const chamferOk = !ch || ch.worst < 0.3;
+
+        // Mirrored on the neighbour, a shortfall shows as twice its size.
+        const jt = res.joint;
+        const jointOk = !jt || jt.worst <= 0.6;
+
+        const problems = [];
+        if (!jointOk) problems.push('joint ' + jt.culprit + ' ' + jt.worst + ' cm');
+        if (!chamferOk) problems.push('pans coupés ' + ch.worst);
+        if (!ribOk) problems.push('cannelures ' + g.bottom + '/' + g.top);
+        if (!dimOk) problems.push('cotes');
+        if (isVessel && !hollow) problems.push('cavité');
+        if (!finishOk) problems.push('coloris');
+        const glbOk = glb !== null && glb > 2000;
+        if (!glbOk) problems.push('GLB ' + (glbErr || glb));
+        // A delivered file should read as named parts, not a heap of holders.
+        const tidy = roots !== null && roots <= 24;
+        if (!tidy) problems.push('arborescence ' + roots);
+
+        tr.appendChild(td(problems.length ? problems.join(' + ') : 'OK', problems.length ? 'bad' : 'ok'));
+        tr.appendChild(td(glb === null ? (glbErr || '—') : (glb / 1024).toFixed(0) + ' Ko', glbOk ? 'ok' : 'bad'));
+        tr.appendChild(td(roots === null ? '—' : String(roots), tidy ? 'ok' : 'bad'));
+        problems.length ? fail++ : pass++;
+      }
+
+      rows.appendChild(tr);
+      f.remove();
+    }
+
+    for (const p of db.products) {
+      if (!p.model3D) continue;
+      await check(p);
+      document.getElementById('sum').textContent = `${pass} OK · ${fail} à corriger — en cours…`;
+    }
+    document.getElementById('sum').textContent =
+      `${pass} OK · ${fail} à corriger — contrôle terminé (${db.products.length} références).`;
+    window.__checkDone = { pass, fail };
+  </script>
+</body>
+</html>

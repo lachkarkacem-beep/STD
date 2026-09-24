@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Visualiseur 3D — Lachkar</title>
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "https://unpkg.com/three@0.184.0/build/three.module.js",
+      "three/addons/controls/OrbitControls.js": "https://unpkg.com/three@0.184.0/examples/jsm/controls/OrbitControls.js",
+      "three/addons/exporters/OBJExporter.js": "https://unpkg.com/three@0.184.0/examples/jsm/exporters/OBJExporter.js",
+      "three/addons/exporters/GLTFExporter.js": "https://unpkg.com/three@0.184.0/examples/jsm/exporters/GLTFExporter.js"
+    },
+    "integrity": {
+      "https://unpkg.com/three@0.184.0/build/three.module.js": "sha384-8FCZ1eVO6it4+pbec2aDtnTrwjWXZLJRC+MAGCIPDgsYnUrl/E0A2YlF8ioMKI/J",
+      "https://unpkg.com/three@0.184.0/build/three.core.js": "sha384-dw2ooPewaEIrAgl6oFDBmmBWCE9oW9LxRGcfwZ0hLvEprzo202wXl7vCYHRlSnOT",
+      "https://unpkg.com/three@0.184.0/examples/jsm/controls/OrbitControls.js": "sha384-4rziNxOBZKQ69i+w+f89KJ55TCYquwchVbByQwmaOeIOXdOU2PLDn3kOfXHwIJC9",
+      "https://unpkg.com/three@0.184.0/examples/jsm/exporters/OBJExporter.js": "sha384-nbwtoZENJD3Vq+ACK0CuGQdPMuDWHkamC2KJD70EV5nfg6jQjfppKOea07YJN+N3",
+      "https://unpkg.com/three@0.184.0/examples/jsm/exporters/GLTFExporter.js": "sha384-VofkvpG6HERhFCYbsUOHeNXBCqID2nfqkQqnVzE1jc/oPcz+qJ13ADdXH08hE+cQ"
+    }
+  }
+  </script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body { width: 100%; height: 100%; background: #1b1d2a; }
+    three-d-stage:not(:defined) { visibility: hidden; }
+    three-d-stage { width: 100vw; height: 100vh; display: block; }
+    #err { position: absolute; inset: 0; display: none; align-items: flex-end;
+           padding: 24px; font: 600 13px/1.5 Archivo, system-ui, sans-serif; color: #6b6866; }
+  </style>
+</head>
+<body>
+  <three-d-stage id="stage" background="#1b1d2a" autorotate></three-d-stage>
+  <div id="err">Modèle indisponible pour cette référence.</div>
+  <script src="./three-d-stage.js"></script>
+  <script type="module">
+    const fail = (msg) => {
+      console.error(msg);
+      document.getElementById('err').style.display = 'flex';
+    };
+
+    const ref = new URLSearchParams(location.search).get('ref');
+    if (!ref) fail('No ?ref= given');
+
+    const stage = document.getElementById('stage');
+    const { THREE } = await stage.ready;
+
+    try {
+      const [{ buildFlutedVessel, buildUrn, buildColumn, buildFencePost, buildDogHouse, buildWell, buildSlab, buildSlabField, organiseParts },
+             { fitToCatalog, CATALOG_DIMS }, { wireFinish }, db] = await Promise.all([
+        import('./planter-builder.js'),
+        import('./catalog-dims.js'),
+        import('./finishes.js'),
+        fetch('products/products.json').then(r => r.json())
+      ]);
+
+      const p = db.products.find(x => x.id === ref);
+      if (!p) throw new Error('Reference not in database: ' + ref);
+      if (!p.geometry) throw new Error('No geometry parameters for ' + ref);
+
+      stage.setAttribute('name', ref + '-lachkar');
+
+      const cm = v => v / 100;
+      const g = p.geometry;
+      let group;
+
+      if (g.kind === 'urn') {
+        group = buildUrn(THREE, {
+          diameter: cm(p.dimensions.diameter ?? p.dimensions.width),
+          H: cm(p.dimensions.height),
+          name: ref
+        });
+      } else if (g.kind === 'column') {
+        group = buildColumn(THREE, {
+          H: cm(p.dimensions.height),
+          diameter: cm(p.dimensions.diameter),
+          base: cm(p.dimensions.width),
+          conical: !!g.conical, fluted: !!g.fluted,
+          capital: g.capital, name: ref
+        });
+      } else if (g.kind === 'post') {
+        group = buildFencePost(THREE, {
+          W: cm(p.dimensions.width), D: cm(p.dimensions.depth),
+          H: cm(p.dimensions.height), name: ref
+        });
+      } else if (g.kind === 'kennel') {
+        group = buildDogHouse(THREE, {
+          W: cm(p.dimensions.width), D: cm(p.dimensions.depth),
+          H: cm(p.dimensions.height), name: ref
+        });
+      } else if (g.kind === 'slab') {
+        // Paving is shown as it is laid — a patch of 8 tiles. A lone tile
+        // cannot show these products: the motif completes across the joint.
+        const dims = { W: cm(p.dimensions.width), D: cm(p.dimensions.depth),
+                       T: cm(p.dimensions.height), pattern: g.pattern, name: ref };
+        group = g.field
+          ? buildSlabField(THREE, { ...dims, cols: g.field.cols, rows: g.field.rows })
+          : buildSlab(THREE, dims);
+      } else if (g.kind === 'well') {
+        group = buildWell(THREE, {
+          d1: cm(g.d1), d2: cm(g.d2), H: cm(p.dimensions.height), name: ref
+        });
+      } else {
+        group = buildFlutedVessel(THREE, {
+          W: cm(p.dimensions.width),
+          D: cm(p.dimensions.depth),
+          H: cm(p.dimensions.height),
+          taper: g.taper,
+          flutes: g.flutes,
+          fluteDepth: g.fluteDepth ?? 0.010,
+          fluteFrom: g.fluteFrom, fluteTo: g.fluteTo,
+          rim: g.rim ?? 'plain',
+          foot: g.foot ?? 'feet',
+          wall: g.wall ?? 0.018,
+          name: ref
+        });
+      }
+
+      // Printed dimensions are authoritative; CATALOG_DIMS carries them for the
+      // page-1 references. Newer pages are fitted from products.json directly.
+      if (CATALOG_DIMS[ref]) {
+        console.info('[dim-check] ' + JSON.stringify(fitToCatalog(THREE, group, ref)));
+      } else {
+        // 'prebuilt' geometry is already modelled to the printed dimensions —
+        // rescaling it would be wrong, because projecting parts (urn handles)
+        // inflate the bounding box past the cited diameter.
+        if (!g.prebuilt) {
+          const box = new THREE.Box3().setFromObject(group, true);
+          const size = box.getSize(new THREE.Vector3());
+          const target = {
+            x: cm(p.dimensions.width), y: cm(p.dimensions.height), z: cm(p.dimensions.depth)
+          };
+          let sx = target.x / size.x, sy = target.y / size.y, sz = target.z / size.z;
+          if (g.section === 'preserve') { const k = Math.min(sx, sz); sx = k; sz = k; }
+          group.scale.set(sx, sy, sz);
+        }
+        group.updateMatrixWorld(true);
+        const b2 = new THREE.Box3().setFromObject(group, true);
+        group.position.x -= (b2.min.x + b2.max.x) / 2;
+        group.position.z -= (b2.min.z + b2.max.z) / 2;
+        group.position.y -= b2.min.y;
+        console.info('[dim-check] ' + ref + ' fitted to ' +
+          [p.dimensions.width, p.dimensions.depth, p.dimensions.height].join('×') + ' cm');
+      }
+
+      organiseParts(THREE, group);
+      wireFinish(group);
+    window.__THREE_FOR_CHECK = THREE;   // exposed for check.html
+    // Export probe: the GLB is the deliverable, so it must be provable, not
+    // assumed. Returns the byte length the exporter actually produces.
+    window.__glbProbe = async () => {
+      const { GLTFExporter } = await import('three/addons/exporters/GLTFExporter.js');
+      const obj = stage._object || stage.__obj;
+      if (!obj) throw new Error('no object');
+      const buf = await new Promise((res, rej) =>
+        new GLTFExporter().parse(obj, res, rej, { binary: true }));
+      return buf.byteLength;
+    };
+    // thumb-mode: grid thumbnails are not interactive, so the export toolbar
+    // and the hint line are chrome the card does not want.
+    if (new URLSearchParams(location.search).has('thumb')) {
+      const st = document.createElement('style');
+      st.textContent = '.toolbar,.note{display:none !important}';
+      stage.shadowRoot?.appendChild(st);
+    }
+    stage.setObject(group);
+    } catch (e) {
+      fail(e.message || String(e));
+    }
+  </script>
+</body>
+</html>

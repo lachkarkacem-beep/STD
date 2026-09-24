@@ -1,0 +1,31 @@
+{
+  "id": "B84",
+  "name": "Bac rectangulaire à lames, profondeur réduite",
+  "category": "Bacs à fleurs",
+  "shape": "Rectangulaire",
+  "dimensions_cm": {
+    "width": 82,
+    "depth": 30,
+    "height": 40
+  },
+  "weight_kg": 84,
+  "assets": {
+    "product_image": "products/B84/product.jpg",
+    "viewer": "planter-b84.html",
+    "glb": null,
+    "obj": null,
+    "mtl": null
+  },
+  "model3D": {
+    "source": "procedural",
+    "dimensions_authority": "catalog",
+    "fitted_to_catalog_box": true
+  },
+  "description": "Même façade à lames que le B105 dans une profondeur de 30 cm, pour les rebords et les passages étroits. Socle mouluré sur pieds et margelle débordante identiques.",
+  "available": true,
+  "catalog": {
+    "page": 1,
+    "reference_printed": "B84"
+  },
+  "dimension_type": "box"
+}

@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="_ds/nocturne-86bf45be-d899-4a85-a74e-08a812a6fd7d/styles.css">
+  <script src="_ds/nocturne-86bf45be-d899-4a85-a74e-08a812a6fd7d/_ds_bundle.js"></script>
+  <style>
+    body { margin: 0; background: var(--color-bg); color: var(--color-text); font-family: var(--font-body); }
+    a { color: var(--color-accent-300); text-decoration: none; }
+    a:hover { color: var(--color-accent-200); }
+  </style>
+</helmet>
+
+<div style="min-height:100vh; background:var(--color-bg); padding-bottom:64px">
+
+  <nav class="nav" style="display:flex; align-items:baseline; gap:var(--space-8); padding:var(--space-6) var(--space-8)">
+    <a class="nav-brand" href="Home.dc.html" style="font-family:var(--font-heading); font-weight:500; font-size:18px; letter-spacing:.01em; color:var(--color-text)">{{ companyName }}</a>
+    <span style="font-size:12px; color:var(--color-neutral-500)">{{ companyLine }}</span>
+    <div style="margin-left:auto; display:flex; gap:var(--space-6); align-items:center">
+      <a href="Catalog.dc.html" style="font-size:13px; color:var(--color-neutral-300)">Catalogue</a>
+      <a href="Catalog.dc.html#contact" style="font-size:13px; color:var(--color-neutral-300)">Contact</a>
+    </div>
+  </nav>
+
+  <header style="padding:56px var(--space-8) 40px; max-width:1180px">
+    <span style="display:block; font-size:11px; letter-spacing:.14em; text-transform:uppercase; color:var(--color-accent-300); margin-bottom:var(--space-6)">Fabricant · Maisons et jardins</span>
+    <h1 style="font-family:var(--font-heading); font-weight:500; font-size:clamp(32px,4.6vw,56px); line-height:1.06; letter-spacing:-.02em; margin:0 0 var(--space-6); max-width:18ch; text-wrap:pretty">{{ tagline }}</h1>
+    <p style="max-width:56ch; font-size:15px; line-height:1.6; margin:0 0 var(--space-8); color:var(--color-neutral-400)">{{ intro }}</p>
+    <div style="display:flex; gap:var(--space-4); flex-wrap:wrap">
+      <a class="btn btn-primary" href="Catalog.dc.html">Découvrir la collection</a>
+      <a class="btn btn-secondary" href="Catalog.dc.html#contact">Demander un devis</a>
+    </div>
+  </header>
+
+  <section style="padding:0 var(--space-8); margin-bottom:48px">
+    <div style="display:flex; gap:48px; flex-wrap:wrap; padding:var(--space-8) 0; border-top:1px solid var(--color-divider); border-bottom:1px solid var(--color-divider); max-width:1180px">
+      <sc-for list="{{ stats }}" as="s" hint-placeholder-count="3">
+        <div style="display:flex; flex-direction:column; gap:var(--space-2)">
+          <span style="font-family:var(--font-heading); font-weight:500; font-size:30px; line-height:1; letter-spacing:-.02em">{{ s.value }}</span>
+          <span style="font-size:11px; letter-spacing:.1em; text-transform:uppercase; color:var(--color-neutral-500)">{{ s.label }}</span>
+        </div>
+      </sc-for>
+    </div>
+  </section>
+
+  <section style="padding:0 var(--space-8); margin-bottom:48px; max-width:1180px">
+    <div style="display:flex; align-items:baseline; gap:var(--space-6); margin-bottom:var(--space-8)">
+      <h2 style="font-family:var(--font-heading); font-weight:500; font-size:20px; letter-spacing:-.01em; margin:0">Catégories</h2>
+      <a href="Catalog.dc.html" style="margin-left:auto; font-size:13px">Tout le catalogue</a>
+    </div>
+    <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(240px,1fr)); gap:var(--space-6)">
+      <sc-for list="{{ categories }}" as="cat" hint-placeholder-count="3">
+        <a class="card" href="{{ cat.href }}" style="display:flex; flex-direction:column; gap:var(--space-3); padding:var(--space-8); color:var(--color-text)">
+          <span class="card-kicker" style="color:var(--color-accent-300)">{{ cat.count }} références</span>
+          <span class="card-title" style="font-weight:500; font-size:18px">{{ cat.label }}</span>
+          <span class="card-body" style="font-size:13px; line-height:1.55; color:var(--color-neutral-400)">{{ cat.note }}</span>
+        </a>
+      </sc-for>
+    </div>
+  </section>
+
+  <section style="padding:0 var(--space-8); max-width:1180px">
+    <div style="display:flex; align-items:baseline; gap:var(--space-6); margin-bottom:var(--space-8)">
+      <h2 style="font-family:var(--font-heading); font-weight:500; font-size:20px; letter-spacing:-.01em; margin:0">Sélection</h2>
+      <span style="font-size:12px; color:var(--color-neutral-500)">Vue 3D interactive sur chaque fiche</span>
+    </div>
+    <div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(260px,1fr)); gap:var(--space-6)">
+      <sc-for list="{{ featured }}" as="p" hint-placeholder-count="3">
+        <a class="card" href="{{ p.href }}" style="display:flex; flex-direction:column; padding:0; overflow:hidden; color:var(--color-text)">
+          <iframe src="{{ p.thumbSrc }}" title="{{ p.name }}" loading="lazy" scrolling="no" tabindex="-1" style="width:100%; aspect-ratio:4/3; border:0; pointer-events:none; background:#1b1d2a; display:block"></iframe>
+          <div style="padding:var(--space-6); display:flex; flex-direction:column; gap:var(--space-2); border-top:1px solid var(--color-divider)">
+            <span class="card-kicker" style="color:var(--color-accent-300)">Réf. {{ p.id }}</span>
+            <span style="font-weight:500; font-size:14px; line-height:1.35">{{ p.name }}</span>
+            <span style="font-size:12px; color:var(--color-neutral-500)">{{ p.dimLine }}</span>
+          </div>
+        </a>
+      </sc-for>
+    </div>
+  </section>
+
+  <footer style="margin-top:56px; padding:var(--space-8); border-top:1px solid var(--color-divider); display:flex; gap:var(--space-8); flex-wrap:wrap; align-items:baseline">
+    <span style="font-family:var(--font-heading); font-weight:500; font-size:14px">{{ companyName }}</span>
+    <span style="font-size:12px; color:var(--color-neutral-500)">{{ companyLine }}</span>
+    <a href="Catalog.dc.html" style="margin-left:auto; font-size:13px">Catalogue</a>
+  </footer>
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{}">
+class Component extends DCLogic {
+  state = { db: null };
+
+  componentDidMount() {
+    fetch('products/products.json')
+      .then(r => r.json())
+      .then(db => this.setState({ db }))
+      .catch(e => console.error('products.json failed to load', e));
+  }
+
+  renderVals() {
+    const db = this.state.db;
+    const co = db?.company;
+    const products = db?.products || [];
+    const dimLine = p => (p.dimensionType === 'cylinder'
+      ? `Ø ${p.dimensions.diameter ?? p.dimensions.width} × H ${p.dimensions.height} cm`
+      : `${p.dimensions.width} × ${p.dimensions.depth} × ${p.dimensions.height} cm`) + ` · ${p.weight} kg`;
+
+    return {
+      companyName: co?.name ?? 'Lachkar',
+      companyLine: co?.line ?? '',
+      tagline: co?.tagline ?? '',
+      intro: co?.intro ?? '',
+      stats: [
+        { value: products.length || '—', label: 'Références en ligne' },
+        { value: products.filter(p => p.model3D).length || '—', label: 'Modèles 3D consultables' },
+        { value: '5', label: 'Coloris disponibles' }
+      ],
+      categories: (db?.categories || []).map(c => ({
+        ...c,
+        count: products.filter(p => p.category === c.id).length,
+        href: 'Catalog.dc.html?cat=' + encodeURIComponent(c.id)
+      })),
+      featured: products.slice(0, 3).map(p => ({
+        ...p,
+        dimLine: dimLine(p),
+        href: 'Product.dc.html?ref=' + p.id,
+        // thumb mode: the card is a link, not a viewer — drop the export chrome
+        thumbSrc: p.model3D + (p.model3D.includes('?') ? '&' : '?') + 'thumb=1'
+      }))
+    };
+  }
+}
+
+</script>
+</body>
+</html>

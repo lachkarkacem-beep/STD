@@ -1,0 +1,37 @@
+{
+  "id": "DALPLINTHE",
+  "name": "Plinthe de dallage",
+  "category": "Dallages",
+  "shape": "Barrette",
+  "dimensions_cm": {
+    "width": 40,
+    "depth": 10,
+    "height": 3
+  },
+  "dimension_type": "plinthe",
+  "weight_kg": 1,
+  "assets": {
+    "product_image": "products/DALPLINTHE/product.jpg",
+    "viewer": "viewer.html?ref=DALPLINTHE",
+    "glb": null,
+    "obj": null,
+    "mtl": null
+  },
+  "model3D": {
+    "source": "procedural",
+    "dimensions_authority": "catalog",
+    "parameters": {
+      "kind": "slab",
+      "pattern": "plinthe",
+      "prebuilt": true,
+      "hollow": false
+    }
+  },
+  "description": "Plinthe de finition pour dallage, 10 × 40 cm, à nez arrondi.",
+  "notes": "Le catalogue cote 10 × 40 cm sans épaisseur ; le poids de 1 kg est celui de la pièce, non du mètre carré.",
+  "available": true,
+  "catalog": {
+    "page": 25,
+    "reference_printed": "Plinthe de dallage"
+  }
+}

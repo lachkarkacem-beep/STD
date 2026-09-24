@@ -1,0 +1,45 @@
+{
+  "id": "DALTAPIS",
+  "name": "Dallage Tapis",
+  "category": "Dallages",
+  "shape": "Carrée",
+  "dimensions_cm": {
+    "width": 30,
+    "depth": 30,
+    "height": 3
+  },
+  "dimension_type": "slab",
+  "weight_kg_per_m2": 66,
+  "pieces_per_m2": 11,
+  "assets": {
+    "product_image": "products/DALTAPIS/product.jpg",
+    "viewer": "viewer.html?ref=DALTAPIS",
+    "glb": null,
+    "obj": null,
+    "mtl": null
+  },
+  "model3D": {
+    "source": "procedural",
+    "dimensions_authority": "catalog",
+    "parameters": {
+      "kind": "slab",
+      "pattern": "tapis",
+      "prebuilt": true,
+      "hollow": false,
+      "field": {
+        "cols": 4,
+        "rows": 2,
+        "joint": 0.4
+      },
+      "bboxWidth": 121.2,
+      "bboxDepth": 60.4,
+      "bboxHeight": 3
+    }
+  },
+  "description": "Dalle de 30 × 30 cm, épaisseur 3 cm. Pose de 11 pièces au m² pour 66 kg au m². Le visualiseur présente 8 dalles posées, le motif ne se complétant qu'au passage du joint.",
+  "available": true,
+  "catalog": {
+    "page": 26,
+    "reference_printed": "Dallage Tapis"
+  }
+}

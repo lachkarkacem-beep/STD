@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="_ds/nocturne-86bf45be-d899-4a85-a74e-08a812a6fd7d/styles.css">
+  <script src="_ds/nocturne-86bf45be-d899-4a85-a74e-08a812a6fd7d/_ds_bundle.js"></script>
+  <style>
+    body { margin: 0; background: var(--color-bg); color: var(--color-text); font-family: var(--font-body); }
+    a { color: var(--color-accent-300); text-decoration: none; }
+    a:hover { color: var(--color-accent-200); }
+  </style>
+</helmet>
+
+<div style="min-height:100vh; background:var(--color-bg)">
+
+  <nav class="nav" style="display:flex; align-items:baseline; gap:var(--space-6); padding:var(--space-6) var(--space-8)">
+    <a class="nav-brand" href="Home.dc.html" style="font-family:var(--font-heading); font-weight:500; font-size:18px; color:var(--color-text)">{{ companyName }}</a>
+    <a href="Catalog.dc.html" style="font-size:12px; color:var(--color-neutral-500)">Catalogue</a>
+    <span style="font-size:12px; color:var(--color-neutral-500)">/ {{ ref }}</span>
+    <span style="margin-left:auto; font-size:13px; color:var(--color-neutral-300)">{{ cartLine }}</span>
+  </nav>
+
+  <sc-if value="{{ notFound }}" hint-placeholder-val="{{ false }}">
+    <div style="padding:64px var(--space-8); display:flex; flex-direction:column; gap:var(--space-4); align-items:flex-start">
+      <span style="font-family:var(--font-heading); font-weight:500; font-size:22px">Référence introuvable</span>
+      <span style="font-size:13px; color:var(--color-neutral-400)">{{ notFoundLine }}</span>
+      <a class="btn btn-primary" href="Catalog.dc.html">Retour au catalogue</a>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ found }}" hint-placeholder-val="{{ true }}">
+    <div style="display:grid; grid-template-columns:minmax(0,1.5fr) minmax(0,1fr); gap:var(--space-8); align-items:start; padding:var(--space-6) var(--space-8) 56px">
+
+      <div>
+        <div id="viewer-frame" style="position:relative; background:#1b1d2a; border:1px solid var(--color-divider); border-radius:var(--radius-md); overflow:hidden">
+          <sc-if value="{{ has3D }}" hint-placeholder-val="{{ true }}">
+            <iframe id="viewer" src="{{ model3D }}" title="{{ viewerTitle }}" onLoad="{{ onViewerLoad }}" style="width:100%; height:min(64vh,600px); border:0; display:block"></iframe>
+          </sc-if>
+          <sc-if value="{{ no3D }}" hint-placeholder-val="{{ false }}">
+            <div style="width:100%; height:min(64vh,600px); display:flex; flex-direction:column; justify-content:flex-end; gap:var(--space-3); padding:var(--space-8); background:var(--color-neutral-900)">
+              <span style="font-family:var(--font-heading); font-weight:500; font-size:18px">Vue 3D bientôt disponible</span>
+              <span style="font-size:13px; color:var(--color-neutral-400); max-width:44ch">{{ fallbackLine }}</span>
+            </div>
+          </sc-if>
+          <button type="button" class="btn btn-secondary" onClick="{{ toggleFullscreen }}" style="position:absolute; top:var(--space-4); right:var(--space-4); font-size:12px; padding:6px 12px; background:color-mix(in srgb, var(--color-bg) 86%, transparent)">Plein écran</button>
+        </div>
+        <div style="padding:var(--space-4) var(--space-2); display:flex; gap:var(--space-6); flex-wrap:wrap; font-size:12px; color:var(--color-neutral-500)">
+          <span>Glisser pour orienter · molette pour zoomer</span>
+          <span style="margin-left:auto">Export {{ formatLine }} depuis le visualiseur</span>
+        </div>
+      </div>
+
+      <div style="display:flex; flex-direction:column; gap:var(--space-8)">
+        <div style="display:flex; flex-direction:column; gap:var(--space-4)">
+          <span style="font-size:11px; letter-spacing:.12em; text-transform:uppercase; color:var(--color-accent-300)">Réf. {{ ref }} · {{ category }}</span>
+          <h1 style="font-family:var(--font-heading); font-weight:500; font-size:clamp(22px,2.8vw,30px); line-height:1.15; letter-spacing:-.02em; margin:0; text-wrap:pretty">{{ name }}</h1>
+          <p style="margin:0; font-size:14px; line-height:1.6; color:var(--color-neutral-400)">{{ description }}</p>
+        </div>
+
+        <table class="table" style="width:100%">
+          <tbody>
+            <sc-for list="{{ specs }}" as="row" hint-placeholder-count="6">
+              <tr>
+                <th scope="row" style="text-align:left; font-size:12px; font-weight:400; letter-spacing:.04em; text-transform:uppercase; color:var(--color-neutral-500)">{{ row.label }}</th>
+                <td style="font-size:14px; text-align:right">{{ row.value }}</td>
+              </tr>
+            </sc-for>
+          </tbody>
+        </table>
+
+        <div style="display:flex; flex-direction:column; gap:var(--space-4)">
+          <div style="display:flex; align-items:baseline; gap:var(--space-3)">
+            <span style="font-size:11px; letter-spacing:.12em; text-transform:uppercase; color:var(--color-neutral-500)">Coloris</span>
+            <span style="font-size:13px; color:var(--color-neutral-300)">{{ finishLabel }}</span>
+          </div>
+          <div style="display:flex; gap:var(--space-2); flex-wrap:wrap">
+            <sc-for list="{{ finishOptions }}" as="f" hint-placeholder-count="5">
+              <button type="button" onClick="{{ f.select }}" style="{{ f.style }}">
+                <span style="{{ f.swatchStyle }}"></span>
+                <span>{{ f.label }}</span>
+              </button>
+            </sc-for>
+          </div>
+        </div>
+
+        <div style="display:flex; flex-direction:column; gap:var(--space-4)">
+          <div style="display:flex; gap:var(--space-3); align-items:center">
+            <label for="qty" style="font-size:11px; letter-spacing:.12em; text-transform:uppercase; color:var(--color-neutral-500)">Quantité</label>
+            <input id="qty" class="input" type="number" min="1" step="1" value="{{ qty }}" onInput="{{ onQty }}" style="width:84px">
+          </div>
+          <div style="display:flex; gap:var(--space-3); flex-wrap:wrap">
+            <button type="button" class="btn btn-primary" onClick="{{ addToCart }}">Ajouter au panier</button>
+            <a class="btn btn-secondary" href="Catalog.dc.html#contact">Demander un devis</a>
+          </div>
+          <span style="font-size:13px; color:var(--color-accent-300); min-height:18px">{{ cartFeedback }}</span>
+        </div>
+
+        <div style="display:flex; flex-direction:column; gap:var(--space-3); padding-top:var(--space-6); border-top:1px solid var(--color-divider)">
+          <span style="font-size:11px; letter-spacing:.12em; text-transform:uppercase; color:var(--color-neutral-500)">À propos du modèle 3D</span>
+          <p style="margin:0; font-size:12px; line-height:1.6; color:var(--color-neutral-400)">{{ modelPolicy }}</p>
+          <p style="margin:0; font-size:12px; line-height:1.6; color:var(--color-neutral-400)">{{ exportPolicy }}</p>
+          <sc-if value="{{ hasNotes }}" hint-placeholder-val="{{ false }}">
+            <p style="margin:var(--space-2) 0 0; padding:var(--space-4); font-size:12px; line-height:1.6; border:1px solid var(--color-divider); border-radius:var(--radius-sm); color:var(--color-neutral-400)">{{ notes }}</p>
+          </sc-if>
+        </div>
+      </div>
+    </div>
+
+    <section style="padding:0 var(--space-8) 56px">
+      <h2 style="font-family:var(--font-heading); font-weight:500; font-size:18px; margin:0 0 var(--space-6); padding-top:var(--space-8); border-top:1px solid var(--color-divider)">Même catégorie</h2>
+      <div style="display:grid; grid-template-columns:repeat(auto-fill,minmax(230px,1fr)); gap:var(--space-6)">
+        <sc-for list="{{ related }}" as="p" hint-placeholder-count="4">
+          <a class="card" href="{{ p.href }}" style="display:flex; flex-direction:column; gap:var(--space-2); padding:var(--space-6); color:var(--color-text)">
+            <span class="card-kicker" style="color:var(--color-accent-300)">Réf. {{ p.id }}</span>
+            <span style="font-weight:500; font-size:13px; line-height:1.35">{{ p.name }}</span>
+            <span style="font-size:12px; color:var(--color-neutral-500)">{{ p.dimLine }}</span>
+          </a>
+        </sc-for>
+      </div>
+    </section>
+  </sc-if>
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{}">
+const CART_KEY = 'lachkar-cart';
+const FINISH_KEY = 'lachkar-finish';
+
+class Component extends DCLogic {
+  state = { db: null, ref: null, qty: 1, feedback: '', cartCount: 0, viewerFailed: false,
+            finishes: [], finish: null };
+
+  componentDidMount() {
+    const ref = new URLSearchParams(location.search).get('ref');
+    fetch('products/products.json')
+      .then(r => r.json())
+      .then(db => this.setState({ db, ref: ref || (db.products[0] && db.products[0].id) }))
+      .catch(e => console.error('products.json failed to load', e));
+    this.setState({ cartCount: this.readCart().reduce((n, l) => n + l.qty, 0) });
+
+    import('./finishes.js').then(({ FINISHES, DEFAULT_FINISH }) => {
+      let saved = null;
+      try { saved = localStorage.getItem(FINISH_KEY); } catch (_) {}
+      const valid = FINISHES.some(f => f.id === saved) ? saved : DEFAULT_FINISH;
+      this.setState({ finishes: FINISHES, finish: valid });
+    }).catch(e => console.error('finishes.js failed to load', e));
+  }
+
+  // Switch colour without reloading the model: the viewer listens for this.
+  setFinish(id) {
+    this.setState({ finish: id });
+    try { localStorage.setItem(FINISH_KEY, id); } catch (_) {}
+    document.getElementById('viewer')?.contentWindow
+      ?.postMessage({ type: 'set-finish', finish: id }, '*');
+  }
+
+  // A missing model3D is one way a viewer is unavailable; a viewer that loads
+  // but never builds its geometry is the other. Probe, then fall back.
+  probeViewer() {
+    const started = Date.now();
+    const tick = () => {
+      if (this.state.viewerFailed) return;
+      const stage = document.getElementById('viewer')
+        ?.contentWindow?.document?.querySelector('three-d-stage');
+      if (stage && (stage._object || stage.__obj)) return;
+      if (Date.now() - started > 6000) { this.setState({ viewerFailed: true }); return; }
+      setTimeout(tick, 400);
+    };
+    setTimeout(tick, 400);
+  }
+
+  readCart() {
+    try { const v = JSON.parse(localStorage.getItem(CART_KEY)); return Array.isArray(v) ? v : []; }
+    catch { return []; }
+  }
+
+  product() {
+    return (this.state.db?.products || []).find(p => p.id === this.state.ref) || null;
+  }
+
+  renderVals() {
+    const db = this.state.db;
+    const p = this.product();
+    const dimLine = x => {
+      const d = x.dimensions;
+      switch (x.dimensionType) {
+        case 'cylinder': return `Ø ${d.diameter ?? d.width} × H ${d.height} cm`;
+        case 'column':   return `Ø ${d.diameter} × H ${d.height} cm`;
+        case 'well':     return `Ø ${d.width} × H ${d.height} cm`;
+        case 'slab':
+        case 'plinthe':  return `${d.width} × ${d.depth} cm · ép. ${d.height} cm`;
+        default:         return `${d.width} × ${d.depth} × ${d.height} cm`;
+      }
+    };
+
+    const base = {
+      companyName: db?.company?.name ?? 'Lachkar',
+      ref: this.state.ref ?? '',
+      cartLine: `Panier · ${this.state.cartCount || 0}`,
+      found: !!p,
+      notFound: !!db && !p,
+      notFoundLine: `Aucune référence « ${this.state.ref ?? ''} » dans le catalogue.`,
+      toggleFullscreen: () => {
+        const el = document.getElementById('viewer-frame');
+        if (!el) return;
+        if (document.fullscreenElement) document.exitFullscreen();
+        else el.requestFullscreen?.();
+      }
+    };
+
+    if (!p) return base;
+
+    return {
+      ...base,
+      name: p.name,
+      category: p.category,
+      description: p.description,
+      has3D: !!p.model3D && !this.state.viewerFailed,
+      no3D: !p.model3D || this.state.viewerFailed,
+      // Pinned on first render: changing the src would reload the iframe, and
+      // finish changes are pushed by postMessage instead.
+      model3D: (() => {
+        if (!p.model3D) return p.model3D;
+        if (this._viewerSrc) return this._viewerSrc;
+        if (!this.state.finish) return null;
+        const sep = p.model3D.includes('?') ? '&' : '?';
+        this._viewerSrc = `${p.model3D}${sep}finish=${this.state.finish}`;
+        return this._viewerSrc;
+      })(),
+      onViewerLoad: () => this.probeViewer(),
+      fallbackLine: this.state.viewerFailed
+        ? "Le modèle 3D de cette référence n'a pas pu être chargé. La fiche et les cotes restent valables."
+        : "La photographie du produit s'affiche ici dès qu'elle est fournie.",
+      viewerTitle: `Vue 3D — ${p.id} ${p.name}`,
+      formatLine: (p.formats || []).join(' · '),
+      // Round products are cotés hauteur + diamètre on the catalog page, so the
+      // table follows the printed convention rather than forcing L×P×H.
+      specs: [
+        ...(() => {
+          const d = p.dimensions;
+          if (p.dimensionType === 'cylinder') return [
+            { label: 'Hauteur',  value: d.height + ' cm' },
+            { label: 'Diamètre', value: (d.diameter ?? d.width) + ' cm' }
+          ];
+          if (p.dimensionType === 'column') return [
+            { label: 'Hauteur',         value: d.height + ' cm' },
+            { label: 'Diamètre de fût', value: d.diameter + ' cm' },
+            { label: 'Socle',           value: d.width + ' × ' + d.depth + ' cm' }
+          ];
+          if (p.dimensionType === 'slab' || p.dimensionType === 'plinthe') return [
+            { label: 'Longueur',  value: d.width + ' cm' },
+            { label: 'Largeur',   value: d.depth + ' cm' },
+            { label: 'Épaisseur', value: d.height + ' cm' }
+          ];
+          if (p.dimensionType === 'well') return [
+            { label: 'Hauteur',           value: d.height + ' cm' },
+            { label: 'Diamètre margelle', value: d.diameter + ' cm' },
+            { label: 'Diamètre dallage',  value: d.width + ' cm' }
+          ];
+          return [
+            { label: 'Largeur',    value: d.width + ' cm' },
+            { label: 'Profondeur', value: d.depth + ' cm' },
+            { label: 'Hauteur',    value: d.height + ' cm' }
+          ];
+        })(),
+        ...(p.weightPerM2
+          ? [
+              { label: 'Poids au m²',   value: p.weightPerM2 + ' kg' },
+              { label: 'Pièces au m²',  value: String(p.piecesPerM2).replace('.', ',') }
+            ]
+          : [{ label: 'Poids', value: p.weight + ' kg' }]),
+        { label: 'Forme',        value: p.shape || '—' },
+        { label: 'Disponibilité', value: p.available ? 'Disponible' : 'Sur commande' }
+      ],
+      qty: this.state.qty,
+      onQty: e => this.setState({ qty: Math.max(1, parseInt(e.target.value, 10) || 1) }),
+      finishOptions: this.state.finishes.map(f => {
+        const active = f.id === this.state.finish;
+        return {
+          id: f.id, label: f.label,
+          select: () => this.setFinish(f.id),
+          swatchStyle: `width:22px; height:22px; border-radius:50%; background:${f.swatch}; border:1px solid var(--color-divider)`,
+          style: [
+            'display:flex', 'align-items:center', 'gap:8px', 'padding:6px 11px 6px 7px',
+            'font:inherit', 'font-size:13px', 'cursor:pointer',
+            'border-radius:var(--radius-sm)',
+            'font-weight:' + (active ? '500' : '400'),
+            'border:1px solid ' + (active ? 'var(--color-accent)' : 'var(--color-divider)'),
+            'background:' + (active ? 'color-mix(in srgb, var(--color-accent) 14%, transparent)' : 'transparent'),
+            'color:var(--color-text)'
+          ].join(';')
+        };
+      }),
+      finishLabel: (this.state.finishes.find(f => f.id === this.state.finish) || {}).label || '',
+      addToCart: () => {
+        const finish = this.state.finish;
+        const cart = this.readCart();
+        // A colour is part of what is ordered, so lines are keyed by both.
+        const line = cart.find(l => l.id === p.id && l.finish === finish);
+        if (line) line.qty += this.state.qty;
+        else cart.push({ id: p.id, finish, qty: this.state.qty });
+        try { localStorage.setItem(CART_KEY, JSON.stringify(cart)); } catch (e) { console.warn('cart not persisted', e); }
+        const fl = (this.state.finishes.find(f => f.id === finish) || {}).label || '';
+        this.setState({
+          feedback: `${this.state.qty} × ${p.id}${fl ? ' — ' + fl.toLowerCase() : ''} ajouté au panier.`,
+          cartCount: cart.reduce((n, l) => n + l.qty, 0)
+        });
+      },
+      cartFeedback: this.state.feedback,
+      modelPolicy: db?.model3DPolicy?.procedural ?? '',
+      exportPolicy: db?.model3DPolicy?.exports ?? '',
+      hasNotes: !!p.notes,
+      notes: p.notes || '',
+      // A related strip, not a second catalog: nearest by height, capped at four.
+      related: (db?.products || [])
+        .filter(x => x.category === p.category && x.id !== p.id)
+        .sort((a, b) =>
+          Math.abs(a.dimensions.height - p.dimensions.height) -
+          Math.abs(b.dimensions.height - p.dimensions.height))
+        .slice(0, 4)
+        .map(x => ({ ...x, href: 'Product.dc.html?ref=' + x.id, dimLine: dimLine(x) }))
+    };
+  }
+}
+
+</script>
+</body>
+</html>

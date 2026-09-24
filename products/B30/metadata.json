@@ -1,0 +1,33 @@
+{
+  "id": "B30",
+  "name": "Pot rond à écailles",
+  "category": "Pots décoratifs",
+  "shape": "Rond",
+  "dimensions_cm": {
+    "width": 41,
+    "depth": 41,
+    "height": 41,
+    "diameter": 41
+  },
+  "weight_kg": 30,
+  "assets": {
+    "product_image": "products/B30/product.jpg",
+    "viewer": "planter-b30.html",
+    "glb": null,
+    "obj": null,
+    "mtl": null
+  },
+  "model3D": {
+    "source": "procedural",
+    "dimensions_authority": "catalog",
+    "fitted_to_catalog_box": true
+  },
+  "description": "Pot rond fortement évasé, couvert de six rangs d'écailles arquées en recouvrement. Bourrelet roulé en couronne, pied en piédouche. Le catalogue le cote en hauteur et diamètre.",
+  "available": true,
+  "catalog": {
+    "page": 1,
+    "reference_printed": "B30"
+  },
+  "dimension_type": "cylinder",
+  "notes": "Coté au catalogue en H 41 cm et Diamètre 41 cm. La mention « 30 » de la référence est le poids en kilogrammes, non une hauteur."
+}

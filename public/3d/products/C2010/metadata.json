@@ -1,0 +1,40 @@
+{
+  "id": "C2010",
+  "name": "Colonne — chapiteau à palmes",
+  "category": "Colonnes",
+  "shape": "Ronde",
+  "dimensions_cm": {
+    "width": 37,
+    "depth": 37,
+    "height": 184,
+    "diameter": 20
+  },
+  "dimension_type": "column",
+  "weight_kg": 92,
+  "assets": {
+    "product_image": "products/C2010/product.jpg",
+    "viewer": "viewer.html?ref=C2010",
+    "glb": null,
+    "obj": null,
+    "mtl": null
+  },
+  "model3D": {
+    "source": "procedural",
+    "dimensions_authority": "catalog",
+    "fitted_to_catalog_box": false,
+    "parameters": {
+      "kind": "column",
+      "conical": false,
+      "fluted": true,
+      "capital": "palm",
+      "prebuilt": true,
+      "hollow": false
+    }
+  },
+  "description": "Colonne en pierre reconstituée, fût droit de 20 cm de diamètre à vingt cannelures, chapiteau à palmes. Socle carré de 37 × 37 cm, hauteur 184 cm.",
+  "available": true,
+  "catalog": {
+    "page": 27,
+    "reference_printed": "C2010"
+  }
+}

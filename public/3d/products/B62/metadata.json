@@ -1,0 +1,31 @@
+{
+  "id": "B62",
+  "name": "Bac carré haut à bandeaux",
+  "category": "Bacs à fleurs",
+  "shape": "Carré",
+  "dimensions_cm": {
+    "width": 35,
+    "depth": 35,
+    "height": 60
+  },
+  "weight_kg": 62,
+  "assets": {
+    "product_image": "products/B62/product.jpg",
+    "viewer": "planter-b62.html",
+    "glb": null,
+    "obj": null,
+    "mtl": null
+  },
+  "model3D": {
+    "source": "procedural",
+    "dimensions_authority": "catalog",
+    "fitted_to_catalog_box": true
+  },
+  "description": "Version haute du B42 sur la même emprise de 35 × 35 cm, portée à 60 cm avec sept bandeaux. Destinée aux sujets à port dressé et aux compositions d'entrée.",
+  "available": true,
+  "catalog": {
+    "page": 1,
+    "reference_printed": "B62"
+  },
+  "dimension_type": "box"
+}

@@ -1,0 +1,32 @@
+{
+  "id": "B58",
+  "name": "Pot hexagonal à panneaux",
+  "category": "Pots décoratifs",
+  "shape": "Hexagonal",
+  "dimensions_cm": {
+    "width": 40,
+    "depth": 40,
+    "height": 43
+  },
+  "weight_kg": 28,
+  "assets": {
+    "product_image": "products/B58/product.jpg",
+    "viewer": "planter-b58.html",
+    "glb": null,
+    "obj": null,
+    "mtl": null
+  },
+  "model3D": {
+    "source": "procedural",
+    "dimensions_authority": "catalog",
+    "fitted_to_catalog_box": true
+  },
+  "description": "Pot à six faces. Chaque face porte un panneau encadré d'une moulure en saillie et trois losanges en relief. Socle et margelle hexagonaux suivant le corps.",
+  "available": true,
+  "notes": "Les 40 × 40 cm du catalogue sont lus comme l'encombrement hors tout de l'hexagone (mesure de pointe à pointe). La cote entre faces parallèles en découle et n'est pas imprimée au catalogue.",
+  "catalog": {
+    "page": 1,
+    "reference_printed": "B58"
+  },
+  "dimension_type": "box"
+}

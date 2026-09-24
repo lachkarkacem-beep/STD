@@ -1,0 +1,41 @@
+{
+  "id": "PUITS",
+  "name": "Puits décoratif",
+  "category": "Puits",
+  "shape": "Ronde",
+  "dimensions_cm": {
+    "width": 170,
+    "depth": 170,
+    "height": 83,
+    "diameter": 120
+  },
+  "dimension_type": "well",
+  "weight_kg": 745,
+  "assets": {
+    "product_image": "products/PUITS/product.jpg",
+    "viewer": "viewer.html?ref=PUITS",
+    "glb": null,
+    "obj": null,
+    "mtl": null
+  },
+  "model3D": {
+    "source": "procedural",
+    "dimensions_authority": "catalog",
+    "fitted_to_catalog_box": false,
+    "parameters": {
+      "kind": "well",
+      "d1": 120,
+      "d2": 170,
+      "prebuilt": true,
+      "hollow": false,
+      "bboxHeight": 174.5
+    }
+  },
+  "description": "Puits en pierre reconstituée : margelle moulurée sur trois assises de blocs appareillés, dallage circulaire de 170 cm, et arceau en fer forgé.",
+  "notes": "La hauteur de 83 cm est celle de la maçonnerie ; l'arceau en fer forgé (F1 au catalogue) se développe au-dessus.",
+  "available": true,
+  "catalog": {
+    "page": 17,
+    "reference_printed": "PUITS"
+  }
+}
