@@ -96,7 +96,7 @@ export default function DevisForm({ userId }: { userId: string }) {
 
   return (
     <form onSubmit={onSubmit} className="flex flex-col gap-8">
-      <div className="card divide-y divide-cream-line">
+      <div className="card divide-y divide-line">
         {cart.map((line) => {
           const p = product(line.id);
           const finishLabel = FINISHES.find((f) => f.id === line.finish)?.label ?? line.finish;

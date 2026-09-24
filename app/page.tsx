@@ -35,7 +35,7 @@ export default function HomePage() {
       </header>
 
       <section className="mx-auto mb-12 max-w-6xl px-6">
-        <div className="flex flex-wrap gap-12 border-y border-cream-line py-8">
+        <div className="flex flex-wrap gap-12 border-y border-line py-8">
           {stats.map((s) => (
             <div key={s.label} className="flex flex-col gap-1">
               <span className="font-heading text-3xl font-medium text-ink">{s.value}</span>
@@ -84,11 +84,11 @@ export default function HomePage() {
               {has3D(p) ? (
                 <ProductThumb src={viewerSrc(p, { thumb: true })} title={p.name} />
               ) : (
-                <div className="flex aspect-[4/3] items-center justify-center bg-cream-soft text-sm text-ink-faint">
+                <div className="flex aspect-[4/3] items-center justify-center bg-surface-soft text-sm text-ink-faint">
                   Photo à venir
                 </div>
               )}
-              <div className="flex flex-col gap-1 border-t border-cream-line p-5">
+              <div className="flex flex-col gap-1 border-t border-line p-5">
                 <span className="text-xs font-medium text-brand-600">Réf. {p.id}</span>
                 <span className="text-sm font-medium text-ink">{p.name}</span>
                 <span className="text-xs text-ink-faint">{dimLine(p)}</span>

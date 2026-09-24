@@ -51,7 +51,7 @@ export default async function AdminUsersPage({
       <div className="card overflow-x-auto">
         <table className="w-full min-w-[640px] border-collapse text-sm">
           <thead>
-            <tr className="border-b border-cream-line text-left text-xs uppercase tracking-wide text-ink-faint">
+            <tr className="border-b border-line text-left text-xs uppercase tracking-wide text-ink-faint">
               <th className="px-4 py-3">Nom</th>
               <th className="px-4 py-3">Fonction</th>
               <th className="px-4 py-3">E-mail</th>
@@ -61,7 +61,7 @@ export default async function AdminUsersPage({
           </thead>
           <tbody>
             {filtered.map((c) => (
-              <tr key={c.id} className="border-b border-cream-line last:border-0">
+              <tr key={c.id} className="border-b border-line last:border-0">
                 <td className="px-4 py-3 font-medium text-ink">{c.full_name ?? "—"}</td>
                 <td className="px-4 py-3 text-ink-soft">{c.job_title ?? "—"}</td>
                 <td className="px-4 py-3 text-ink-soft">{c.email}</td>

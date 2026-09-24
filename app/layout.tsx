@@ -5,13 +5,22 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   title: "Société Tunisienne de Décoration — Catalogue",
-  description: "Bacs, pots, vasques, colonnes et dallages en pierre reconstituée pour maisons et jardins.",
+  description:
+    "Bacs, pots, vasques, colonnes et dallages en pierre reconstituée pour maisons et jardins.",
   icons: { icon: "/brand/logo.jpg" },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="fr">
+      <head>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
+        <link
+          href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Poppins:wght@500;600&display=swap"
+          rel="stylesheet"
+        />
+      </head>
       <body className="flex min-h-screen flex-col">
         <SiteHeader />
         <main className="flex-1">{children}</main>

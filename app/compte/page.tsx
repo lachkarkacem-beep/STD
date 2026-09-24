@@ -60,14 +60,14 @@ export default async function ComptePage() {
               {q.message && <p className="text-sm italic text-ink-soft">« {q.message} »</p>}
 
               {q.status === "answered" ? (
-                <div className="rounded-md border border-leaf-400/40 bg-leaf-50 p-4">
-                  <p className="mb-1 text-xs font-medium uppercase tracking-wide text-leaf-700">
+                <div className="rounded-md border border-leaf-300 bg-leaf-50 p-4">
+                  <p className="mb-1 text-xs font-medium uppercase tracking-wide text-grass-700">
                     Réponse{q.replied_at ? ` · ${formatDate(q.replied_at)}` : ""}
                   </p>
                   <p className="text-sm text-ink">{q.reply}</p>
                 </div>
               ) : (
-                <p className="text-xs text-gold-600">Réponse sous 24 à 48 heures.</p>
+                <p className="text-xs text-brand-600">Réponse sous 24 à 48 heures.</p>
               )}
             </div>
           ))}

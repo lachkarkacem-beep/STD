@@ -51,7 +51,7 @@ export default function ProductView({
   return (
     <div className="grid grid-cols-1 gap-8 lg:grid-cols-[1.5fr_1fr]">
       <div>
-        <div className="relative overflow-hidden rounded-lg border border-cream-line bg-[#1b1d2a]">
+        <div className="relative overflow-hidden rounded-lg border border-line bg-[#1b1d2a]">
           {ready && has3D && viewerSrcRef.current ? (
             <iframe
               ref={iframeRef}
@@ -64,7 +64,7 @@ export default function ProductView({
               <span className="font-heading text-lg font-medium text-white">
                 {has3D ? "Chargement de la vue 3D…" : "Vue 3D bientôt disponible"}
               </span>
-              <span className="max-w-md text-sm text-cream-soft">
+              <span className="max-w-md text-sm text-white/70">
                 {has3D
                   ? ""
                   : "La photographie du produit s'affiche ici dès qu'elle est fournie."}
@@ -102,11 +102,11 @@ export default function ProductView({
                   type="button"
                   onClick={() => selectFinish(f.id)}
                   className={`flex items-center gap-2 rounded-md border py-1.5 pl-2 pr-3 text-sm ${
-                    active ? "border-brand-500 bg-brand-50 font-medium" : "border-cream-line"
+                    active ? "border-brand-500 bg-brand-50 font-medium" : "border-line"
                   }`}
                 >
                   <span
-                    className="h-5 w-5 rounded-full border border-cream-line"
+                    className="h-5 w-5 rounded-full border border-line"
                     style={{ background: f.swatch }}
                   />
                   {f.label}
@@ -139,7 +139,7 @@ export default function ProductView({
               Voir mon devis ({cartTotal})
             </a>
           </div>
-          {feedback && <span className="text-sm text-leaf-700">{feedback}</span>}
+          {feedback && <span className="text-sm text-grass-700">{feedback}</span>}
         </div>
       </div>
     </div>

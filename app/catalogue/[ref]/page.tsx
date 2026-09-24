@@ -16,7 +16,7 @@ export default function ProductPage({ params }: { params: { ref: string } }) {
       <table className="mt-10 w-full max-w-md border-collapse">
         <tbody>
           {specRows(product).map((row) => (
-            <tr key={row.label} className="border-b border-cream-line">
+            <tr key={row.label} className="border-b border-line">
               <th
                 scope="row"
                 className="py-2 text-left text-xs font-normal uppercase tracking-wide text-ink-faint"
@@ -30,7 +30,7 @@ export default function ProductPage({ params }: { params: { ref: string } }) {
       </table>
 
       {related.length > 0 && (
-        <section className="mt-14 border-t border-cream-line pt-10">
+        <section className="mt-14 border-t border-line pt-10">
           <h2 className="mb-6 text-lg font-medium text-ink">Même catégorie</h2>
           <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
             {related.map((p) => (

@@ -7,11 +7,11 @@ export default async function SiteHeader() {
   const { user, profile } = await getUserAndProfile();
 
   return (
-    <header className="border-b border-cream-line bg-white">
+    <header className="border-b border-line bg-white">
       <nav className="mx-auto flex max-w-6xl flex-wrap items-center gap-6 px-6 py-4">
         <Link href="/" className="flex items-center gap-3">
           <Image src="/brand/logo.jpg" alt="STD" width={40} height={40} className="rounded-full" />
-          <span className="font-heading text-lg font-medium text-ink">
+          <span className="font-heading text-lg font-semibold text-brand-500">
             Société Tunisienne de Décoration
           </span>
         </Link>
