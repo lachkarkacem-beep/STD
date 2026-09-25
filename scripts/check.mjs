@@ -10,6 +10,7 @@ import fs from "node:fs";
 import path from "node:path";
 import * as THREE from "three";
 import { fillPlanter, PLANT_SPECIES } from "../public/3d/plants-builder.js";
+import { PRESETS } from "../lib/garden/presets.mjs";
 
 const ROOT = path.join(import.meta.dirname, "..");
 const GLB_DIR = path.join(ROOT, "public/models_web/glb");
@@ -186,29 +187,106 @@ for (const { id, soil } of plantable) {
 
 console.log("\n3. Exemples d'aménagement : références valides et pièces au sol\n");
 
-// Les presets sont du TypeScript ; on lit le fichier plutôt que de l'importer,
-// pour garder ce harnais sans étape de compilation.
-const presetSrc = fs.readFileSync(path.join(ROOT, "lib/garden/presets.ts"), "utf8");
-const presetRefs = [...presetSrc.matchAll(/ref:\s*"([A-Z0-9]+)"/g)].map((m) => m[1]);
-const presetSpecies = [...presetSrc.matchAll(/species:\s*"([a-z]+)"/g)].map((m) => m[1]);
 const knownRefs = new Set(db.products.map((p) => p.id));
 const knownSpecies = new Set(PLANT_SPECIES.map((s) => s.id));
+const plantableIds = new Set(plantable.map((p) => p.id));
 
-ok(presetRefs.length > 0, "les exemples déclarent des références");
-for (const ref of new Set(presetRefs)) {
+const allItems = PRESETS.flatMap((p) => p.items);
+ok(allItems.length > 0, "les exemples déclarent des pièces");
+console.log(`   ${PRESETS.length} exemples, ${allItems.length} pièces au total`);
+
+for (const ref of new Set(allItems.map((i) => i.ref))) {
   ok(knownRefs.has(ref), `exemple : la référence ${ref} existe au catalogue`);
 }
-for (const s of new Set(presetSpecies)) {
-  ok(knownSpecies.has(s), `exemple : l'espèce ${s} existe`);
-}
-// Une plantation n'a de sens que sur un bac qui a une cavité.
-const plantableIds = new Set(plantable.map((p) => p.id));
-const pairs = [...presetSrc.matchAll(/ref:\s*"([A-Z0-9]+)"[^}]*species:\s*"([a-z]+)"/g)];
-for (const [, ref, species] of pairs) {
-  ok(plantableIds.has(ref), `exemple : ${ref} peut accueillir « ${species} »`);
+for (const item of allItems) {
+  if (!item.species) continue;
+  ok(knownSpecies.has(item.species), `exemple : l'espèce ${item.species} existe`);
+  // Une plantation n'a de sens que sur un bac qui a une cavité.
+  ok(plantableIds.has(item.ref), `exemple : ${item.ref} peut accueillir « ${item.species} »`);
 }
 
-console.log("\n4. Sauvegarde du projet : aller-retour à l'identique\n");
+console.log("\n4. Exemples : aucune pièce n'en chevauche une autre\n");
+
+// Emprise au sol réelle de chaque référence, lue dans son GLB.
+function footprintOf(ref) {
+  const json = readGlb(path.join(GLB_DIR, `${ref}.glb`));
+  const box = new THREE.Box3();
+  const parentOf = new Map();
+  (json.nodes ?? []).forEach((n, i) => (n.children ?? []).forEach((c) => parentOf.set(c, i)));
+  (json.nodes ?? []).forEach((node, nodeIndex) => {
+    if (node.mesh === undefined) return;
+    for (const prim of json.meshes[node.mesh].primitives ?? []) {
+      const acc = json.accessors[prim.attributes.POSITION];
+      if (!acc?.min || !acc?.max) continue;
+      const chain = [];
+      let cur = nodeIndex;
+      while (cur !== undefined) {
+        chain.unshift(cur);
+        cur = parentOf.get(cur);
+      }
+      const m = new THREE.Matrix4();
+      for (const i of chain) {
+        const n = json.nodes[i];
+        const local = new THREE.Matrix4();
+        if (n.matrix) local.fromArray(n.matrix);
+        else
+          local.compose(
+            new THREE.Vector3().fromArray(n.translation ?? [0, 0, 0]),
+            new THREE.Quaternion().fromArray(n.rotation ?? [0, 0, 0, 1]),
+            new THREE.Vector3().fromArray(n.scale ?? [1, 1, 1])
+          );
+        m.multiply(local);
+      }
+      box.union(
+        new THREE.Box3(
+          new THREE.Vector3().fromArray(acc.min),
+          new THREE.Vector3().fromArray(acc.max)
+        ).applyMatrix4(m)
+      );
+    }
+  });
+  const size = box.getSize(new THREE.Vector3());
+  return { x: size.x / 2, z: size.z / 2 };
+}
+
+// Même formule que lib/garden/scene.ts : enveloppe de l'emprise tournée.
+function placedBox(half, x, z, rotation) {
+  const c = Math.abs(Math.cos(rotation));
+  const s = Math.abs(Math.sin(rotation));
+  const hx = half.x * c + half.z * s;
+  const hz = half.x * s + half.z * c;
+  return { minX: x - hx, maxX: x + hx, minZ: z - hz, maxZ: z + hz };
+}
+
+const halves = new Map();
+for (const preset of PRESETS) {
+  const boxes = preset.items.map((it) => {
+    if (!halves.has(it.ref)) halves.set(it.ref, footprintOf(it.ref));
+    return {
+      ref: it.ref,
+      box: placedBox(halves.get(it.ref), it.x, it.z, it.rotation ?? 0),
+    };
+  });
+
+  let pairs = 0;
+  for (let i = 0; i < boxes.length; i++) {
+    for (let j = i + 1; j < boxes.length; j++) {
+      const a = boxes[i].box;
+      const b = boxes[j].box;
+      const overlapX = Math.min(a.maxX, b.maxX) - Math.max(a.minX, b.minX);
+      const overlapZ = Math.min(a.maxZ, b.maxZ) - Math.max(a.minZ, b.minZ);
+      pairs++;
+      ok(
+        !(overlapX > 0.02 && overlapZ > 0.02),
+        `« ${preset.label} » : ${boxes[i].ref} et ${boxes[j].ref} ne se chevauchent pas`,
+        `recouvrement ${overlapX.toFixed(2)} × ${overlapZ.toFixed(2)} m`
+      );
+    }
+  }
+  console.log(`   « ${preset.label} » : ${boxes.length} pièces, ${pairs} couples vérifiés`);
+}
+
+console.log("\n5. Sauvegarde du projet : aller-retour à l'identique\n");
 
 // Ce que l'éditeur écrit dans localStorage et relit ensuite.
 const project = [

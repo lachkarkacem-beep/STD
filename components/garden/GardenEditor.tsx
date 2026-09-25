@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import type { GardenScene, PlacedItem, CameraMode } from "@/lib/garden/scene";
-import { PRESETS } from "@/lib/garden/presets";
+import { PRESETS } from "@/lib/garden/presets.mjs";
 import { FINISHES, DEFAULT_FINISH } from "@/lib/finishes";
 import { PLANT_SPECIES } from "@/lib/plants";
 import { addToCart } from "@/lib/cart";
@@ -86,9 +86,9 @@ export default function GardenEditor({ products }: { products: EditorProduct[] }
   const addProduct = useCallback((ref: string) => {
     const scene = sceneRef.current;
     if (!scene) return;
-    const id = newId();
-    const spot = scene.freeSpotNear(id, 0, 0, 0);
-    scene.add({ id, ref, finish: DEFAULT_FINISH, species: null, x: spot.x, z: spot.z, rotation: 0 });
+    // La scène cherche elle-même une place libre : elle seule connaît
+    // l'emprise de la pièce, qu'elle ne mesure qu'après chargement du modèle.
+    scene.add({ id: newId(), ref, finish: DEFAULT_FINISH, species: null, x: 0, z: 0, rotation: 0 });
   }, []);
 
   const selected = items.find((i) => i.id === selectedId) ?? null;
@@ -99,6 +99,7 @@ export default function GardenEditor({ products }: { products: EditorProduct[] }
     const preset = PRESETS.find((p) => p.id === presetId);
     if (!scene || !preset) return;
     scene.clear();
+    scene.setPlot(preset.plot ?? null);
     preset.items.forEach((it) =>
       scene.add({
         id: newId(),
@@ -115,9 +116,7 @@ export default function GardenEditor({ products }: { products: EditorProduct[] }
   function duplicate() {
     const scene = sceneRef.current;
     if (!scene || !selected) return;
-    const id = newId();
-    const spot = scene.freeSpotNear(id, selected.x + 0.4, selected.z + 0.4, selected.rotation);
-    scene.add({ ...selected, id, x: spot.x, z: spot.z });
+    scene.add({ ...selected, id: newId(), x: selected.x + 0.4, z: selected.z + 0.4 });
   }
 
   const totals = useMemo(() => {

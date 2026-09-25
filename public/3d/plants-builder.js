@@ -274,7 +274,13 @@ export function findSoil(THREE, group) {
   });
   if (!found) return null;
 
+  // La cavité est ramenée dans le repère de `group`, car c'est là que les
+  // plants seront accrochés. Mesurer en repère monde ferait subir aux plants
+  // le décalage propre du groupe (recentrage du modèle, position dans la
+  // scène), et les poserait à côté du bac.
+  group.updateMatrixWorld(true);
   const box = new THREE.Box3().setFromObject(found);
+  box.applyMatrix4(new THREE.Matrix4().copy(group.matrixWorld).invert());
   return {
     mesh: found,
     box,

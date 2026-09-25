@@ -24,12 +24,29 @@ export type CameraMode = "orbite" | "dessus" | "hauteur";
 const GRID = 0.1; // aimantation au sol : 10 cm
 const snap = (v: number) => Math.round(v / GRID) * GRID;
 
+export type Half = { x: number; z: number };
+
+// Emprise au sol d'une pièce. Une rotation proche du quart de tour échange
+// longueur et largeur ; entre les deux, on prend l'enveloppe pour rester
+// conservateur plutôt que de laisser deux pièces s'interpénétrer.
+export function footprint(half: Half, x: number, z: number, rotation: number) {
+  const c = Math.abs(Math.cos(rotation));
+  const s = Math.abs(Math.sin(rotation));
+  const hx = half.x * c + half.z * s;
+  const hz = half.x * s + half.z * c;
+  return new THREE.Box3(
+    new THREE.Vector3(x - hx, 0, z - hz),
+    new THREE.Vector3(x + hx, 1, z + hz)
+  );
+}
+
 export class GardenScene {
   private renderer: THREE.WebGLRenderer;
   private scene = new THREE.Scene();
   private camera: THREE.PerspectiveCamera;
   private controls: OrbitControls;
   private ground: THREE.Mesh;
+  private plot: THREE.Mesh;
   private loader = new GLTFLoader();
   private cache = new Map<string, THREE.Object3D>();
   private objects = new Map<string, THREE.Object3D>();
@@ -86,6 +103,17 @@ export class GardenScene {
     this.ground.rotation.x = -Math.PI / 2;
     this.ground.receiveShadow = true;
     this.scene.add(this.ground);
+
+    // Parcelle de terre nue, posée sur la pelouse (masquée par défaut).
+    this.plot = new THREE.Mesh(
+      new THREE.PlaneGeometry(1, 1),
+      new THREE.MeshStandardMaterial({ color: 0x8a6748, roughness: 1 })
+    );
+    this.plot.rotation.x = -Math.PI / 2;
+    this.plot.position.y = 0.004;
+    this.plot.receiveShadow = true;
+    this.plot.visible = false;
+    this.scene.add(this.plot);
 
     const grid = new THREE.GridHelper(40, 40, 0x6f9450, 0x769a56);
     (grid.material as THREE.Material).opacity = 0.35;
@@ -155,7 +183,8 @@ export class GardenScene {
     if (!obj) return;
     const x = snap(hit.point.x);
     const z = snap(hit.point.z);
-    if (this.collides(this.dragging, x, z, obj.userData.rotation as number)) return;
+    const half = obj.userData.half as Half;
+    if (this.collidesAt(half, x, z, obj.userData.rotation as number, this.dragging)) return;
     obj.position.x = x;
     obj.position.z = z;
     this.refreshSelectionBox();
@@ -171,13 +200,21 @@ export class GardenScene {
 
   // Collision : emprises au sol (boîtes alignées), avec une petite tolérance
   // pour que deux pièces puissent se toucher sans être refusées.
-  private collides(id: string, x: number, z: number, rotation: number) {
-    const self = this.objects.get(id);
-    if (!self) return false;
-    const box = this.footprintAt(self, x, z, rotation);
+  //
+  // L'emprise est passée explicitement, et non lue sur un objet de la scène :
+  // au moment de poser une pièce, elle n'y est pas encore, et l'interroger
+  // faisait échouer tout test de collision — les pièces s'empilaient à
+  // l'origine.
+  private collidesAt(half: Half, x: number, z: number, rotation: number, ignoreId?: string) {
+    const box = footprint(half, x, z, rotation);
     for (const [otherId, other] of this.objects) {
-      if (otherId === id) continue;
-      const b = this.footprintAt(other, other.position.x, other.position.z, other.userData.rotation);
+      if (otherId === ignoreId) continue;
+      const b = footprint(
+        other.userData.half as Half,
+        other.position.x,
+        other.position.z,
+        other.userData.rotation as number
+      );
       const overlapX = Math.min(box.max.x, b.max.x) - Math.max(box.min.x, b.min.x);
       const overlapZ = Math.min(box.max.z, b.max.z) - Math.max(box.min.z, b.min.z);
       if (overlapX > 0.02 && overlapZ > 0.02) return true;
@@ -185,16 +222,20 @@ export class GardenScene {
     return false;
   }
 
-  private footprintAt(obj: THREE.Object3D, x: number, z: number, rotation: number) {
-    const half = obj.userData.half as { x: number; z: number };
-    // Une rotation d'un quart de tour échange longueur et largeur.
-    const swap = Math.abs(Math.sin(rotation)) > 0.7;
-    const hx = swap ? half.z : half.x;
-    const hz = swap ? half.x : half.z;
-    return new THREE.Box3(
-      new THREE.Vector3(x - hx, 0, z - hz),
-      new THREE.Vector3(x + hx, 1, z + hz)
-    );
+  // Place libre la plus proche, en spirale autour du point visé.
+  private findFreeSpot(half: Half, x: number, z: number, rotation: number, ignoreId?: string) {
+    if (!this.collidesAt(half, x, z, rotation, ignoreId)) return { x: snap(x), z: snap(z) };
+    for (let ring = 1; ring < 60; ring++) {
+      const radius = ring * GRID * 3;
+      const steps = Math.min(48, 8 * ring);
+      for (let a = 0; a < steps; a++) {
+        const angle = (a / steps) * Math.PI * 2;
+        const cx = snap(x + Math.cos(angle) * radius);
+        const cz = snap(z + Math.sin(angle) * radius);
+        if (!this.collidesAt(half, cx, cz, rotation, ignoreId)) return { x: cx, z: cz };
+      }
+    }
+    return { x: snap(x), z: snap(z) };
   }
 
   private async load(ref: string) {
@@ -230,10 +271,14 @@ export class GardenScene {
     const center = box.getCenter(new THREE.Vector3());
     model.position.set(-center.x, -box.min.y, -center.z);
     holder.add(model);
-    holder.userData.half = { x: size.x / 2, z: size.z / 2 };
+    const half: Half = { x: size.x / 2, z: size.z / 2 };
+    holder.userData.half = half;
     holder.userData.model = model;
 
-    holder.position.set(item.x, 0, item.z);
+    // L'emprise n'est connue qu'ici, une fois le modèle mesuré : c'est donc
+    // ici, et pas avant l'appel, que la place libre se cherche.
+    const spot = this.findFreeSpot(half, item.x, item.z, item.rotation);
+    holder.position.set(spot.x, 0, spot.z);
     holder.rotation.y = item.rotation;
 
     this.objects.set(item.id, holder);
@@ -289,7 +334,8 @@ export class GardenScene {
     const holder = this.objects.get(id);
     if (!holder) return;
     const rotation = (holder.userData.rotation as number) + step;
-    if (this.collides(id, holder.position.x, holder.position.z, rotation)) return;
+    const half = holder.userData.half as Half;
+    if (this.collidesAt(half, holder.position.x, holder.position.z, rotation, id)) return;
     holder.userData.rotation = rotation;
     holder.rotation.y = rotation;
     this.refreshSelectionBox();
@@ -303,19 +349,6 @@ export class GardenScene {
     this.objects.delete(id);
     if (this.selectedId === id) this.select(null);
     this.emit();
-  }
-
-  // Cherche une place libre près d'un point donné, en spirale.
-  freeSpotNear(id: string, x: number, z: number, rotation: number) {
-    for (let r = 0; r < 40; r++) {
-      for (let a = 0; a < 8; a++) {
-        const angle = (a / 8) * Math.PI * 2;
-        const cx = snap(x + Math.cos(angle) * r * GRID * 4);
-        const cz = snap(z + Math.sin(angle) * r * GRID * 4);
-        if (!this.collides(id, cx, cz, rotation)) return { x: cx, z: cz };
-      }
-    }
-    return { x, z };
   }
 
   select(id: string | null) {
@@ -335,6 +368,17 @@ export class GardenScene {
     const box = new THREE.Box3().setFromObject(holder);
     this.selection = new THREE.Box3Helper(box, new THREE.Color("#c0392b"));
     this.scene.add(this.selection);
+  }
+
+  /** Affiche (ou masque) la parcelle de terre nue sous les pièces. */
+  setPlot(size: { width: number; depth: number } | null) {
+    if (!size) {
+      this.plot.visible = false;
+      return;
+    }
+    this.plot.geometry.dispose();
+    this.plot.geometry = new THREE.PlaneGeometry(size.width, size.depth);
+    this.plot.visible = true;
   }
 
   setCamera(mode: CameraMode) {
