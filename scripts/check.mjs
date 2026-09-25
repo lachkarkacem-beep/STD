@@ -18,6 +18,8 @@ import { PAVINGS, pavingPitch, pavingLayout, isPavable } from "../lib/garden/pav
 import { ROTATION_STEP, angleFromCenter, normalizeAngle, snapAngle, toDegrees } from "../lib/garden/rotation.mjs";
 import { pageNumbers } from "../lib/pagination.mjs";
 import { EFFECT_ANCHORS } from "../lib/garden/effects.mjs";
+import { FRAME_KINDS, frameFit, frameLayout } from "../lib/garden/framing.mjs";
+import { PROPS, isProp } from "../lib/garden/props.mjs";
 
 const ROOT = path.join(import.meta.dirname, "..");
 const GLB_DIR = path.join(ROOT, "public/models_web/glb");
@@ -743,7 +745,112 @@ for (const p of db.products) {
   ok(!!EFFECT_ANCHORS[p.id], `${p.id} (${p.category}) a bien un effet déclaré`);
 }
 
-console.log("\n12. Sauvegarde du projet : aller-retour à l'identique\n");
+console.log("\n12. Encadrement du jardin : un rectangle net, sans chevauchement\n");
+
+for (const kind of FRAME_KINDS) {
+  ok(knownRefs.has(kind.ref), `cadre ${kind.id} : ${kind.ref} existe au catalogue`);
+  const produit = db.products.find((p) => p.id === kind.ref);
+  if (produit) {
+    // Les cotes du module doivent correspondre à la vraie bordure, sinon le
+    // cadre tombe faux sur le terrain.
+    ok(
+      Math.abs(produit.dimensions.width / 100 - kind.length) < 0.005,
+      `cadre ${kind.id} : longueur conforme au catalogue`,
+      `${kind.length} vs ${produit.dimensions.width / 100}`
+    );
+    ok(
+      Math.abs(produit.dimensions.depth / 100 - kind.thickness) < 0.005,
+      `cadre ${kind.id} : épaisseur conforme au catalogue`
+    );
+    ok(
+      Math.abs(produit.dimensions.height / 100 - kind.height) < 0.005,
+      `cadre ${kind.id} : hauteur conforme au catalogue`
+    );
+  }
+
+  for (const [w, d] of [
+    [8, 6],
+    [5, 5],
+    [12.3, 7.4],
+    [3, 10],
+  ]) {
+    const fit = frameFit(kind.id, w, d);
+    const items = frameLayout(kind.id, w, d);
+
+    // Un cadre doit tomber juste : pas de demi-bordure en bout de course.
+    ok(
+      Math.abs((fit.width / kind.length) % 1) < 1e-6,
+      `cadre ${kind.id} ${w}×${d} : largeur en bordures entières`
+    );
+    ok(items.length === 2 * fit.cols + 2 * fit.rows, `cadre ${kind.id} ${w}×${d} : quatre côtés complets`);
+
+    // Aucune bordure ne doit en chevaucher une autre : la scène refuserait de
+    // les poser, et les angles seraient troués.
+    const boxes = items.map((it) => {
+      const swap = Math.abs(Math.sin(it.rotation ?? 0)) > 0.5;
+      const hx = (swap ? kind.thickness : kind.length) / 2;
+      const hz = (swap ? kind.length : kind.thickness) / 2;
+      return { minX: it.x - hx, maxX: it.x + hx, minZ: it.z - hz, maxZ: it.z + hz };
+    });
+    let chevauchements = 0;
+    for (let i = 0; i < boxes.length; i++) {
+      for (let j = i + 1; j < boxes.length; j++) {
+        const a = boxes[i];
+        const b = boxes[j];
+        const ox = Math.min(a.maxX, b.maxX) - Math.max(a.minX, b.minX);
+        const oz = Math.min(a.maxZ, b.maxZ) - Math.max(a.minZ, b.minZ);
+        if (ox > 0.02 && oz > 0.02) chevauchements++;
+      }
+    }
+    ok(chevauchements === 0, `cadre ${kind.id} ${w}×${d} : aucun chevauchement`, `${chevauchements}`);
+
+    // Le cadre doit être fermé : les quatre côtés présents et centrés.
+    const xs = items.map((i) => i.x);
+    const zs = items.map((i) => i.z);
+    ok(
+      Math.abs(Math.max(...xs) + Math.min(...xs)) < 1e-6,
+      `cadre ${kind.id} ${w}×${d} : centré en x`
+    );
+    ok(
+      Math.abs(Math.max(...zs) + Math.min(...zs)) < 1e-6,
+      `cadre ${kind.id} ${w}×${d} : centré en z`
+    );
+  }
+}
+
+console.log("\n13. Accessoires de simulation : à l'échelle\n");
+
+for (const prop of PROPS) {
+  ok(prop.id.startsWith("SIM:"), `${prop.label} : identifiant distinct du catalogue`);
+  ok(!knownRefs.has(prop.id), `${prop.label} : ne se confond pas avec une référence`);
+  ok(isProp(prop.id), `${prop.label} : reconnu comme accessoire`);
+  // Des cotes crédibles : c'est tout l'intérêt d'un repère d'échelle.
+  ok(prop.height > 0.3 && prop.height < 2.6, `${prop.label} : hauteur plausible`, `${prop.height} m`);
+  ok(prop.half.x > 0.05 && prop.half.z > 0.05, `${prop.label} : emprise au sol définie`);
+}
+const homme = PROPS.find((p) => p.id === "SIM:homme");
+ok(Math.abs(homme.height - 1.75) < 0.01, "la silhouette mesure bien 1,75 m", `${homme.height} m`);
+
+console.log("\n14. Conseils du paysagiste\n");
+
+// Un conseil par famille, et des espèces qui existent réellement.
+{
+  const src = fs.readFileSync(path.join(ROOT, "lib/advice.ts"), "utf8");
+  const familles = [...src.matchAll(/^\s{2}"?([A-ZÀ-Ÿ][^"\n:]*?)"?:\s*\{$/gm)].map((m) => m[1].trim());
+  const especes = new Set(PLANT_SPECIES.map((s) => s.id));
+  const categories = new Set(db.categories.map((c) => c.id));
+
+  for (const c of categories) {
+    ok(familles.includes(c), `la famille « ${c} » a son conseil de paysagiste`);
+  }
+  for (const id of [...src.matchAll(/plantes:\s*\[([^\]]*)\]/g)].flatMap((m) =>
+    [...m[1].matchAll(/"([a-z]+)"/g)].map((x) => x[1])
+  )) {
+    ok(especes.has(id), `conseil : l'espèce ${id} existe bien`);
+  }
+}
+
+console.log("\n15. Sauvegarde du projet : aller-retour à l'identique\n");
 
 // Ce que l'éditeur écrit dans localStorage et relit ensuite.
 const project = [

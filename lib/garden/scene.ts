@@ -15,6 +15,7 @@ import { fenceEdges } from "@/lib/garden/fence.mjs";
 import { pavingLayout } from "@/lib/garden/paving.mjs";
 import { ROTATION_STEP, angleFromCenter, normalizeAngle, snapAngle } from "@/lib/garden/rotation.mjs";
 import { buildEffect } from "@/lib/garden/effects.mjs";
+import { buildProp, isProp } from "@/lib/garden/props.mjs";
 import type { BuildingKind } from "@/lib/garden/buildings.mjs";
 
 export type PlacedItem = {
@@ -369,7 +370,15 @@ export class GardenScene {
     return { x: snap(x), z: snap(z) };
   }
 
-  private async load(ref: string) {
+  private async load(ref: string): Promise<THREE.Object3D> {
+    // Les accessoires de simulation sont construits, pas chargés : ils ne
+    // sont pas au catalogue. Ils suivent ensuite le même chemin que les
+    // produits, donc ils se déplacent et pivotent comme eux.
+    if (isProp(ref)) {
+      const built = buildProp(THREE, ref) as THREE.Object3D | null;
+      if (built) return built;
+    }
+
     const cached = this.cache.get(ref);
     if (cached) return cached.clone(true);
     const gltf = await this.loader.loadAsync(`/models_web/glb/${ref}.glb`);
@@ -426,6 +435,8 @@ export class GardenScene {
   applyFinish(id: string, finish: string) {
     const holder = this.objects.get(id);
     if (!holder) return;
+    // Un accessoire de simulation garde ses matières : bois, toile, métal.
+    if (isProp(holder.userData.ref as string)) return;
     const palette = paletteFor(finish);
     const model = holder.userData.model as THREE.Object3D;
     model.traverse((o) => {

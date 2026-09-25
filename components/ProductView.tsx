@@ -6,6 +6,7 @@ import { FINISHES, DEFAULT_FINISH } from "@/lib/finishes";
 import { PLANT_SPECIES } from "@/lib/plants";
 import Viewer3D from "@/components/Viewer3D";
 import { CATEGORY_TEASERS } from "@/lib/marketing";
+import { adviceFor } from "@/lib/advice";
 import type { Product } from "@/lib/catalog";
 
 export default function ProductView({
@@ -26,6 +27,7 @@ export default function ProductView({
   const [feedback, setFeedback] = useState("");
   const [cartTotal, setCartTotal] = useState(0);
   const teaser = CATEGORY_TEASERS[product.category];
+  const advice = adviceFor(product.category);
   const exportRef = useRef<((withPlants: boolean) => Promise<Blob>) | null>(null);
 
   const onExportReady = useCallback((fn: (withPlants: boolean) => Promise<Blob>) => {
@@ -209,6 +211,39 @@ export default function ProductView({
           </div>
           {feedback && <span className="text-sm text-grass-700">{feedback}</span>}
         </div>
+
+        {advice && (
+          <div className="flex flex-col gap-3 rounded-xl border border-leaf-200 bg-leaf-50 p-5">
+            <h2 className="font-heading text-xl font-normal text-ink">Le conseil du paysagiste</h2>
+            <p className="text-sm leading-relaxed text-ink-soft">{advice.usage}</p>
+            <p className="text-sm leading-relaxed text-ink-soft">{advice.associations}</p>
+            <p className="text-sm leading-relaxed text-ink-soft">{advice.style}</p>
+
+            {plantable && advice.plantes.length > 0 && (
+              <div className="flex flex-wrap items-center gap-2 border-t border-leaf-200 pt-3">
+                <span className="text-xs uppercase tracking-wide text-grass-700">À essayer</span>
+                {advice.plantes.map((id) => {
+                  const espece = PLANT_SPECIES.find((s) => s.id === id);
+                  if (!espece) return null;
+                  return (
+                    <button
+                      key={id}
+                      type="button"
+                      onClick={() => setSpecies(id)}
+                      className={`rounded-full border px-3 py-1 text-xs transition-colors ${
+                        species === id
+                          ? "border-grass-500 bg-white font-medium text-grass-700"
+                          : "border-leaf-300 text-ink-soft hover:border-grass-500"
+                      }`}
+                    >
+                      {espece.label}
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        )}
 
         {product.notes && (
           <p className="rounded-lg border border-line bg-surface-soft p-4 text-xs leading-relaxed text-ink-soft">
