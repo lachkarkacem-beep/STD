@@ -8,7 +8,6 @@ import type { BuildingKind } from "@/lib/garden/buildings.mjs";
 import { PAVINGS, pavingCount } from "@/lib/garden/paving.mjs";
 import { ROTATION_STEP, toDegrees } from "@/lib/garden/rotation.mjs";
 import { PRESETS } from "@/lib/garden/presets.mjs";
-import { FRAME_KINDS, frameLayout, frameSummary } from "@/lib/garden/framing.mjs";
 import { PROPS, isProp } from "@/lib/garden/props.mjs";
 import { FINISHES, DEFAULT_FINISH } from "@/lib/finishes";
 import { PLANT_SPECIES } from "@/lib/plants";
@@ -79,9 +78,6 @@ export default function GardenEditor({ products }: { products: EditorProduct[] }
   const [poolWater, setPoolWater] = useState(true);
   const [paving, setPaving] = useState("");
   const [effects, setEffects] = useState(true);
-  const [frameKind, setFrameKind] = useState("basse");
-  const [frameW, setFrameW] = useState(8);
-  const [frameD, setFrameD] = useState(6);
   const poolRef = useRef<{ width: number; depth: number; x?: number; z?: number } | null>(null);
 
   const byRef = useMemo(() => new Map(products.map((p) => [p.id, p])), [products]);
@@ -199,25 +195,6 @@ export default function GardenEditor({ products }: { products: EditorProduct[] }
     );
   }
 
-  // Pose le rectangle de bordures. La scène refusant les chevauchements,
-  // des angles mal calculés se verraient tout de suite : des pièces seraient
-  // écartées au lieu d.être posées.
-  function encadrer() {
-    const scene = sceneRef.current;
-    if (!scene) return;
-    for (const b of frameLayout(frameKind, frameW, frameD)) {
-      scene.add({
-        id: newId(),
-        ref: b.ref,
-        finish: DEFAULT_FINISH,
-        species: null,
-        x: b.x,
-        z: b.z,
-        rotation: b.rotation ?? 0,
-      });
-    }
-  }
-
   function duplicate() {
     const scene = sceneRef.current;
     if (!scene || !selected) return;
@@ -319,62 +296,6 @@ export default function GardenEditor({ products }: { products: EditorProduct[] }
               </button>
             ))}
           </div>
-        </div>
-
-        <div className="card flex flex-col gap-3 p-4">
-          <h2 className="text-lg font-normal text-ink">Encadrer le jardin</h2>
-          <p className="text-xs leading-snug text-ink-faint">
-            Pose un rectangle de bordures aux angles nets, ajusté sur un nombre entier de pièces.
-          </p>
-          <div className="flex flex-wrap gap-2">
-            {FRAME_KINDS.map((k) => (
-              <button
-                key={k.id}
-                type="button"
-                onClick={() => setFrameKind(k.id)}
-                className={`rounded-full border px-3 py-1 text-xs ${
-                  frameKind === k.id
-                    ? "border-grass-500 bg-leaf-50 text-grass-700"
-                    : "border-line text-ink-soft hover:border-leaf-400"
-                }`}
-              >
-                {k.label}
-              </button>
-            ))}
-          </div>
-          <div className="flex items-center gap-2 text-xs text-ink-soft">
-            <label htmlFor="cadre-l">Largeur</label>
-            <input
-              id="cadre-l"
-              type="number"
-              min={2}
-              max={30}
-              step={0.5}
-              value={frameW}
-              onChange={(e) => setFrameW(Number(e.target.value))}
-              className="input w-20 py-1 text-xs"
-            />
-            <label htmlFor="cadre-p">Profondeur</label>
-            <input
-              id="cadre-p"
-              type="number"
-              min={2}
-              max={30}
-              step={0.5}
-              value={frameD}
-              onChange={(e) => setFrameD(Number(e.target.value))}
-              className="input w-20 py-1 text-xs"
-            />
-          </div>
-          <button type="button" onClick={encadrer} className="btn-secondary w-full text-sm">
-            Encadrer le jardin
-          </button>
-          <span className="text-xs text-ink-faint">
-            {(() => {
-              const s = frameSummary(frameKind, frameW, frameD);
-              return `${s.count} bordures · ${s.width} × ${s.depth} m · ${s.perimetre.toFixed(1)} m de pourtour`;
-            })()}
-          </span>
         </div>
 
         <div className="card flex flex-col gap-3 p-4">

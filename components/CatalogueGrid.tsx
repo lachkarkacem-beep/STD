@@ -3,9 +3,14 @@
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
 import ProductThumb from "@/components/ProductThumb";
+import dynamic from "next/dynamic";
 import ZoomViewer from "@/components/ZoomViewer";
 import { pageNumbers } from "@/lib/pagination.mjs";
 import { dimLine, has3D, glbSrc, type Category, type Product } from "@/lib/catalog";
+
+// La galerie embarque three.js : elle ne doit peser sur la page que lorsque
+// le visiteur la demande.
+const FloatingGallery = dynamic(() => import("@/components/FloatingGallery"), { ssr: false });
 
 const PER_PAGE = 12;
 
@@ -20,6 +25,7 @@ export default function CatalogueGrid({
 }) {
   const [cat, setCat] = useState<string | null>(initialCat);
   const [zoomed, setZoomed] = useState<Product | null>(null);
+  const [galerie, setGalerie] = useState(false);
   const [page, setPage] = useState(1);
   // Sens du feuilletage : l'animation d'entrée part du bord vers lequel on
   // tourne, comme une page qu'on rabat.
@@ -51,6 +57,30 @@ export default function CatalogueGrid({
 
   return (
     <div ref={topRef}>
+      <div className="mb-6 flex flex-wrap items-center gap-3">
+        <button
+          type="button"
+          onClick={() => setGalerie((v) => !v)}
+          aria-pressed={galerie}
+          className={`rounded-full border px-4 py-1.5 text-sm transition-colors ${
+            galerie
+              ? "border-grass-500 bg-leaf-50 text-grass-700"
+              : "border-line text-ink-soft hover:border-brand-300 hover:text-brand-600"
+          }`}
+        >
+          {galerie ? "Revenir à la grille" : "Mode galerie 3D"}
+        </button>
+        <span className="text-xs text-ink-faint">
+          Les pièces flottent en volume — cliquez-en une pour ouvrir sa fiche.
+        </span>
+      </div>
+
+      {galerie && (
+        <div className="mb-10">
+          <FloatingGallery products={products.map((p) => ({ id: p.id, name: p.name }))} />
+        </div>
+      )}
+
       <div className="mb-8 flex flex-wrap gap-2">
         <button
           type="button"

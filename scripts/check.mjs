@@ -18,8 +18,8 @@ import { PAVINGS, pavingPitch, pavingLayout, isPavable } from "../lib/garden/pav
 import { ROTATION_STEP, angleFromCenter, normalizeAngle, snapAngle, toDegrees } from "../lib/garden/rotation.mjs";
 import { pageNumbers } from "../lib/pagination.mjs";
 import { EFFECT_ANCHORS } from "../lib/garden/effects.mjs";
-import { FRAME_KINDS, frameFit, frameLayout } from "../lib/garden/framing.mjs";
 import { PROPS, isProp } from "../lib/garden/props.mjs";
+import { GALLERY_REFS, galleryCount, galleryLayout } from "../lib/gallery.mjs";
 
 const ROOT = path.join(import.meta.dirname, "..");
 const GLB_DIR = path.join(ROOT, "public/models_web/glb");
@@ -745,78 +745,55 @@ for (const p of db.products) {
   ok(!!EFFECT_ANCHORS[p.id], `${p.id} (${p.category}) a bien un effet déclaré`);
 }
 
-console.log("\n12. Encadrement du jardin : un rectangle net, sans chevauchement\n");
+console.log("\n12. Galerie flottante : pièces réelles, réparties sans collision\n");
 
-for (const kind of FRAME_KINDS) {
-  ok(knownRefs.has(kind.ref), `cadre ${kind.id} : ${kind.ref} existe au catalogue`);
-  const produit = db.products.find((p) => p.id === kind.ref);
-  if (produit) {
-    // Les cotes du module doivent correspondre à la vraie bordure, sinon le
-    // cadre tombe faux sur le terrain.
-    ok(
-      Math.abs(produit.dimensions.width / 100 - kind.length) < 0.005,
-      `cadre ${kind.id} : longueur conforme au catalogue`,
-      `${kind.length} vs ${produit.dimensions.width / 100}`
-    );
-    ok(
-      Math.abs(produit.dimensions.depth / 100 - kind.thickness) < 0.005,
-      `cadre ${kind.id} : épaisseur conforme au catalogue`
-    );
-    ok(
-      Math.abs(produit.dimensions.height / 100 - kind.height) < 0.005,
-      `cadre ${kind.id} : hauteur conforme au catalogue`
-    );
-  }
-
-  for (const [w, d] of [
-    [8, 6],
-    [5, 5],
-    [12.3, 7.4],
-    [3, 10],
-  ]) {
-    const fit = frameFit(kind.id, w, d);
-    const items = frameLayout(kind.id, w, d);
-
-    // Un cadre doit tomber juste : pas de demi-bordure en bout de course.
-    ok(
-      Math.abs((fit.width / kind.length) % 1) < 1e-6,
-      `cadre ${kind.id} ${w}×${d} : largeur en bordures entières`
-    );
-    ok(items.length === 2 * fit.cols + 2 * fit.rows, `cadre ${kind.id} ${w}×${d} : quatre côtés complets`);
-
-    // Aucune bordure ne doit en chevaucher une autre : la scène refuserait de
-    // les poser, et les angles seraient troués.
-    const boxes = items.map((it) => {
-      const swap = Math.abs(Math.sin(it.rotation ?? 0)) > 0.5;
-      const hx = (swap ? kind.thickness : kind.length) / 2;
-      const hz = (swap ? kind.length : kind.thickness) / 2;
-      return { minX: it.x - hx, maxX: it.x + hx, minZ: it.z - hz, maxZ: it.z + hz };
-    });
-    let chevauchements = 0;
-    for (let i = 0; i < boxes.length; i++) {
-      for (let j = i + 1; j < boxes.length; j++) {
-        const a = boxes[i];
-        const b = boxes[j];
-        const ox = Math.min(a.maxX, b.maxX) - Math.max(a.minX, b.minX);
-        const oz = Math.min(a.maxZ, b.maxZ) - Math.max(a.minZ, b.minZ);
-        if (ox > 0.02 && oz > 0.02) chevauchements++;
-      }
-    }
-    ok(chevauchements === 0, `cadre ${kind.id} ${w}×${d} : aucun chevauchement`, `${chevauchements}`);
-
-    // Le cadre doit être fermé : les quatre côtés présents et centrés.
-    const xs = items.map((i) => i.x);
-    const zs = items.map((i) => i.z);
-    ok(
-      Math.abs(Math.max(...xs) + Math.min(...xs)) < 1e-6,
-      `cadre ${kind.id} ${w}×${d} : centré en x`
-    );
-    ok(
-      Math.abs(Math.max(...zs) + Math.min(...zs)) < 1e-6,
-      `cadre ${kind.id} ${w}×${d} : centré en z`
-    );
-  }
+for (const ref of GALLERY_REFS) {
+  ok(knownRefs.has(ref), `galerie : ${ref} est une vraie référence du catalogue`);
+  ok(fs.existsSync(path.join(GLB_DIR, `${ref}.glb`)), `galerie : le modèle de ${ref} existe`);
 }
+
+// La galerie doit balayer le catalogue, pas répéter la même famille.
+{
+  const familles = new Set(GALLERY_REFS.map((r) => db.products.find((p) => p.id === r)?.category));
+  ok(familles.size >= 8, "la galerie couvre au moins huit familles", `${familles.size}`);
+}
+
+for (const mobile of [false, true]) {
+  const etiquette = mobile ? "mobile" : "bureau";
+  const count = galleryCount(mobile);
+  ok(count >= 5 && count <= 12, `${etiquette} : entre 5 et 12 miniatures`, `${count}`);
+  ok(count <= GALLERY_REFS.length, `${etiquette} : assez de références disponibles`);
+
+  const layout = galleryLayout(count);
+  ok(layout.length === count, `${etiquette} : toutes les places ont été trouvées`, `${layout.length}`);
+
+  for (const p of layout) {
+    ok(p.scale >= 0.15 && p.scale <= 0.25, `${etiquette} : échelle dans la fourchette demandée`, p.scale.toFixed(3));
+    ok(p.z <= 0, `${etiquette} : les pièces restent devant la caméra`);
+    ok(p.bob > 0 && p.speed > 0, `${etiquette} : chaque pièce a son flottement`);
+  }
+
+  // Aucune paire ne doit se recouvrir : c'est ce qui sépare une galerie d'un tas.
+  for (let i = 0; i < layout.length; i++) {
+    for (let j = i + 1; j < layout.length; j++) {
+      const a = layout[i];
+      const b = layout[j];
+      const d = Math.hypot(a.x - b.x, a.y - b.y, (a.z - b.z) * 0.35);
+      ok(d >= a.radius + b.radius - 1e-9, `${etiquette} : miniatures ${i} et ${j} séparées`, d.toFixed(2));
+    }
+  }
+
+  // Phases toutes différentes : synchronisées, les pièces monteraient ensemble
+  // et le flottement paraîtrait mécanique.
+  const phases = layout.map((p) => +p.phase.toFixed(4));
+  ok(new Set(phases).size === phases.length, `${etiquette} : flottements désynchronisés`);
+
+  // Et un vrai volume, pas un plan unique.
+  const zs = layout.map((p) => p.z);
+  const profondeur = Math.max(...zs) - Math.min(...zs);
+  ok(profondeur > 1, `${etiquette} : les pièces occupent un volume`, `${profondeur.toFixed(2)} m`);
+}
+
 
 console.log("\n13. Accessoires de simulation : à l'échelle\n");
 
