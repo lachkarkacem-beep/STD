@@ -70,6 +70,9 @@ export class GardenScene {
   private fenceMeshEnabled = true;
   private building: THREE.Group | null = null;
   private paving: THREE.Group | null = null;
+  private pavingRef: string | null = null;
+  private pavingArea: { width: number; depth: number; x?: number; z?: number } | null = null;
+  private poolSpec: { width: number; depth: number; x?: number; z?: number; water?: boolean } | null = null;
   readonly isMobile: boolean;
   private loader = new GLTFLoader();
   private cache = new Map<string, THREE.Object3D>();
@@ -613,15 +616,28 @@ export class GardenScene {
    * de rendu, quel que soit le nombre de dalles.
    */
   async setPaving(ref: string | null, area?: { width: number; depth: number; x?: number; z?: number }) {
+    this.pavingRef = ref;
+    this.pavingArea = area ?? null;
+    await this.rebuildPaving();
+  }
+
+  /**
+   * (Re)pose le dallage. Appelé aussi bien au changement de dallage qu'au
+   * changement de bassin : le pavage doit contourner la réserve, et les deux
+   * réglages arrivent dans un ordre quelconque.
+   */
+  private async rebuildPaving() {
     if (this.paving) {
       this.scene.remove(this.paving);
       this.paving.traverse((o) => (o as THREE.Mesh).geometry?.dispose());
       this.paving = null;
     }
+    const ref = this.pavingRef;
     if (!ref) return;
 
-    const surface = area ?? (this.isMobile ? { width: 10, depth: 8 } : { width: 16, depth: 12 });
-    const layout = pavingLayout(ref, surface);
+    const surface =
+      this.pavingArea ?? (this.isMobile ? { width: 10, depth: 8 } : { width: 16, depth: 12 });
+    const layout = pavingLayout(ref, surface, this.poolSpec);
     if (!layout) return;
 
     const model = await this.load(ref);
@@ -711,8 +727,12 @@ export class GardenScene {
   ) {
     // Percer le sol fait partie de la pose du bassin : sans cela, la pelouse
     // masque l'eau et les parois, et le bassin paraît vide.
+    this.poolSpec = spec;
     this.ground.geometry.dispose();
     this.ground.geometry = groundGeometry(spec);
+    // Le dallage doit contourner la nouvelle réserve, sans quoi il reboucherait
+    // l'ouverture qu'on vient de creuser.
+    void this.rebuildPaving();
 
     if (this.pool) {
       this.scene.remove(this.pool);

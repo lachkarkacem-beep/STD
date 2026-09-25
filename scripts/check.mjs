@@ -484,6 +484,43 @@ for (const preset of PRESETS.filter((p) => p.paving)) {
   ok(isPavable(preset.paving), `« ${preset.label} » : ${preset.paving} est une dalle de champ`);
 }
 
+// Le dallage doit contourner le bassin : posé par-dessus, il reboucherait
+// l'ouverture creusée dans le sol et la piscine paraîtrait pleine de dalles.
+for (const preset of PRESETS.filter((p) => p.paving && p.pool)) {
+  const area = preset.pavingArea ?? { width: 16, depth: 12 };
+  const layout = pavingLayout(preset.paving, area, preset.pool);
+  const sans = pavingLayout(preset.paving, area, null);
+  ok(
+    layout.skipped > 0,
+    `« ${preset.label} » : des plaques sont réservées au bassin`,
+    `${layout.skipped} écartées`
+  );
+  ok(
+    layout.positions.length < sans.positions.length,
+    `« ${preset.label} » : le pavage est bien réduit par la réserve`
+  );
+
+  const pool = preset.pool;
+  const poolBox = {
+    minX: (pool.x ?? 0) - pool.width / 2,
+    maxX: (pool.x ?? 0) + pool.width / 2,
+    minZ: (pool.z ?? 0) - pool.depth / 2,
+    maxZ: (pool.z ?? 0) + pool.depth / 2,
+  };
+  for (const p of layout.positions) {
+    const chevauche =
+      p.x + layout.pitch.x / 2 > poolBox.minX &&
+      p.x - layout.pitch.x / 2 < poolBox.maxX &&
+      p.z + layout.pitch.z / 2 > poolBox.minZ &&
+      p.z - layout.pitch.z / 2 < poolBox.maxZ;
+    ok(
+      !chevauche,
+      `« ${preset.label} » : aucune plaque au-dessus du bassin`,
+      `plaque en (${p.x.toFixed(2)}, ${p.z.toFixed(2)})`
+    );
+  }
+}
+
 console.log("\n9. Rotation : pas, calage et affichage\n");
 
 ok(Math.abs(ROTATION_STEP - Math.PI / 12) < 1e-12, "le pas vaut 15°");
