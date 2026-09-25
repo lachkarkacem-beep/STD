@@ -50,6 +50,15 @@ export const ADVICE: Record<string, Advice> = {
     plantes: ["buis"],
     style: "Blanc pour l'esprit classique, gris pour un dessin plus sec et moderne.",
   },
+  Veilleuses: {
+    usage:
+      "Une veilleuse éclaire par en dessous, à hauteur de cheville ou de hanche : elle balise, elle n'inonde pas. Comptez 2,50 à 3 m entre deux lanternes le long d'une allée, pour que les halos se touchent sans se confondre ; isolée, posez-la à l'angle d'une terrasse ou au pied d'un arbre dont elle révélera le tronc.",
+    associations:
+      "Un massif bas au pied, jamais devant la claire-voie : ce sont les découpes qui font le dessin sur le sol. La V50 porte sa propre coupe — des retombées légères y suffisent, elles ne doivent pas noyer les montants ajourés.",
+    plantes: ["lavande", "succulente", "graminee"],
+    style:
+      "Le blanc renvoie le plus de lumière et se voit de loin ; le gris et le noir s'effacent le jour et ne laissent voir que la flamme la nuit.",
+  },
   Clôture: {
     usage:
       "Un piquet tous les 1,50 à 1,60 m, sans exception : c'est cette régularité qui fait une clôture propre. Tendez le grillage une fois les piquets alignés.",

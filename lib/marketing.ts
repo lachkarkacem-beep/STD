@@ -70,6 +70,8 @@ export const CATEGORY_TEASERS: Record<string, string> = {
     "Des coupes généreuses, posées sur piédouche, qui apportent instantanément une note classique et lumineuse à votre entrée.",
   Colonnes:
     "Des colonnes en pierre reconstituée pour encadrer un passage, porter une vasque ou donner de la hauteur à votre extérieur.",
+  Veilleuses:
+    "Des lanternes de pierre à claire-voie qui prolongent vos soirées : la nuit venue, elles posent sur le sol le dessin de leurs découpes et guident le pas jusqu'à la porte.",
   Clôture:
     "Des piquets solides pour délimiter votre terrain avec discrétion, sans rien enlever à la beauté du paysage.",
   Niches:

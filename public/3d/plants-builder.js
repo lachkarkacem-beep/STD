@@ -487,27 +487,63 @@ export function fillPlanter(THREE, group, { species, seed = 1, density = 1 }) {
     Math.min(9, Math.round(((halfX * halfZ) / (radius * radius * 2.4)) * density))
   );
 
+  // Chaque sujet est construit, puis mesuré, AVANT d'être placé.
+  //
+  // Deux graines différentes ne donnent pas la même touffe : un géranium peut
+  // être d'un tiers plus large que son voisin. Se fier à un rayon nominal
+  // commun — et n'exiger qu'une fraction de ce rayon entre deux pieds —
+  // laissait les feuillages se rentrer dedans. La distance exigée est
+  // désormais la SOMME des deux rayons réellement mesurés.
   const placed = [];
-  const attempts = target * 40;
-  for (let i = 0; i < attempts && placed.length < target; i++) {
-    const x = soil.center.x + (r() * 2 - 1) * marginX;
-    const z = soil.center.z + (r() * 2 - 1) * marginZ;
-    // Rejet : deux touffes ne doivent pas se chevaucher.
-    if (placed.some((p) => Math.hypot(p.x - x, p.z - z) < radius * 1.7)) continue;
-    placed.push({ x, z });
-  }
-  // Un bac très étroit n'accueille qu'un sujet, centré.
-  if (placed.length === 0) placed.push({ x: soil.center.x, z: soil.center.z });
+  for (let i = 0; i < target; i++) {
+    const graine = seed + i * 977;
+    const rayonUnite = footprintRadius(THREE, buildPlant(THREE, { species, size: 1, seed: graine }));
+    // Plafonnée par la cavité comme par la taille nominale : la variation ne
+    // doit jamais repousser la touffe hors du bord.
+    const jitter = Math.min(size, (minHalf * 0.92) / rayonUnite) * (0.85 + r() * 0.15);
 
-  placed.forEach((p, i) => {
-    // La variation de taille ne doit jamais repousser la touffe hors du bord,
-    // d'où le plafond à `size`.
-    const jitter = size * (0.85 + r() * 0.15);
-    const plant = buildPlant(THREE, { species, size: jitter, seed: seed + i * 977 });
-    plant.position.set(p.x, soil.top, p.z);
-    plant.rotation.y = r() * Math.PI * 2;
-    plantation.add(plant);
-  });
+    // L'emprise est mesurée sur la touffe réellement construite, et non
+    // extrapolée depuis celle de taille 1 : les générateurs mêlent des cotes
+    // proportionnelles et des épaisseurs fixes, si bien que le rayon ne suit
+    // pas exactement l'échelle. L'écart était petit — et suffisait à faire se
+    // toucher deux feuillages.
+    const plant = buildPlant(THREE, { species, size: jitter, seed: graine });
+    const rayon = footprintRadius(THREE, plant);
+
+    const mx = Math.max(0, halfX - rayon);
+    const mz = Math.max(0, halfZ - rayon);
+
+    let pose = null;
+    for (let essai = 0; essai < 60 && !pose; essai++) {
+      const x = soil.center.x + (r() * 2 - 1) * mx;
+      const z = soil.center.z + (r() * 2 - 1) * mz;
+      if (placed.some((p) => Math.hypot(p.x - x, p.z - z) < p.rayon + rayon)) continue;
+      pose = { x, z };
+    }
+    // Plus de place : le bac est plein. Mieux vaut un sujet de moins qu'une
+    // touffe posée sur sa voisine.
+    if (!pose) break;
+
+    placed.push({ x: pose.x, z: pose.z, rayon, plant });
+  }
+
+  // Un bac très étroit n'accueille qu'un sujet, centré.
+  if (placed.length === 0) {
+    placed.push({
+      x: soil.center.x,
+      z: soil.center.z,
+      rayon: radius,
+      plant: buildPlant(THREE, { species, size, seed }),
+    });
+  }
+
+  for (const p of placed) {
+    p.plant.position.set(p.x, soil.top, p.z);
+    // L'emprise est mesurée au coin le plus éloigné : la rotation ne la change
+    // pas, le rejet reste donc valable.
+    p.plant.rotation.y = r() * Math.PI * 2;
+    plantation.add(p.plant);
+  }
 
   plantation.userData.count = plantation.children.length;
   return plantation;

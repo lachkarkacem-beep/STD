@@ -39,6 +39,11 @@
       "note": "Colonnes en pierre reconstituée, fûts droits ou coniques, lisses ou cannelés."
     },
     {
+      "id": "Veilleuses",
+      "label": "Veilleuses",
+      "note": "Lanternes de pierre à claire-voie, qui percent la nuit d'une lumière chaude."
+    },
+    {
       "id": "Clôture",
       "label": "Clôture",
       "note": "Piquets de clôture en béton, 2 m et 2,50 m."
@@ -2242,6 +2247,106 @@
       "description": "Le modèle complet : foyer maçonné, hotte et cheminée en terre cuite. La fumée est tirée vers le haut, loin des convives.",
       "available": true,
       "catalogPage": 22
+    },
+    {
+      "id": "V23",
+      "name": "Veilleuse V23",
+      "category": "Veilleuses",
+      "shape": "Carré",
+      "dimensionType": "box",
+      "dimensions": {
+        "width": 25,
+        "depth": 25,
+        "height": 40
+      },
+      "weight": 23,
+      "image": "products/V23/product.jpg",
+      "model3D": "viewer.html?ref=V23",
+      "model3DSource": "procedural",
+      "formats": [
+        "GLB",
+        "OBJ",
+        "MTL"
+      ],
+      "description": "Petite lanterne carrée à claire-voie, percée d'étoiles et de flammes sous un toit en pyramide. Posée sur un muret ou à même le sol au bord d'une allée, elle projette la nuit un semis d'étoiles sur la pierre voisine.",
+      "available": true,
+      "catalogPage": 18
+    },
+    {
+      "id": "V40",
+      "name": "Veilleuse V40",
+      "category": "Veilleuses",
+      "shape": "Rond",
+      "dimensionType": "cylinder",
+      "dimensions": {
+        "width": 20,
+        "depth": 20,
+        "height": 80,
+        "diameter": 20
+      },
+      "weight": 45,
+      "image": "products/V40/product.jpg",
+      "model3D": "viewer.html?ref=V40",
+      "model3DSource": "procedural",
+      "formats": [
+        "GLB",
+        "OBJ",
+        "MTL"
+      ],
+      "description": "Lanterne haute à tête ajourée de volutes, coiffée d'un chapeau torsadé, portée par un fût balustre torse sur socle carré. Sa hauteur en fait un jalon : deux ou trois le long d'une allée suffisent à la dessiner dans le noir.",
+      "available": true,
+      "catalogPage": 18,
+      "notes": "Diamètre 20 cm = fût. La tête, non cotée, est relevée sur la photo (≈ Ø 35 cm)."
+    },
+    {
+      "id": "V50",
+      "name": "Veilleuse V50",
+      "category": "Veilleuses",
+      "shape": "Rond",
+      "dimensionType": "cylinder",
+      "dimensions": {
+        "width": 48,
+        "depth": 48,
+        "height": 70,
+        "diameter": 48
+      },
+      "weight": 48,
+      "image": "products/V50/product.jpg",
+      "model3D": "viewer.html?ref=V50",
+      "model3DSource": "procedural",
+      "formats": [
+        "GLB",
+        "OBJ",
+        "MTL"
+      ],
+      "description": "Colonne lumineuse à montants ajourés, surmontée d'une coupe à planter. La lumière sort par les claires-voies du fût pendant que les retombées débordent de la coupe — une pièce qui éclaire et qui fleurit.",
+      "available": true,
+      "catalogPage": 18,
+      "notes": "Diamètre 48 cm = coupe."
+    },
+    {
+      "id": "V90",
+      "name": "Veilleuse V90",
+      "category": "Veilleuses",
+      "shape": "Carré",
+      "dimensionType": "box",
+      "dimensions": {
+        "width": 40,
+        "depth": 40,
+        "height": 70
+      },
+      "weight": 94,
+      "image": "products/V90/product.jpg",
+      "model3D": "viewer.html?ref=V90",
+      "model3DSource": "procedural",
+      "formats": [
+        "GLB",
+        "OBJ",
+        "MTL"
+      ],
+      "description": "Grande lanterne carrée à treillis diagonal sous un toit en pyramide. La trame dessine au sol un damier de lumière ; c'est la pièce d'angle d'une terrasse ou l'accompagnement d'un portail.",
+      "available": true,
+      "catalogPage": 18
     }
   ],
   "dataNotes": {

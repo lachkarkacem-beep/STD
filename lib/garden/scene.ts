@@ -16,7 +16,11 @@ import { pavingLayout } from "@/lib/garden/paving.mjs";
 import { ROTATION_STEP, angleFromCenter, normalizeAngle, snapAngle } from "@/lib/garden/rotation.mjs";
 import { buildEffect } from "@/lib/garden/effects.mjs";
 import { buildProp, isProp } from "@/lib/garden/props.mjs";
+import { ambiance, isVeilleuse, lightVeilleuse } from "@/lib/garden/lights.mjs";
+import { swapPlantation } from "@/lib/garden/plantation.mjs";
 import type { BuildingKind } from "@/lib/garden/buildings.mjs";
+
+export type Moment = "jour" | "nuit";
 
 export type PlacedItem = {
   id: string;
@@ -74,6 +78,10 @@ export class GardenScene {
   private paving: THREE.Group | null = null;
   private pavingToken = 0;
   private effectsEnabled = true;
+  private moment: Moment = "jour";
+  private hemi!: THREE.HemisphereLight;
+  private sun!: THREE.DirectionalLight;
+  private grid!: THREE.GridHelper;
   private pavingRef: string | null = null;
   private pavingArea: { width: number; depth: number; x?: number; z?: number } | null = null;
   private poolSpec: { width: number; depth: number; x?: number; z?: number; water?: boolean } | null = null;
@@ -129,7 +137,8 @@ export class GardenScene {
     this.controls.maxDistance = 35;
     this.controls.target.set(0, 0.4, 0);
 
-    this.scene.add(new THREE.HemisphereLight(0xffffff, 0x6f8f5a, 2));
+    this.hemi = new THREE.HemisphereLight(0xffffff, 0x6f8f5a, 2);
+    this.scene.add(this.hemi);
     const sun = new THREE.DirectionalLight(0xfff4e2, 2.6);
     sun.position.set(8, 12, 6);
     sun.castShadow = true;
@@ -138,6 +147,7 @@ export class GardenScene {
     Object.assign(sun.shadow.camera, { left: -s, right: s, top: s, bottom: -s, near: 0.5, far: 50 });
     sun.shadow.camera.updateProjectionMatrix();
     this.scene.add(sun);
+    this.sun = sun;
 
     // Pelouse : un simple plan teinté, sans texture, pour rester léger. Il est
     // percé lorsqu'un bassin est posé, faute de quoi il recouvrirait l'eau.
@@ -165,6 +175,7 @@ export class GardenScene {
     (grid.material as THREE.Material).transparent = true;
     grid.position.y = 0.002;
     this.scene.add(grid);
+    this.grid = grid;
 
     this.observer = new ResizeObserver(() => this.resize());
     this.observer.observe(mount);
@@ -427,6 +438,7 @@ export class GardenScene {
 
     this.syncPlotToFences();
     this.attachEffect(item.id);
+    this.syncLamp(item.id);
     this.applyFinish(item.id, item.finish);
     if (item.species) await this.applySpecies(item.id, item.species);
     this.emit();
@@ -457,8 +469,9 @@ export class GardenScene {
     if (!holder) return;
     const model = holder.userData.model as THREE.Object3D;
 
-    const previous = model.getObjectByName("plantation");
-    if (previous) model.remove(previous);
+    // Même précaution que sur la fiche produit : c'est le parent réel de la
+    // plantation qu'il faut reprendre, sinon les feuillages s'empilent.
+    swapPlantation(model, null);
     holder.userData.species = species;
     if (!species) return;
 
@@ -472,7 +485,7 @@ export class GardenScene {
         mesh.userData.plant = true;
       }
     });
-    model.add(plantation);
+    swapPlantation(model, plantation);
   }
 
   /** Tourne d'un pas, dans un sens ou dans l'autre. */
@@ -575,6 +588,46 @@ export class GardenScene {
     if (!effect) return;
     holder.add(effect);
     holder.userData.effect = effect;
+  }
+
+  /**
+   * Bascule jour / nuit. Le mode nuit ne se contente pas d'allumer les
+   * veilleuses : il éteint le soleil et assombrit le ciel, faute de quoi la
+   * lumière des lanternes serait noyée et invisible.
+   */
+  setMoment(moment: Moment) {
+    this.moment = moment;
+    const a = ambiance(moment);
+
+    (this.scene.background as THREE.Color).setHex(a.ciel);
+    (this.scene.fog as THREE.Fog).color.setHex(a.brouillard);
+    this.hemi.color.setHex(a.hemiCiel);
+    this.hemi.groundColor.setHex(a.hemiSol);
+    this.hemi.intensity = a.hemiIntensite;
+    this.sun.color.setHex(a.soleil);
+    this.sun.intensity = a.soleilIntensite;
+    this.sun.position.set(a.soleilPos[0], a.soleilPos[1], a.soleilPos[2]);
+    this.renderer.toneMappingExposure = a.exposition;
+    // La grille d'aimantation est un repère de travail : la nuit, elle
+    // trahirait l'illusion.
+    this.grid.visible = moment === "jour";
+
+    for (const id of this.objects.keys()) this.syncLamp(id);
+  }
+
+  /** L'heure courante de la scène. */
+  currentMoment(): Moment {
+    return this.moment;
+  }
+
+  // Pose (ou règle) la lampe d'une veilleuse — même code que la fiche produit,
+  // pour que les deux ne puissent pas diverger.
+  private syncLamp(id: string) {
+    const holder = this.objects.get(id);
+    if (!holder) return;
+    const ref = holder.userData.ref as string;
+    if (!isVeilleuse(ref)) return;
+    lightVeilleuse(THREE, holder.userData.model, ref, this.moment === "nuit" ? 1 : 0);
   }
 
   /** Tend (ou retire) le grillage entre les piquets posés. */

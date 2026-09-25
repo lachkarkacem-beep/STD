@@ -1383,6 +1383,78 @@
         230
       ],
       "plantable": false
+    },
+    {
+      "id": "V23",
+      "name": "Veilleuse V23",
+      "category": "Veilleuses",
+      "file": "glb/V23.glb",
+      "sizeKB": 175,
+      "dimensions_cm": {
+        "width": 25,
+        "depth": 25,
+        "height": 40
+      },
+      "bbox_cm_WxDxH": [
+        25,
+        25,
+        40
+      ],
+      "plantable": false
+    },
+    {
+      "id": "V40",
+      "name": "Veilleuse V40",
+      "category": "Veilleuses",
+      "file": "glb/V40.glb",
+      "sizeKB": 170,
+      "dimensions_cm": {
+        "width": 20,
+        "depth": 20,
+        "height": 80
+      },
+      "bbox_cm_WxDxH": [
+        20,
+        20,
+        80
+      ],
+      "plantable": false
+    },
+    {
+      "id": "V50",
+      "name": "Veilleuse V50",
+      "category": "Veilleuses",
+      "file": "glb/V50.glb",
+      "sizeKB": 239,
+      "dimensions_cm": {
+        "width": 48,
+        "depth": 48,
+        "height": 70
+      },
+      "bbox_cm_WxDxH": [
+        48,
+        48,
+        70
+      ],
+      "plantable": true
+    },
+    {
+      "id": "V90",
+      "name": "Veilleuse V90",
+      "category": "Veilleuses",
+      "file": "glb/V90.glb",
+      "sizeKB": 348,
+      "dimensions_cm": {
+        "width": 40,
+        "depth": 40,
+        "height": 70
+      },
+      "bbox_cm_WxDxH": [
+        40,
+        40,
+        70
+      ],
+      "plantable": false
     }
   ]
 }

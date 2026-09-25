@@ -1,0 +1,31 @@
+{
+  "id": "V50",
+  "name": "Veilleuse V50",
+  "category": "Veilleuses",
+  "shape": "Rond",
+  "dimensionType": "cylinder",
+  "dimensions": {
+    "width": 48,
+    "depth": 48,
+    "height": 70,
+    "diameter": 48
+  },
+  "weight": 48,
+  "image": "products/V50/product.jpg",
+  "model3D": "viewer.html?ref=V50",
+  "model3DSource": "procedural",
+  "formats": [
+    "GLB",
+    "OBJ",
+    "MTL"
+  ],
+  "geometry": {
+    "kind": "lantern",
+    "type": "column-bowl",
+    "prebuilt": true
+  },
+  "description": "Colonne lumineuse à montants ajourés, surmontée d'une coupe à planter.",
+  "notes": "Diamètre 48 cm = coupe.",
+  "available": true,
+  "catalogPage": 18
+}

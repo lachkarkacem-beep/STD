@@ -1,0 +1,29 @@
+{
+  "id": "V23",
+  "name": "Veilleuse V23",
+  "category": "Veilleuses",
+  "shape": "Carré",
+  "dimensionType": "box",
+  "dimensions": {
+    "width": 25,
+    "depth": 25,
+    "height": 40
+  },
+  "weight": 23,
+  "image": "products/V23/product.jpg",
+  "model3D": "viewer.html?ref=V23",
+  "model3DSource": "procedural",
+  "formats": [
+    "GLB",
+    "OBJ",
+    "MTL"
+  ],
+  "geometry": {
+    "kind": "lantern",
+    "type": "box-etoiles",
+    "prebuilt": true
+  },
+  "description": "Veilleuse carrée ajourée d'étoiles et de flammes, toit en pyramide.",
+  "available": true,
+  "catalogPage": 18
+}

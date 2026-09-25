@@ -4,6 +4,10 @@ import { HERO, VALUE_PROPS, STEPS, AUDIENCE, FINAL_CTA } from "@/lib/marketing";
 import { ACTIVITIES, COMPANY } from "@/lib/company";
 import ProductThumb from "@/components/ProductThumb";
 import LogoViewer from "@/components/LogoViewer";
+import dynamic from "next/dynamic";
+
+// La bande embarque three.js : elle ne se charge qu'à l'approche du regard.
+const GalleryRibbon = dynamic(() => import("@/components/GalleryRibbon"), { ssr: false });
 
 export default function HomePage() {
   const products = getProducts();
@@ -52,6 +56,17 @@ export default function HomePage() {
             </div>
           ))}
         </div>
+      </section>
+
+      <section className="mb-16">
+        <div className="mx-auto mb-4 max-w-6xl px-6">
+          <h2 className="text-2xl font-normal text-ink sm:text-3xl">La collection en apesanteur</h2>
+          <p className="mt-2 max-w-2xl text-sm leading-relaxed text-ink-soft">
+            Les pièces passent devant vous, doucement. Posez le regard sur celle qui vous
+            arrête — elle ralentit, et s&apos;ouvre d&apos;un clic.
+          </p>
+        </div>
+        <GalleryRibbon products={products.map((p) => ({ id: p.id, name: p.name }))} />
       </section>
 
       <section className="mx-auto mb-16 max-w-6xl px-6">

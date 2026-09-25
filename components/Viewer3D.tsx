@@ -2,6 +2,8 @@
 
 import { useEffect, useRef, useState } from "react";
 import { paletteFor } from "@/lib/finishes";
+import { swapPlantation } from "@/lib/garden/plantation.mjs";
+import { ambianceFiche, lightVeilleuse } from "@/lib/garden/lights.mjs";
 
 // Visionneuse three.js maison. Elle remplace <model-viewer> sur la fiche
 // produit parce qu'il faut pouvoir injecter des végétaux dans la scène, ce que
@@ -11,6 +13,10 @@ type Props = {
   src: string;
   finish: string;
   species?: string | null;
+  /** Référence du produit : sert à savoir s'il y a une flamme à allumer. */
+  productRef?: string | null;
+  /** Heure de la fiche. La nuit, les veilleuses s'allument. */
+  moment?: "jour" | "nuit";
   autoRotate?: boolean;
   interactive?: boolean;
   className?: string;
@@ -21,6 +27,8 @@ export default function Viewer3D({
   src,
   finish,
   species = null,
+  productRef = null,
+  moment = "jour",
   autoRotate = true,
   interactive = true,
   className = "",
@@ -56,7 +64,8 @@ export default function Viewer3D({
       renderer.domElement.style.height = "100%";
       renderer.domElement.style.display = "block";
 
-      scene.add(new THREE.HemisphereLight(0xffffff, 0xd8d8d0, 2.2));
+      const hemi = new THREE.HemisphereLight(0xffffff, 0xd8d8d0, 2.2);
+      scene.add(hemi);
       const sun = new THREE.DirectionalLight(0xfff6e8, 2.4);
       sun.position.set(1.4, 2.6, 1.2);
       sun.castShadow = true;
@@ -129,7 +138,7 @@ export default function Viewer3D({
         controls.target.set(0, size.y * 0.42, 0);
         controls.update();
 
-        Object.assign(stateRef.current, { THREE, scene, root, model, renderer, camera });
+        Object.assign(stateRef.current, { THREE, scene, root, model, renderer, camera, hemi, sun, ground });
         setStatus("pret");
       } catch {
         if (!disposed) setStatus("erreur");
@@ -179,6 +188,31 @@ export default function Viewer3D({
     });
   }, [finish, status]);
 
+  // Jour / nuit. La nuit, le fond devient sombre et le soleil s'efface : sur
+  // du blanc, une lanterne allumée ne se verrait tout simplement pas.
+  useEffect(() => {
+    const s = stateRef.current as {
+      THREE?: typeof import("three");
+      scene?: import("three").Scene;
+      model?: import("three").Object3D;
+      hemi?: import("three").HemisphereLight;
+      sun?: import("three").DirectionalLight;
+      ground?: import("three").Mesh;
+    };
+    if (!s.scene || !s.model || !s.THREE || !s.hemi || !s.sun || !s.ground) return;
+
+    const a = ambianceFiche(moment);
+    s.scene.background = a.fond === null ? null : new s.THREE.Color(a.fond);
+    s.hemi.color.setHex(a.hemiCiel);
+    s.hemi.groundColor.setHex(a.hemiSol);
+    s.hemi.intensity = a.hemiIntensite;
+    s.sun.color.setHex(a.cle);
+    s.sun.intensity = a.cleIntensite;
+    (s.ground.material as import("three").ShadowMaterial).opacity = a.ombre;
+
+    if (productRef) lightVeilleuse(s.THREE, s.model, productRef, a.allumage);
+  }, [moment, productRef, status]);
+
   // Plantation : reconstruite à chaque changement d'espèce, jamais recolorée.
   useEffect(() => {
     const s = stateRef.current as {
@@ -189,10 +223,12 @@ export default function Viewer3D({
     };
     if (!s.root || !s.model || !s.THREE) return;
 
-    if (s.plantation) {
-      s.root.remove(s.plantation);
-      s.plantation = undefined;
-    }
+    // La plantation est accrochée au MODÈLE, pas à la racine : c'est à son
+    // parent réel qu'il faut la reprendre. La retirer de la racine ne faisait
+    // rien du tout, et chaque changement d'espèce empilait un feuillage de
+    // plus sur le précédent.
+    swapPlantation(s.model, null);
+    s.plantation = undefined;
     if (!species) return;
 
     let cancelled = false;
@@ -204,8 +240,7 @@ export default function Viewer3D({
         const mesh = o as import("three").Mesh;
         if (mesh.isMesh) mesh.castShadow = true;
       });
-      s.model.add(plantation);
-      s.plantation = plantation;
+      s.plantation = swapPlantation(s.model, plantation) ?? undefined;
     });
 
     return () => {

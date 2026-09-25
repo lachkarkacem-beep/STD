@@ -1,0 +1,29 @@
+{
+  "id": "V90",
+  "name": "Veilleuse V90",
+  "category": "Veilleuses",
+  "shape": "Carré",
+  "dimensionType": "box",
+  "dimensions": {
+    "width": 40,
+    "depth": 40,
+    "height": 70
+  },
+  "weight": 94,
+  "image": "products/V90/product.jpg",
+  "model3D": "viewer.html?ref=V90",
+  "model3DSource": "procedural",
+  "formats": [
+    "GLB",
+    "OBJ",
+    "MTL"
+  ],
+  "geometry": {
+    "kind": "lantern",
+    "type": "box-treillis",
+    "prebuilt": true
+  },
+  "description": "Veilleuse carrée à treillis diagonal, toit en pyramide.",
+  "available": true,
+  "catalogPage": 18
+}

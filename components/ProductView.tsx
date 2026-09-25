@@ -7,6 +7,7 @@ import { PLANT_SPECIES } from "@/lib/plants";
 import Viewer3D from "@/components/Viewer3D";
 import { CATEGORY_TEASERS } from "@/lib/marketing";
 import { adviceFor } from "@/lib/advice";
+import { isVeilleuse } from "@/lib/garden/lights.mjs";
 import type { Product } from "@/lib/catalog";
 
 export default function ProductView({
@@ -23,6 +24,10 @@ export default function ProductView({
   const [ready, setReady] = useState(false);
   const [finish, setFinish] = useState(DEFAULT_FINISH);
   const [species, setSpecies] = useState<string | null>(null);
+  const [moment, setMoment] = useState<"jour" | "nuit">("jour");
+  // Seules les veilleuses ont une flamme : proposer la nuit ailleurs ne
+  // montrerait qu'une pièce dans le noir.
+  const veilleuse = isVeilleuse(product.id);
   const [qty, setQty] = useState(1);
   const [feedback, setFeedback] = useState("");
   const [cartTotal, setCartTotal] = useState(0);
@@ -68,15 +73,50 @@ export default function ProductView({
   return (
     <div className="grid grid-cols-1 gap-8 lg:grid-cols-[1.5fr_1fr]">
       <div>
-        <div className="relative h-[64vh] max-h-[600px] overflow-hidden rounded-xl border border-leaf-200 bg-gradient-to-b from-leaf-50 to-leaf-100">
+        <div
+          className={`relative h-[64vh] max-h-[600px] overflow-hidden rounded-xl border transition-colors ${
+            moment === "nuit"
+              ? "border-ink bg-ink"
+              : "border-leaf-200 bg-gradient-to-b from-leaf-50 to-leaf-100"
+          }`}
+        >
           {ready && has3D ? (
-            <Viewer3D src={glbSrc} finish={finish} species={species} onExportReady={onExportReady} />
+            <Viewer3D
+              src={glbSrc}
+              finish={finish}
+              species={species}
+              productRef={product.id}
+              moment={moment}
+              onExportReady={onExportReady}
+            />
           ) : (
             <div className="flex h-full w-full items-center justify-center text-sm text-ink-faint">
               {has3D ? "Chargement de la vue 3D…" : "Vue 3D bientôt disponible"}
             </div>
           )}
         </div>
+        {veilleuse && has3D && (
+          <div className="mt-4 flex flex-wrap items-center gap-3 rounded-xl border border-leaf-200 bg-leaf-50 px-4 py-3">
+            <button
+              type="button"
+              onClick={() => setMoment((m) => (m === "nuit" ? "jour" : "nuit"))}
+              aria-pressed={moment === "nuit"}
+              className={`rounded-full border px-5 py-2 text-sm font-medium transition-colors ${
+                moment === "nuit"
+                  ? "border-ink bg-surface text-ink hover:bg-white"
+                  : "border-brand-500 bg-brand-500 text-white hover:border-brand-600 hover:bg-brand-600"
+              }`}
+            >
+              {moment === "nuit" ? "Revenir au jour" : "Allumer la veilleuse"}
+            </button>
+            <span className="text-xs leading-snug text-ink-soft">
+              {moment === "nuit"
+                ? "Tournez la pièce : les découpes projettent leur dessin tout autour."
+                : "Voyez ce qu'elle donne la nuit tombée, flamme allumée."}
+            </span>
+          </div>
+        )}
+
         <div className="flex flex-wrap items-center gap-4 px-2 py-4 text-xs text-ink-faint">
           <span>Glissez pour tourner l&apos;objet · molette pour zoomer</span>
           {has3D && (

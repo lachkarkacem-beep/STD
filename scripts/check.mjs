@@ -20,6 +20,7 @@ import { pageNumbers } from "../lib/pagination.mjs";
 import { EFFECT_ANCHORS } from "../lib/garden/effects.mjs";
 import { PROPS, isProp } from "../lib/garden/props.mjs";
 import { GALLERY_REFS, galleryCount, galleryLayout } from "../lib/gallery.mjs";
+import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 
 const ROOT = path.join(import.meta.dirname, "..");
 const GLB_DIR = path.join(ROOT, "public/models_web/glb");
@@ -158,14 +159,21 @@ for (const p of db.products) {
   if (soil) plantable.push({ id: p.id, soil });
 }
 console.log(`   ${plantable.length} références plantables détectées`);
-ok(plantable.length === 21, "21 références plantables attendues", `${plantable.length} trouvées`);
+// 21 bacs, pots et vasques, plus la coupe de la veilleuse V50.
+ok(plantable.length === 22, "22 références plantables attendues", `${plantable.length} trouvées`);
+
+// La graine 7 est celle que la fiche produit et l'éditeur emploient réellement
+// (Viewer3D et GardenScene.applySpecies) : la tester d'abord, sans quoi le
+// harnais contrôle une plantation que personne ne voit jamais.
+const GRAINES = [7, 42];
 
 for (const { id, soil } of plantable) {
   for (const species of PLANT_SPECIES) {
+    for (const graine of GRAINES) {
     const group = soilStandIn(soil);
-    const plantation = fillPlanter(THREE, group, { species: species.id, seed: 42 });
+    const plantation = fillPlanter(THREE, group, { species: species.id, seed: graine });
     if (!plantation) {
-      ok(false, `${id} / ${species.id} : plantation générée`);
+      ok(false, `${id} / ${species.id} (graine ${graine}) : plantation générée`);
       continue;
     }
     ok(plantation.children.length > 0, `${id} / ${species.id} : au moins un sujet`);
@@ -185,23 +193,42 @@ for (const { id, soil } of plantable) {
     }
 
     // Pas de chevauchement entre sujets.
-    const boxes = plantation.children.map((c) => new THREE.Box3().setFromObject(c));
-    for (let i = 0; i < boxes.length; i++) {
-      for (let j = i + 1; j < boxes.length; j++) {
-        const a = boxes[i];
-        const b = boxes[j];
-        const overlapX = Math.min(a.max.x, b.max.x) - Math.max(a.min.x, b.min.x);
-        const overlapZ = Math.min(a.max.z, b.max.z) - Math.max(a.min.z, b.min.z);
-        // Un léger entrelacement du feuillage est naturel ; c'est le
-        // recouvrement franc de deux touffes qui serait faux.
-        const aSize = a.getSize(new THREE.Vector3());
-        const bSize = b.getSize(new THREE.Vector3());
-        const seuil = Math.min(aSize.x, bSize.x, aSize.z, bSize.z) * 0.8;
+    //
+    // Le critère porte sur les emprises réelles : la distance entre deux
+    // pieds doit valoir au moins la somme de leurs rayons de feuillage. Le
+    // contrôle précédent comparait des boîtes et ne se déclenchait qu'en cas
+    // de superposition quasi totale — il laissait donc passer les touffes qui
+    // se rentrent dedans à moitié, exactement ce qui se voyait sur les fiches.
+    // Le rayon est mesuré sur les sommets réels, et non sur la boîte
+    // englobante : celle d'une touffe tournée est plus large que la touffe
+    // elle-même, et l'on accuserait de chevauchement des plantes qui ne se
+    // touchent pas.
+    const emprises = plantation.children.map((c) => {
+      c.updateMatrixWorld(true);
+      let rayon = 0;
+      const v = new THREE.Vector3();
+      c.traverse((o) => {
+        if (!o.isMesh) return;
+        const pos = o.geometry.getAttribute("position");
+        for (let k = 0; k < pos.count; k++) {
+          v.fromBufferAttribute(pos, k).applyMatrix4(o.matrixWorld);
+          rayon = Math.max(rayon, Math.hypot(v.x - c.position.x, v.z - c.position.z));
+        }
+      });
+      return { x: c.position.x, z: c.position.z, rayon };
+    });
+    for (let i = 0; i < emprises.length; i++) {
+      for (let j = i + 1; j < emprises.length; j++) {
+        const a = emprises[i];
+        const b = emprises[j];
+        const d = Math.hypot(a.x - b.x, a.z - b.z);
         ok(
-          !(overlapX > seuil && overlapZ > seuil),
-          `${id} / ${species.id} : sujets ${i} et ${j} non superposés`
+          d >= a.rayon + b.rayon - 1e-6,
+          `${id} / ${species.id} (graine ${graine}) : sujets ${i} et ${j} non superposés`,
+          `distance ${d.toFixed(3)} < ${(a.rayon + b.rayon).toFixed(3)}`
         );
       }
+    }
     }
   }
 }
@@ -864,6 +891,244 @@ for (let i = 0; i < project.length; i++) {
     `pièce ${i} : position et orientation conservées`
   );
   ok(knownRefs.has(b.ref), `pièce ${i} : la référence existe toujours au catalogue`);
+}
+
+console.log("\n16. Changer d'espèce ne superpose pas les plantations\n");
+
+{
+  const { swapPlantation, countPlantations } = await import("../lib/garden/plantation.mjs");
+
+  // Le graphe de la fiche produit : une racine, le modèle dedans, la
+  // plantation accrochée au modèle. C'est cette différence entre les deux
+  // niveaux qui avait fait manquer le retrait.
+  const { soil } = plantable.find((p) => p.id === "B105");
+
+  const root = new THREE.Group();
+  const model = soilStandIn(soil);
+  root.add(model);
+
+  // Douze changements d'espèce d'affilée, comme un visiteur qui essaie tout.
+  for (const species of PLANT_SPECIES) {
+    const next = fillPlanter(THREE, model, { species: species.id, seed: 7 });
+    swapPlantation(model, next);
+    ok(
+      countPlantations(model) === 1,
+      `après « ${species.id} », le modèle ne porte qu'une plantation`,
+      `${countPlantations(model)} plantations empilées`
+    );
+    ok(
+      model.getObjectByName("plantation")?.userData.species === species.id,
+      `après « ${species.id} », c'est bien la nouvelle espèce qui est en place`
+    );
+  }
+
+  // Et la remise à zéro doit tout enlever.
+  swapPlantation(model, null);
+  ok(countPlantations(model) === 0, "« aucune plantation » laisse le bac vide");
+
+  // Le composant doit passer par ce module, et non retirer la plantation d'un
+  // groupe qui n'est pas son parent — l'erreur d'origine.
+  const viewer = fs.readFileSync(path.join(ROOT, "components/Viewer3D.tsx"), "utf8");
+  ok(
+    viewer.includes("swapPlantation"),
+    "la fiche produit échange sa plantation par le module vérifié"
+  );
+  ok(
+    !/root\.remove\(\s*s\.plantation\s*\)/.test(viewer),
+    "la fiche produit ne retire plus la plantation d'un groupe qui ne la porte pas"
+  );
+
+  // L'éditeur de jardin souffrait du même piège : getObjectByName cherche en
+  // profondeur, alors que remove() n'agit que sur les enfants directs.
+  const scene = fs.readFileSync(path.join(ROOT, "lib/garden/scene.ts"), "utf8");
+  ok(
+    scene.includes("swapPlantation"),
+    "l'éditeur de jardin échange sa plantation par le module vérifié"
+  );
+  ok(
+    !/model\.remove\(previous\)/.test(scene),
+    "l'éditeur ne suppose plus que la plantation est un enfant direct"
+  );
+}
+
+console.log("\n17. Veilleuses : la flamme s'allume au bon endroit\n");
+
+{
+  const { VEILLEUSES, MAT_LUMIERE, NOEUD_FOYER, veilleuseRefs, lightVeilleuse, ambianceFiche, ambiance } =
+    await import("../lib/garden/lights.mjs");
+
+  const loader = new GLTFLoader();
+
+  for (const ref of veilleuseRefs()) {
+    const file = path.join(GLB_DIR, `${ref}.glb`);
+    ok(fs.existsSync(file), `${ref} : le modèle est servi depuis models_web`);
+    if (!fs.existsSync(file)) continue;
+
+    // Node réutilise ses tampons : passer `.buffer` tel quel livrerait des
+    // octets voisins en plus du fichier. On en extrait la tranche exacte.
+    const buf = fs.readFileSync(file);
+    const gltf = await loader.parseAsync(
+      buf.buffer.slice(buf.byteOffset, buf.byteOffset + buf.byteLength),
+      ""
+    );
+    const model = gltf.scene;
+
+    // Le nœud et le matériau sur lesquels tout repose doivent exister : c'est
+    // ce que le code suppose, et une livraison future pourrait les renommer.
+    const foyer = model.getObjectByName(NOEUD_FOYER);
+    ok(!!foyer, `${ref} : le nœud « ${NOEUD_FOYER} » existe`);
+
+    let aLumiere = false;
+    model.traverse((o) => {
+      if (!o.isMesh) return;
+      const mats = Array.isArray(o.material) ? o.material : [o.material];
+      if (mats.some((m) => m && m.name === MAT_LUMIERE)) aLumiere = true;
+    });
+    ok(aLumiere, `${ref} : le matériau « ${MAT_LUMIERE} » existe`);
+
+    // Éteinte : aucune lumière, aucun rougeoiement. « Presque rien » ne suffit
+    // pas — une veilleuse allumée en plein jour se verrait.
+    lightVeilleuse(THREE, model, ref, 0);
+    const lamp = model.userData.lampeVeilleuse;
+    ok(!!lamp, `${ref} : une lampe est posée`);
+    ok(lamp.intensity === 0, `${ref} : éteinte, la lampe n'éclaire pas`);
+
+    let emissif = 0;
+    model.traverse((o) => {
+      if (!o.isMesh) return;
+      const mats = Array.isArray(o.material) ? o.material : [o.material];
+      for (const m of mats) if (m?.name === MAT_LUMIERE) emissif = m.emissiveIntensity;
+    });
+    ok(emissif === 0, `${ref} : éteinte, la claire-voie ne rougeoie pas`);
+
+    // Allumée : la flamme est à la hauteur mesurée dans le fichier livré.
+    lightVeilleuse(THREE, model, ref, 1);
+    ok(lamp.intensity > 0, `${ref} : allumée, la lampe éclaire`);
+
+    model.updateMatrixWorld(true);
+    const p = lamp.getWorldPosition(new THREE.Vector3());
+    const attendu = VEILLEUSES[ref].foyer;
+    ok(
+      Math.abs(p.y - attendu) < 0.005,
+      `${ref} : la flamme est au foyer du modèle`,
+      `y=${p.y.toFixed(3)} au lieu de ${attendu}`
+    );
+
+    // Et elle reste DANS la lanterne, jamais au-dessus du toit ni sous le socle.
+    const box = new THREE.Box3().setFromObject(model);
+    ok(
+      p.y > box.min.y && p.y < box.max.y,
+      `${ref} : la flamme est à l'intérieur de la pièce`,
+      `y=${p.y.toFixed(3)} hors de [${box.min.y.toFixed(3)}, ${box.max.y.toFixed(3)}]`
+    );
+
+    // Rallumer ne doit pas poser une seconde lampe.
+    lightVeilleuse(THREE, model, ref, 1);
+    let lampes = 0;
+    model.traverse((o) => {
+      if (o.isPointLight) lampes++;
+    });
+    ok(lampes === 1, `${ref} : rallumer ne pose pas de lampe en double`, `${lampes} lampes`);
+  }
+
+  // Une pièce qui n'est pas une veilleuse n'a rien à allumer.
+  ok(lightVeilleuse(THREE, new THREE.Group(), "PUITS", 1) === null, "le puits n'a pas de flamme");
+
+  // La nuit doit éteindre le reste, sinon la flamme serait noyée.
+  const jour = ambiance("jour");
+  const nuit = ambiance("nuit");
+  ok(nuit.soleilIntensite < jour.soleilIntensite * 0.2, "la nuit, le soleil s'efface");
+  ok(nuit.hemiIntensite < jour.hemiIntensite * 0.3, "la nuit, la lumière du ciel baisse");
+  ok(nuit.allumage === 1 && jour.allumage === 0, "les veilleuses ne s'allument que la nuit");
+
+  // Sur la fiche, le fond doit devenir opaque et sombre : sur du blanc, une
+  // lanterne allumée ne se verrait pas.
+  const fJour = ambianceFiche("jour");
+  const fNuit = ambianceFiche("nuit");
+  ok(fJour.fond === null, "le jour, la fiche garde le fond clair de la page");
+  ok(typeof fNuit.fond === "number", "la nuit, la fiche prend un fond opaque");
+  ok(fNuit.cleIntensite < fJour.cleIntensite * 0.2, "la nuit, la fiche éteint sa lumière clé");
+  ok(fNuit.allumage === 1 && fJour.allumage === 0, "la fiche n'allume la flamme que la nuit");
+
+  // Les deux vues doivent passer par le même allumage, pour ne pas diverger.
+  const viewer3d = fs.readFileSync(path.join(ROOT, "components/Viewer3D.tsx"), "utf8");
+  const sceneSrc = fs.readFileSync(path.join(ROOT, "lib/garden/scene.ts"), "utf8");
+  ok(viewer3d.includes("lightVeilleuse"), "la fiche produit allume par le module vérifié");
+  ok(sceneSrc.includes("lightVeilleuse"), "l'éditeur allume par le module vérifié");
+}
+
+console.log("\n18. Bande défilante de l'accueil\n");
+
+{
+  const { ESPACEMENT, MARGE, ribbonCount, ribbonSpan, ribbonLayout, ribbonX } = await import(
+    "../lib/ribbon.mjs"
+  );
+
+  // Largeurs visibles plausibles : téléphone étroit, tablette, grand écran.
+  for (const demi of [3.2, 5, 7.4, 11]) {
+    const count = ribbonCount(demi);
+    const span = ribbonSpan(count);
+
+    ok(count >= 3, `demi-largeur ${demi} : au moins trois pièces dans la bande`);
+
+    // Le rebouclage doit avoir lieu hors champ : une pièce ne doit jamais
+    // apparaître ou disparaître sous les yeux du visiteur.
+    ok(
+      span / 2 >= demi + MARGE - 1e-9,
+      `demi-largeur ${demi} : le circuit (${(span / 2).toFixed(2)}) dépasse le champ visible + marge`
+    );
+
+    const pieces = ribbonLayout(count);
+    ok(pieces.length === count, `demi-largeur ${demi} : ${count} pièces placées`);
+
+    // L'invariant : à tout instant les pièces restent réparties régulièrement.
+    // S'il s'ouvrait un trou, ou si deux pièces se rejoignaient, ce contrôle
+    // le verrait — c'est exactement ce que le modulo doit empêcher.
+    for (const t of [0, 0.37, 4.1, 19.6, 123.4, 4021.7]) {
+      const xs = pieces.map((p) => ribbonX(p.x0, t, 0.55, span)).sort((a, b) => a - b);
+
+      for (const x of xs) {
+        ok(
+          x >= -span / 2 - 1e-9 && x < span / 2 + 1e-9,
+          `t=${t} : une pièce reste sur le circuit (x=${x.toFixed(3)})`
+        );
+      }
+
+      const ecarts = [];
+      for (let i = 1; i < xs.length; i++) ecarts.push(xs[i] - xs[i - 1]);
+      ecarts.push(xs[0] + span - xs[xs.length - 1]); // le pas qui referme la boucle
+
+      for (const e of ecarts) {
+        ok(
+          Math.abs(e - ESPACEMENT) < 1e-6,
+          `t=${t} : écart régulier entre pièces (${e.toFixed(4)} au lieu de ${ESPACEMENT})`
+        );
+      }
+    }
+  }
+
+  // Le sens du défilement : de la droite vers la gauche, comme demandé.
+  {
+    const count = ribbonCount(7.4);
+    const span = ribbonSpan(count);
+    const x0 = 0;
+    ok(
+      ribbonX(x0, 0.5, 0.55, span) < ribbonX(x0, 0, 0.55, span),
+      "la bande défile bien de droite à gauche"
+    );
+  }
+
+  // Les pièces ne doivent ni se chevaucher en profondeur ni sortir de la bande.
+  {
+    const pieces = ribbonLayout(ribbonCount(7.4));
+    for (const [i, p] of pieces.entries()) {
+      ok(Math.abs(p.y) <= 0.36, `pièce ${i} : reste dans la hauteur de la bande`);
+      ok(p.z <= 0 && p.z >= -1.4, `pièce ${i} : profondeur dans les bornes`);
+      ok(p.scale >= 0.6 && p.scale <= 0.9, `pièce ${i} : échelle de miniature`);
+    }
+    const phases = new Set(pieces.map((p) => p.phase.toFixed(6)));
+    ok(phases.size === pieces.length, "chaque pièce a sa propre phase de flottement");
+  }
 }
 
 console.log(`\n${fail === 0 ? "TOUT PASSE" : "DES CONTROLES ECHOUENT"} — ${pass} succès, ${fail} échecs\n`);

@@ -57,21 +57,23 @@ export default function CatalogueGrid({
 
   return (
     <div ref={topRef}>
-      <div className="mb-6 flex flex-wrap items-center gap-3">
+      <div className="mb-6 flex flex-wrap items-center gap-3 rounded-xl border border-leaf-200 bg-leaf-50 px-4 py-3">
         <button
           type="button"
           onClick={() => setGalerie((v) => !v)}
           aria-pressed={galerie}
-          className={`rounded-full border px-4 py-1.5 text-sm transition-colors ${
+          className={`rounded-full border px-5 py-2 text-sm font-medium transition-colors ${
             galerie
-              ? "border-grass-500 bg-leaf-50 text-grass-700"
-              : "border-line text-ink-soft hover:border-brand-300 hover:text-brand-600"
+              ? "border-ink bg-surface text-ink hover:bg-white"
+              : "border-brand-500 bg-brand-500 text-white hover:border-brand-600 hover:bg-brand-600"
           }`}
         >
           {galerie ? "Revenir à la grille" : "Mode galerie 3D"}
         </button>
-        <span className="text-xs text-ink-faint">
-          Les pièces flottent en volume — cliquez-en une pour ouvrir sa fiche.
+        <span className="text-xs leading-snug text-ink-soft">
+          {galerie
+            ? "Survolez une pièce pour l'agrandir, cliquez-la pour ouvrir sa fiche."
+            : "Une galerie en volume : les modèles 3D du catalogue suspendus en apesanteur."}
         </span>
       </div>
 

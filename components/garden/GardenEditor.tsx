@@ -78,6 +78,7 @@ export default function GardenEditor({ products }: { products: EditorProduct[] }
   const [poolWater, setPoolWater] = useState(true);
   const [paving, setPaving] = useState("");
   const [effects, setEffects] = useState(true);
+  const [nuit, setNuit] = useState(false);
   const poolRef = useRef<{ width: number; depth: number; x?: number; z?: number } | null>(null);
 
   const byRef = useMemo(() => new Map(products.map((p) => [p.id, p])), [products]);
@@ -182,6 +183,11 @@ export default function GardenEditor({ products }: { products: EditorProduct[] }
       scene.setGround(kind);
       setGround(kind);
     }
+    // Certains exemples sont conçus pour la nuit : il serait dommage de les
+    // ouvrir en plein jour, veilleuses éteintes.
+    const heure = preset.nuit ? "nuit" : "jour";
+    scene.setMoment(heure);
+    setNuit(heure === "nuit");
     preset.items.forEach((it) =>
       scene.add({
         id: newId(),
@@ -583,6 +589,15 @@ export default function GardenEditor({ products }: { products: EditorProduct[] }
             onChange={(v) => {
               setEffects(v);
               sceneRef.current?.setEffects(v);
+            }}
+          />
+
+          <Toggle
+            label="Mode nuit — veilleuses allumées"
+            checked={nuit}
+            onChange={(v) => {
+              setNuit(v);
+              sceneRef.current?.setMoment(v ? "nuit" : "jour");
             }}
           />
 

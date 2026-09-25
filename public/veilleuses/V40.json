@@ -1,0 +1,31 @@
+{
+  "id": "V40",
+  "name": "Veilleuse V40",
+  "category": "Veilleuses",
+  "shape": "Rond",
+  "dimensionType": "cylinder",
+  "dimensions": {
+    "width": 20,
+    "depth": 20,
+    "height": 80,
+    "diameter": 20
+  },
+  "weight": 45,
+  "image": "products/V40/product.jpg",
+  "model3D": "viewer.html?ref=V40",
+  "model3DSource": "procedural",
+  "formats": [
+    "GLB",
+    "OBJ",
+    "MTL"
+  ],
+  "geometry": {
+    "kind": "lantern",
+    "type": "baluster",
+    "prebuilt": true
+  },
+  "description": "Lanterne à tête ajourée en volutes et chapeau torsadé, sur fût balustre torse et socle carré.",
+  "notes": "Diamètre 20 cm = fût. La tête, non cotée, est relevée sur la photo (≈ Ø 35 cm).",
+  "available": true,
+  "catalogPage": 18
+}
