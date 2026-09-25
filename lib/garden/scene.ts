@@ -9,7 +9,8 @@ import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 import { paletteFor } from "@/lib/finishes";
 import { groundColor, type GroundKind } from "@/lib/garden/grounds";
-import { buildBuilding, buildingDepth, type BuildingKind } from "@/lib/garden/buildings";
+import { buildBuilding, buildingDepth } from "@/lib/garden/buildings.mjs";
+import type { BuildingKind } from "@/lib/garden/buildings.mjs";
 
 export type PlacedItem = {
   id: string;

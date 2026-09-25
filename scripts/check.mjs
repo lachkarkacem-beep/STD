@@ -11,6 +11,7 @@ import path from "node:path";
 import * as THREE from "three";
 import { fillPlanter, PLANT_SPECIES } from "../public/3d/plants-builder.js";
 import { PRESETS } from "../lib/garden/presets.mjs";
+import { buildBuilding } from "../lib/garden/buildings.mjs";
 
 const ROOT = path.join(import.meta.dirname, "..");
 const GLB_DIR = path.join(ROOT, "public/models_web/glb");
@@ -286,7 +287,47 @@ for (const preset of PRESETS) {
   console.log(`   « ${preset.label} » : ${boxes.length} pièces, ${pairs} couples vérifiés`);
 }
 
-console.log("\n5. Sauvegarde du projet : aller-retour à l'identique\n");
+console.log("\n5. Bâtiments : géométrie et échelle\n");
+
+for (const kind of ["maison", "villa"]) {
+  const building = buildBuilding(kind);
+  ok(!!building, `${kind} : le bâtiment est construit`);
+  if (!building) continue;
+  building.updateMatrixWorld(true);
+
+  const box = new THREE.Box3().setFromObject(building);
+  const size = box.getSize(new THREE.Vector3());
+  ok(Math.abs(box.min.y) < 0.02, `${kind} : posé au sol`, `y min = ${box.min.y.toFixed(3)}`);
+  // Hauteurs plausibles : une maison de plain-pied entre 4 et 6 m au faîtage,
+  // une villa à étage entre 6 et 8 m à l'acrotère.
+  const [lo, hi] = kind === "maison" ? [4, 6] : [6, 8];
+  ok(size.y > lo && size.y < hi, `${kind} : hauteur hors tout plausible`, `${size.y.toFixed(2)} m`);
+  ok(size.x > 6 && size.x < 20, `${kind} : largeur plausible`, `${size.x.toFixed(2)} m`);
+
+  // Le défaut signalé : une toiture inversée, dont l'égout monte plus haut
+  // que le faîtage. On mesure les deux extrémités de chaque pan.
+  for (const pan of building.children.filter((c) => c.name.startsWith("toit-pan"))) {
+    const length = pan.userData.slopeLength;
+    const bas = pan.localToWorld(new THREE.Vector3(0, 0, length / 2));
+    const haut = pan.localToWorld(new THREE.Vector3(0, 0, -length / 2));
+    // L'extrémité la plus éloignée de l'axe est l'égout : elle doit être la
+    // plus basse.
+    const egout = Math.abs(bas.z) > Math.abs(haut.z) ? bas : haut;
+    const faitage = egout === bas ? haut : bas;
+    ok(
+      egout.y < faitage.y - 0.5,
+      `${kind} : ${pan.name} descend du faîtage vers l'égout`,
+      `égout y=${egout.y.toFixed(2)} · faîtage y=${faitage.y.toFixed(2)}`
+    );
+    ok(
+      Math.abs(faitage.z) < 0.2,
+      `${kind} : ${pan.name} rejoint le faîtage sur l'axe`,
+      `z=${faitage.z.toFixed(2)}`
+    );
+  }
+}
+
+console.log("\n6. Sauvegarde du projet : aller-retour à l'identique\n");
 
 // Ce que l'éditeur écrit dans localStorage et relit ensuite.
 const project = [

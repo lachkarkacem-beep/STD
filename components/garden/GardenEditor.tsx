@@ -4,7 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import type { GardenScene, PlacedItem, CameraMode } from "@/lib/garden/scene";
 import { GROUNDS, groundCss, type GroundKind } from "@/lib/garden/grounds";
-import type { BuildingKind } from "@/lib/garden/buildings";
+import type { BuildingKind } from "@/lib/garden/buildings.mjs";
 import { PRESETS } from "@/lib/garden/presets.mjs";
 import { FINISHES, DEFAULT_FINISH } from "@/lib/finishes";
 import { PLANT_SPECIES } from "@/lib/plants";
