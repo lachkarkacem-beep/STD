@@ -30,16 +30,16 @@ export default function SiteFooter() {
 
         <div className="flex flex-col gap-2 text-sm text-ink-soft">
           <span className="text-xs uppercase tracking-widest text-ink-faint">Le catalogue</span>
-          <Link href="/catalogue" className="hover:text-brand-600">
+          <Link href="/catalogue" className="hover:text-grass-700">
             Toutes les références
           </Link>
-          <Link href="/previsualiser" className="hover:text-brand-600">
+          <Link href="/previsualiser" className="hover:text-grass-700">
             Prévisualiser mon jardin
           </Link>
-          <Link href="/flipbook" className="hover:text-brand-600">
-            Catalogue photo
+          <Link href="/flipbook" className="hover:text-grass-700">
+            Catalogue papier
           </Link>
-          <Link href="/devis" className="hover:text-brand-600">
+          <Link href="/devis" className="hover:text-grass-700">
             Demander un devis
           </Link>
         </div>

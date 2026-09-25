@@ -1156,6 +1156,10 @@ console.log("\n19. Ton des textes et palette du logo\n");
     "lib/garden/presets.mjs",
     "app/page.tsx",
     "app/previsualiser/page.tsx",
+    "app/flipbook/page.tsx",
+    "components/Flipbook.tsx",
+    "components/SiteHeader.tsx",
+    "components/SiteFooter.tsx",
   ];
 
   for (const rel of TEXTES) {
@@ -1170,6 +1174,55 @@ console.log("\n19. Ton des textes et palette du logo\n");
       const trouve = corps.match(motif);
       ok(!trouve, `${rel} : pas de formule proscrite`, trouve ? `« ${trouve[0]} »` : "");
     }
+  }
+
+  // Le flipbook doit rester dans l'univers du site, et non redevenir un
+  // module à part. Ces trois points avaient justement dérivé.
+  {
+    const flip = fs.readFileSync(path.join(ROOT, "components/Flipbook.tsx"), "utf8");
+
+    // La baseline de la couverture doit venir de company.ts. Recopiée à la
+    // main, elle s'était désynchronisée du reste du site.
+    ok(
+      flip.includes("COMPANY.tagline"),
+      "la couverture reprend la baseline de company.ts, sans la recopier"
+    );
+    ok(
+      !/La pierre qui embellit/.test(flip),
+      "l'ancienne baseline en dur a disparu de la couverture"
+    );
+
+    // Une URL de déploiement imprimée sur la quatrième de couverture devient
+    // fausse au premier changement de domaine.
+    ok(
+      !/vercel\.app/.test(flip),
+      "la quatrième de couverture n'imprime pas une URL de déploiement"
+    );
+
+    // Page active en terracotta, survol en vert : la règle de la charte.
+    ok(
+      /active[\s\S]{0,120}bg-brand-500/.test(flip),
+      "la page active du feuilleteur est en terracotta"
+    );
+    ok(flip.includes("hover:text-grass-700"), "le survol des contrôles passe au vert");
+
+    // Un contrôle qu'on ne peut pas suivre au clavier n'est pas terminé.
+    ok(flip.includes("focus-visible:ring"), "les contrôles du feuilleteur ont un focus visible");
+
+    // Le nom de la page et celui du menu doivent coïncider : « Catalogue
+    // photo » dans le menu menait à un titre « Catalogue papier ».
+    const entete = fs.readFileSync(path.join(ROOT, "components/SiteHeader.tsx"), "utf8");
+    const pied = fs.readFileSync(path.join(ROOT, "components/SiteFooter.tsx"), "utf8");
+    // Le titre est lu dans la source : Node ne sait pas importer un .ts, et
+    // un import qui échoue en silence ne contrôlerait plus rien.
+    const marketing = fs.readFileSync(path.join(ROOT, "lib/marketing.ts"), "utf8");
+    const titre = marketing.match(/FLIPBOOK_TITLE\s*=\s*"([^"]+)"/);
+    ok(!!titre, "marketing.ts déclare le titre du catalogue papier");
+    const court = (titre?.[1] ?? "")
+      .replace(/^Le\s+/, "")
+      .replace(/^./, (c) => c.toUpperCase());
+    ok(entete.includes(court), `le menu nomme la page « ${court} »`);
+    ok(pied.includes(court), `le pied de page nomme la page « ${court} »`);
   }
 
   // La palette doit rester celle du logo, au hex près.

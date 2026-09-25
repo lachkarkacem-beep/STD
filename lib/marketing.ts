@@ -112,8 +112,15 @@ export const CATALOGUE_INTRO =
 export const CATALOGUE_OUTRO =
   "Une pièce vous intéresse ? Ajoutez-la au devis. Réponse sous 24 à 48 heures.";
 
+export const FLIPBOOK_TITLE = "Le catalogue papier";
+
 export const FLIPBOOK_INTRO =
-  "Le catalogue papier, page après page. Tirez un coin de page pour la tourner.";
+  "Les pages telles qu'elles sont imprimées. Tirez un coin pour tourner, ou servez-vous des flèches en dessous.";
+
+// Sous le livre, à voix basse : la même chose dite à qui n'aurait pas lu
+// l'introduction en arrivant.
+export const FLIPBOOK_HINT =
+  "Tirez un coin de page, ou glissez du doigt sur l'écran.";
 
 export const SIGNUP_INTRO =
   "Votre espace sert à réunir les pièces, à nous envoyer le projet et à retrouver nos réponses au même endroit.";

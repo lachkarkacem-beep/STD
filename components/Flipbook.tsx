@@ -3,6 +3,8 @@
 import { forwardRef, useRef, useState } from "react";
 import HTMLFlipBook from "react-pageflip";
 import { pageNumbers } from "@/lib/pagination.mjs";
+import { COMPANY } from "@/lib/company";
+import { FLIPBOOK_HINT } from "@/lib/marketing";
 
 // react-pageflip exige que chaque page soit un élément capable de porter une
 // ref : d'où ces enveloppes, et non des <div> directement dans le livre.
@@ -19,19 +21,19 @@ const Page = forwardRef<HTMLDivElement, { children: React.ReactNode; className?:
 function Cover() {
   return (
     <div className="flex h-full w-full flex-col items-center justify-center gap-6 bg-brand-500 px-10 text-center text-white">
-      <img
-        src="/brand/logo.jpg"
-        alt=""
-        className="h-24 w-24 rounded-full border-4 border-white/90 object-cover shadow-lg"
-      />
+      {/* Le logo porte lui-même un cercle terracotta : posé à même le fond
+          rouge, il disparaîtrait. Il lui faut son propre plateau blanc. */}
+      <span className="rounded-full bg-white p-2 shadow-lg">
+        <img src="/brand/logo.jpg" alt="" className="h-20 w-20 rounded-full object-cover" />
+      </span>
       <div className="h-px w-16 bg-white/40" />
       <h2 className="font-heading text-3xl font-medium leading-tight tracking-wide">
         Société Tunisienne
         <br />
         de Décoration
       </h2>
-      <p className="max-w-[22ch] font-heading text-lg font-light italic leading-snug text-white/90">
-        La pierre qui embellit vos jardins et vos maisons
+      <p className="max-w-[24ch] font-heading text-lg font-light leading-snug text-white/90">
+        {COMPANY.tagline}
       </p>
       <div className="h-px w-16 bg-white/40" />
       <span className="text-[11px] uppercase tracking-[0.3em] text-white/80">Catalogue</span>
@@ -43,12 +45,16 @@ function BackCover() {
   return (
     <div className="flex h-full w-full flex-col items-center justify-center gap-5 bg-brand-500 px-10 text-center text-white">
       <div className="h-px w-16 bg-white/40" />
-      <p className="max-w-[26ch] font-heading text-xl font-light italic leading-snug">
-        Un projet d&apos;aménagement ? Composez votre devis en ligne.
+      <p className="max-w-[26ch] font-heading text-2xl font-light leading-snug">
+        Dites-nous le projet.
       </p>
-      <span className="text-[11px] uppercase tracking-[0.3em] text-white/80">
-        societetunisennededecoration.vercel.app
-      </span>
+      <p className="max-w-[30ch] text-sm leading-relaxed text-white/85">
+        Composez votre devis en ligne, ou passez à l&apos;atelier.
+      </p>
+      <div className="flex flex-col gap-1 text-[11px] uppercase tracking-[0.2em] text-white/80">
+        <span>{COMPANY.phone}</span>
+        <span>{COMPANY.city}</span>
+      </div>
       <div className="h-px w-16 bg-white/40" />
     </div>
   );
@@ -64,16 +70,31 @@ export default function Flipbook({ pages }: { pages: string[] }) {
 
   const flipTo = (n: number) => bookRef.current?.pageFlip()?.flip(n - 1);
 
+  // Un anneau de focus visible au clavier, identique sur tous les contrôles.
+  const focus =
+    "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-200 focus-visible:ring-offset-2 focus-visible:ring-offset-sable-50";
+
+  // Page courante en terracotta ; le survol passe au vert, l'accent secondaire
+  // de la charte. Les chiffres sont en Cormorant, comme ceux de l'accueil, et
+  // tabulaires pour que la barre ne tressaute pas d'une page à l'autre.
   const numberClass = (active: boolean) =>
-    `h-9 min-w-9 rounded-full border px-3 text-sm transition-colors ${
+    `h-9 min-w-9 rounded-full border px-3 font-heading text-base tabular-nums transition-colors ${focus} ${
       active
         ? "border-brand-500 bg-brand-500 text-white"
-        : "border-line text-ink-soft hover:border-brand-300 hover:text-brand-600"
+        : "border-line text-ink-soft hover:border-grass-500 hover:text-grass-700"
     }`;
+
+  const arrowClass =
+    `flex h-9 items-center gap-1.5 rounded-full border border-line px-4 text-sm text-ink-soft transition-colors ` +
+    `hover:border-grass-500 hover:text-grass-700 ${focus} ` +
+    `disabled:cursor-not-allowed disabled:opacity-35 disabled:hover:border-line disabled:hover:text-ink-soft`;
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="flex justify-center">
+      {/* Le livre est posé sur un fond de pierre plutôt que sur le blanc de la
+          page : il s'y détache, et l'ombre portée a quelque chose sur quoi
+          tomber. Même matière que les encarts de l'accueil. */}
+      <div className="flex justify-center rounded-xl border border-sable-200 bg-sable-50 px-4 py-8 sm:px-10 sm:py-12">
         {/* @ts-expect-error react-pageflip's types don't model children/ref cleanly */}
         <HTMLFlipBook
           ref={bookRef}
@@ -104,7 +125,7 @@ export default function Flipbook({ pages }: { pages: string[] }) {
       </div>
 
       <nav
-        aria-label="Pages du catalogue photo"
+        aria-label="Pages du catalogue papier"
         className="flex flex-wrap items-center justify-center gap-2 border-t border-line pt-6"
       >
         <button
@@ -112,9 +133,12 @@ export default function Flipbook({ pages }: { pages: string[] }) {
           onClick={() => bookRef.current?.pageFlip()?.flipPrev()}
           disabled={current === 1}
           aria-label="Page précédente"
-          className="flex h-9 items-center gap-1 rounded-full border border-line px-4 text-sm text-ink-soft transition-colors hover:border-brand-300 hover:text-brand-600 disabled:cursor-not-allowed disabled:opacity-35 disabled:hover:border-line disabled:hover:text-ink-soft"
+          className={arrowClass}
         >
-          ‹ Précédent
+          {/* Le chevron est décoratif : le libellé porte déjà le sens, et sur
+              mobile c'est lui qui disparaît, pas l'inverse. */}
+          <span aria-hidden>‹</span>
+          <span className="hidden sm:inline">Précédent</span>
         </button>
 
         {pageNumbers(current, total).map((n, i) =>
@@ -141,15 +165,21 @@ export default function Flipbook({ pages }: { pages: string[] }) {
           onClick={() => bookRef.current?.pageFlip()?.flipNext()}
           disabled={current === total}
           aria-label="Page suivante"
-          className="flex h-9 items-center gap-1 rounded-full border border-line px-4 text-sm text-ink-soft transition-colors hover:border-brand-300 hover:text-brand-600 disabled:cursor-not-allowed disabled:opacity-35 disabled:hover:border-line disabled:hover:text-ink-soft"
+          className={arrowClass}
         >
-          Suivant ›
+          <span className="hidden sm:inline">Suivant</span>
+          <span aria-hidden>›</span>
         </button>
+      </nav>
 
-        <span className="ml-3 text-xs text-ink-faint">
+      {/* Le compteur et le mode d'emploi sous la barre, et non dedans : à
+          l'étroit sur un téléphone, ils la faisaient passer à la ligne. */}
+      <div className="flex flex-col items-center gap-1 text-xs text-ink-faint">
+        <span className="tabular-nums">
           Page {current} sur {total}
         </span>
-      </nav>
+        <span>{FLIPBOOK_HINT}</span>
+      </div>
     </div>
   );
 }

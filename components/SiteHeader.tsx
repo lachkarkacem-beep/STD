@@ -17,16 +17,16 @@ export default async function SiteHeader() {
         </Link>
 
         <div className="ml-auto flex flex-wrap items-center gap-5 text-sm text-ink-soft">
-          <Link href="/catalogue" className="hover:text-brand-600">
+          <Link href="/catalogue" className="hover:text-grass-700">
             Catalogue
           </Link>
-          <Link href="/previsualiser" className="hover:text-brand-600">
+          <Link href="/previsualiser" className="hover:text-grass-700">
             Prévisualiser
           </Link>
-          <Link href="/flipbook" className="hover:text-brand-600">
-            Catalogue photo
+          <Link href="/flipbook" className="hover:text-grass-700">
+            Catalogue papier
           </Link>
-          <Link href="/devis" className="hover:text-brand-600">
+          <Link href="/devis" className="hover:text-grass-700">
             Mon devis
           </Link>
 
@@ -38,14 +38,14 @@ export default async function SiteHeader() {
 
           {user ? (
             <>
-              <Link href="/compte" className="hover:text-brand-600">
+              <Link href="/compte" className="hover:text-grass-700">
                 Mon compte
               </Link>
               <LogoutButton />
             </>
           ) : (
             <>
-              <Link href="/connexion" className="hover:text-brand-600">
+              <Link href="/connexion" className="hover:text-grass-700">
                 Connexion
               </Link>
               <Link href="/inscription" className="btn-primary">
