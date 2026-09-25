@@ -14,6 +14,7 @@ import { groundGeometry } from "@/lib/garden/ground-geometry.mjs";
 import { fenceEdges } from "@/lib/garden/fence.mjs";
 import { pavingLayout } from "@/lib/garden/paving.mjs";
 import { ROTATION_STEP, angleFromCenter, normalizeAngle, snapAngle } from "@/lib/garden/rotation.mjs";
+import { buildEffect } from "@/lib/garden/effects.mjs";
 import type { BuildingKind } from "@/lib/garden/buildings.mjs";
 
 export type PlacedItem = {
@@ -70,6 +71,8 @@ export class GardenScene {
   private fenceMeshEnabled = true;
   private building: THREE.Group | null = null;
   private paving: THREE.Group | null = null;
+  private pavingToken = 0;
+  private effectsEnabled = true;
   private pavingRef: string | null = null;
   private pavingArea: { width: number; depth: number; x?: number; z?: number } | null = null;
   private poolSpec: { width: number; depth: number; x?: number; z?: number; water?: boolean } | null = null;
@@ -192,6 +195,13 @@ export class GardenScene {
       // assez discrète pour ne pas distraire.
       const t = performance.now() / 1000;
       this.water.position.y = -0.12 + Math.sin(t * 0.8) * 0.006;
+    }
+    if (this.effectsEnabled) {
+      const t = performance.now() / 1000;
+      for (const holder of this.objects.values()) {
+        const effect = holder.userData.effect as THREE.Object3D | undefined;
+        (effect?.userData.animate as ((t: number) => void) | undefined)?.(t);
+      }
     }
     this.controls.update();
     this.renderer.render(this.scene, this.camera);
@@ -407,6 +417,7 @@ export class GardenScene {
     this.scene.add(holder);
 
     this.syncPlotToFences();
+    this.attachEffect(item.id);
     this.applyFinish(item.id, item.finish);
     if (item.species) await this.applySpecies(item.id, item.species);
     this.emit();
@@ -531,6 +542,30 @@ export class GardenScene {
     (this.plot.material as THREE.MeshStandardMaterial).color.setHex(color);
   }
 
+  /** Allume ou éteint les flammes des barbecues et l'eau des fontaines. */
+  setEffects(enabled: boolean) {
+    this.effectsEnabled = enabled;
+    for (const [id, holder] of this.objects) {
+      const existing = holder.userData.effect as THREE.Object3D | undefined;
+      if (existing) {
+        holder.remove(existing);
+        holder.userData.effect = undefined;
+      }
+      if (enabled) this.attachEffect(id);
+    }
+  }
+
+  // Accroche l'effet propre à la référence, s'il y en a un.
+  private attachEffect(id: string) {
+    if (!this.effectsEnabled) return;
+    const holder = this.objects.get(id);
+    if (!holder || holder.userData.effect) return;
+    const effect = buildEffect(THREE, holder.userData.ref as string, id.charCodeAt(0) + id.length);
+    if (!effect) return;
+    holder.add(effect);
+    holder.userData.effect = effect;
+  }
+
   /** Tend (ou retire) le grillage entre les piquets posés. */
   setFenceMesh(enabled: boolean) {
     this.fenceMeshEnabled = enabled;
@@ -629,21 +664,39 @@ export class GardenScene {
    * changement de bassin : le pavage doit contourner la réserve, et les deux
    * réglages arrivent dans un ordre quelconque.
    */
+  private dropPaving() {
+    if (!this.paving) return;
+    this.scene.remove(this.paving);
+    this.paving.traverse((o) => (o as THREE.Mesh).geometry?.dispose());
+    this.paving = null;
+  }
+
   private async rebuildPaving() {
-    if (this.paving) {
-      this.scene.remove(this.paving);
-      this.paving.traverse((o) => (o as THREE.Mesh).geometry?.dispose());
-      this.paving = null;
-    }
+    // Changer d'exemple déclenche deux reconstructions — l'une par le bassin,
+    // l'autre par le dallage — et le chargement du modèle est asynchrone.
+    // Sans ce jeton, la plus lente réinstallait son dallage après la plus
+    // rapide, dont le groupe restait dans la scène sans être référencé : le
+    // dallage s'accumulait d'un exemple à l'autre et recouvrait les bassins.
+    const token = ++this.pavingToken;
+
     const ref = this.pavingRef;
-    if (!ref) return;
+    if (!ref) {
+      this.dropPaving();
+      return;
+    }
 
     const surface =
       this.pavingArea ?? (this.isMobile ? { width: 10, depth: 8 } : { width: 16, depth: 12 });
     const layout = pavingLayout(ref, surface, this.poolSpec);
-    if (!layout) return;
+    if (!layout) {
+      this.dropPaving();
+      return;
+    }
 
     const model = await this.load(ref);
+    // Une reconstruction plus récente a pris la main : celle-ci n'a plus lieu
+    // d'être, et ne doit surtout rien ajouter à la scène.
+    if (token !== this.pavingToken) return;
     model.updateMatrixWorld(true);
     const box = new THREE.Box3().setFromObject(model);
     const center = box.getCenter(new THREE.Vector3());
@@ -677,6 +730,10 @@ export class GardenScene {
       group.add(instanced);
     }
 
+    // L'ancien dallage n'est retiré qu'ici, une fois le nouveau prêt : le
+    // retirer avant l'attente laissait la scène sans sol pendant le
+    // chargement, et surtout ouvrait la course corrigée plus haut.
+    this.dropPaving();
     this.paving = group;
     this.scene.add(group);
   }

@@ -76,6 +76,7 @@ export default function GardenEditor({ products }: { products: EditorProduct[] }
   const [fenceMesh, setFenceMesh] = useState(true);
   const [poolWater, setPoolWater] = useState(true);
   const [paving, setPaving] = useState("");
+  const [effects, setEffects] = useState(true);
   const poolRef = useRef<{ width: number; depth: number; x?: number; z?: number } | null>(null);
 
   const byRef = useMemo(() => new Map(products.map((p) => [p.id, p])), [products]);
@@ -256,41 +257,64 @@ export default function GardenEditor({ products }: { products: EditorProduct[] }
   }
 
   return (
-    <div className="grid grid-cols-1 gap-6 lg:grid-cols-[280px_1fr_300px]">
-      {/* Catalogue */}
-      <aside className="card flex max-h-[70vh] flex-col overflow-hidden p-0">
-        <div className="border-b border-line p-4">
-          <h2 className="mb-3 text-lg font-normal text-ink">Catalogue</h2>
-          <select
-            value={category}
-            onChange={(e) => setCategory(e.target.value)}
-            className="input w-full"
-          >
-            {categories.map((c) => (
-              <option key={c} value={c}>
-                {c}
-              </option>
-            ))}
-          </select>
-        </div>
-        <div className="flex-1 overflow-y-auto p-2">
-          {visible.map((p) => (
-            <button
-              key={p.id}
-              type="button"
-              onClick={() => addProduct(p.id)}
-              className="flex w-full flex-col items-start gap-0.5 rounded-lg px-3 py-2 text-left hover:bg-leaf-50"
+    // Trois colonnes sur grand écran : ce qu'on ajoute à gauche, la scène au
+    // milieu, ce qu'on règle et ce qu'on emporte à droite. En dessous, tout
+    // s'empile et la scène passe en tête — sur un téléphone c'est elle qu'on
+    // veut voir d'abord, pas une liste de références.
+    <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(240px,280px)_minmax(0,1fr)_minmax(260px,320px)]">
+      {/* Ajouter : catalogue et exemples */}
+      <aside className="order-2 flex flex-col gap-4 lg:order-1">
+        <div className="card flex max-h-[45vh] flex-col overflow-hidden p-0 lg:max-h-[38vh]">
+          <div className="border-b border-line p-4">
+            <h2 className="mb-3 text-lg font-normal text-ink">Catalogue</h2>
+            <select
+              value={category}
+              onChange={(e) => setCategory(e.target.value)}
+              className="input w-full"
             >
-              <span className="text-sm text-ink">{p.name}</span>
-              <span className="text-xs text-ink-faint">Réf. {p.id}</span>
-            </button>
-          ))}
+              {categories.map((c) => (
+                <option key={c} value={c}>
+                  {c}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div className="flex-1 overflow-y-auto p-2">
+            {visible.map((p) => (
+              <button
+                key={p.id}
+                type="button"
+                onClick={() => addProduct(p.id)}
+                className="flex w-full flex-col items-start gap-0.5 rounded-lg px-3 py-2 text-left hover:bg-leaf-50"
+              >
+                <span className="text-sm text-ink">{p.name}</span>
+                <span className="text-xs text-ink-faint">Réf. {p.id}</span>
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div className="card flex max-h-[45vh] flex-col overflow-hidden p-0">
+          <h2 className="border-b border-line p-4 text-lg font-normal text-ink">Exemples</h2>
+          <div className="flex flex-1 flex-col gap-2 overflow-y-auto p-3">
+            {PRESETS.map((p) => (
+              <button
+                key={p.id}
+                type="button"
+                onClick={() => loadPreset(p.id)}
+                className="rounded-lg border border-line px-3 py-2 text-left hover:border-leaf-400"
+              >
+                <span className="block text-sm text-ink">{p.label}</span>
+                <span className="block text-xs leading-snug text-ink-faint">{p.description}</span>
+              </button>
+            ))}
+          </div>
         </div>
       </aside>
 
       {/* Scène */}
-      <div className="flex flex-col gap-3">
-        <div className="relative h-[70vh] overflow-hidden rounded-xl border border-line bg-surface-soft">
+      <div className="order-1 flex flex-col gap-3 lg:order-2">
+        <div className="relative h-[52vh] min-h-80 overflow-hidden rounded-xl border border-line bg-surface-soft sm:h-[60vh] lg:h-[70vh]">
           <div ref={mountRef} className="h-full w-full" />
 
           {/* Commandes posées sur la scène : la rotation est le geste le plus
@@ -412,8 +436,8 @@ export default function GardenEditor({ products }: { products: EditorProduct[] }
         </p>
       </div>
 
-      {/* Projet */}
-      <aside className="flex flex-col gap-4">
+      {/* Régler et emporter : décor, pièce sélectionnée, projet */}
+      <aside className="order-3 flex flex-col gap-4">
         <div className="card flex flex-col gap-3 p-4">
           <h2 className="text-lg font-normal text-ink">Le décor</h2>
 
@@ -472,6 +496,15 @@ export default function GardenEditor({ products }: { products: EditorProduct[] }
               d'afficher son état coché — on croyait activer l'eau en la
               coupant. */}
           <Toggle
+            label="Flammes et jets d'eau animés"
+            checked={effects}
+            onChange={(v) => {
+              setEffects(v);
+              sceneRef.current?.setEffects(v);
+            }}
+          />
+
+          <Toggle
             label="Grillage entre les piquets"
             checked={fenceMesh}
             onChange={(v) => {
@@ -495,23 +528,6 @@ export default function GardenEditor({ products }: { products: EditorProduct[] }
               Aucun bassin dans la scène : chargez « Villa avec piscine » pour en poser un.
             </p>
           )}
-        </div>
-
-        <div className="card p-4">
-          <h2 className="mb-3 text-lg font-normal text-ink">Exemples</h2>
-          <div className="flex flex-col gap-2">
-            {PRESETS.map((p) => (
-              <button
-                key={p.id}
-                type="button"
-                onClick={() => loadPreset(p.id)}
-                className="rounded-lg border border-line px-3 py-2 text-left hover:border-leaf-400"
-              >
-                <span className="block text-sm text-ink">{p.label}</span>
-                <span className="block text-xs leading-snug text-ink-faint">{p.description}</span>
-              </button>
-            ))}
-          </div>
         </div>
 
         {selected && (

@@ -17,6 +17,7 @@ import { fenceEdges } from "../lib/garden/fence.mjs";
 import { PAVINGS, pavingPitch, pavingLayout, isPavable } from "../lib/garden/paving.mjs";
 import { ROTATION_STEP, angleFromCenter, normalizeAngle, snapAngle, toDegrees } from "../lib/garden/rotation.mjs";
 import { pageNumbers } from "../lib/pagination.mjs";
+import { EFFECT_ANCHORS } from "../lib/garden/effects.mjs";
 
 const ROOT = path.join(import.meta.dirname, "..");
 const GLB_DIR = path.join(ROOT, "public/models_web/glb");
@@ -593,7 +594,44 @@ for (const [current, total] of [
 const courte = pageNumbers(3, 6);
 ok(courte.length === 6 && !courte.includes("…"), "six pages s'affichent toutes");
 
-console.log("\n11. Sauvegarde du projet : aller-retour à l'identique\n");
+console.log("\n11. Effets animés : flammes et jets d'eau\n");
+
+const knownAll = new Set(db.products.map((p) => p.id));
+for (const [ref, spec] of Object.entries(EFFECT_ANCHORS)) {
+  ok(knownAll.has(ref), `effet : la référence ${ref} existe au catalogue`);
+  const product = db.products.find((p) => p.id === ref);
+  if (!product) continue;
+
+  const hauteur = product.dimensions.height / 100;
+  // L'effet doit s'accrocher sur la pièce, pas flotter au-dessus ni sous le sol.
+  ok(spec.y > 0.1, `${ref} : l'effet n'est pas au ras du sol`, `${spec.y} m`);
+  ok(spec.y <= hauteur, `${ref} : l'effet reste sous le sommet de la pièce`, `${spec.y} / ${hauteur} m`);
+
+  if (spec.kind === "eau") {
+    // L'eau doit retomber sans traverser le sol.
+    ok(spec.fall > 0, `${ref} : la chute d'eau a une hauteur`);
+    ok(spec.y - spec.fall > -0.05, `${ref} : l'eau ne tombe pas sous le sol`, `${(spec.y - spec.fall).toFixed(2)} m`);
+  } else {
+    ok(spec.size > 0, `${ref} : la flamme a une taille`);
+  }
+}
+
+// Le feu ne va qu'aux barbecues, l'eau qu'aux fontaines et jets muraux.
+for (const [ref, spec] of Object.entries(EFFECT_ANCHORS)) {
+  const product = db.products.find((p) => p.id === ref);
+  if (!product) continue;
+  const attendu = product.category === "Barbecues" ? "feu" : "eau";
+  ok(spec.kind === attendu, `${ref} (${product.category}) porte un effet « ${attendu} »`, spec.kind);
+}
+
+// Toute pièce d'une famille concernée doit avoir son effet : en oublier une
+// donnerait une fontaine sèche à côté d'une fontaine qui coule.
+for (const p of db.products) {
+  if (!["Barbecues", "Fontaines", "Jets d'eau muraux"].includes(p.category)) continue;
+  ok(!!EFFECT_ANCHORS[p.id], `${p.id} (${p.category}) a bien un effet déclaré`);
+}
+
+console.log("\n12. Sauvegarde du projet : aller-retour à l'identique\n");
 
 // Ce que l'éditeur écrit dans localStorage et relit ensuite.
 const project = [
