@@ -11,6 +11,8 @@ import { paletteFor } from "@/lib/finishes";
 import { groundColor, type GroundKind } from "@/lib/garden/grounds";
 import { buildBuilding, buildingDepth } from "@/lib/garden/buildings.mjs";
 import { groundGeometry } from "@/lib/garden/ground-geometry.mjs";
+import { fenceEdges } from "@/lib/garden/fence.mjs";
+import { pavingLayout } from "@/lib/garden/paving.mjs";
 import type { BuildingKind } from "@/lib/garden/buildings.mjs";
 
 export type PlacedItem = {
@@ -66,6 +68,7 @@ export class GardenScene {
   private fenceTexture: THREE.CanvasTexture | null = null;
   private fenceMeshEnabled = true;
   private building: THREE.Group | null = null;
+  private paving: THREE.Group | null = null;
   readonly isMobile: boolean;
   private loader = new GLTFLoader();
   private cache = new Map<string, THREE.Object3D>();
@@ -515,29 +518,21 @@ export class GardenScene {
 
     const group = new THREE.Group();
     const material = this.fenceMaterial();
-    const MAX_SPAN = 2;
-    const seen = new Set<string>();
 
-    for (let i = 0; i < posts.length; i++) {
-      for (let j = i + 1; j < posts.length; j++) {
-        const a = posts[i].position;
-        const b = posts[j].position;
-        const span = Math.hypot(b.x - a.x, b.z - a.z);
-        if (span < 0.2 || span > MAX_SPAN) continue;
-        const key = `${i}-${j}`;
-        if (seen.has(key)) continue;
-        seen.add(key);
+    for (const [i, j] of fenceEdges(posts.map((p) => ({ x: p.position.x, z: p.position.z })))) {
+      const a = posts[i].position;
+      const b = posts[j].position;
+      const span = Math.hypot(b.x - a.x, b.z - a.z);
 
-        // Hauteur du grillage : celle du piquet, moins un retrait en tête.
-        const height = Math.max(0.4, (posts[i].userData.height as number) - 0.15);
-        const panel = new THREE.Mesh(new THREE.PlaneGeometry(span, height), material);
-        panel.position.set((a.x + b.x) / 2, height / 2, (a.z + b.z) / 2);
-        panel.rotation.y = Math.atan2(b.x - a.x, b.z - a.z) + Math.PI / 2;
-        // Le motif se répète en fonction de la travée, pour que les mailles
-        // gardent la même taille quelle que soit la distance entre piquets.
-        panel.scale.set(1, 1, 1);
-        group.add(panel);
-      }
+      // Hauteur du grillage : celle du piquet, moins un retrait en tête. La
+      // valeur par défaut évite une géométrie NaN si la hauteur manque.
+      const poteau = Number(posts[i].userData.height);
+      const height = Math.max(0.4, (Number.isFinite(poteau) ? poteau : 2) - 0.15);
+
+      const panel = new THREE.Mesh(new THREE.PlaneGeometry(span, height), material);
+      panel.position.set((a.x + b.x) / 2, height / 2, (a.z + b.z) / 2);
+      panel.rotation.y = Math.atan2(b.x - a.x, b.z - a.z) + Math.PI / 2;
+      group.add(panel);
     }
 
     this.fencePanels = group;
@@ -576,6 +571,63 @@ export class GardenScene {
       roughness: 0.7,
       metalness: 0.3,
     });
+  }
+
+  /**
+   * Pave une surface avec une référence de dallage. Les plaques sont posées
+   * au pas du module (voir paving.mjs) et non au pas de leur boîte, sinon un
+   * vide apparaîtrait à chaque plaque. Une seule InstancedMesh par maillage
+   * de la plaque : paver une terrasse coûte alors quelques dizaines d'appels
+   * de rendu, quel que soit le nombre de dalles.
+   */
+  async setPaving(ref: string | null, area?: { width: number; depth: number; x?: number; z?: number }) {
+    if (this.paving) {
+      this.scene.remove(this.paving);
+      this.paving.traverse((o) => (o as THREE.Mesh).geometry?.dispose());
+      this.paving = null;
+    }
+    if (!ref) return;
+
+    const surface = area ?? (this.isMobile ? { width: 10, depth: 8 } : { width: 16, depth: 12 });
+    const layout = pavingLayout(ref, surface);
+    if (!layout) return;
+
+    const model = await this.load(ref);
+    model.updateMatrixWorld(true);
+    const box = new THREE.Box3().setFromObject(model);
+    const center = box.getCenter(new THREE.Vector3());
+    // La plaque est recentrée et posée au sol avant d'être répétée.
+    const recentre = new THREE.Matrix4().makeTranslation(-center.x, -box.min.y, -center.z);
+
+    const meshes: THREE.Mesh[] = [];
+    model.traverse((o) => {
+      const m = o as THREE.Mesh;
+      if (m.isMesh) meshes.push(m);
+    });
+
+    const group = new THREE.Group();
+    const tmp = new THREE.Matrix4();
+    for (const mesh of meshes) {
+      const instanced = new THREE.InstancedMesh(
+        mesh.geometry,
+        mesh.material,
+        layout.positions.length
+      );
+      instanced.castShadow = false;
+      instanced.receiveShadow = true;
+      layout.positions.forEach((p, i) => {
+        tmp
+          .makeTranslation(p.x, 0.005, p.z)
+          .multiply(recentre)
+          .multiply(mesh.matrixWorld);
+        instanced.setMatrixAt(i, tmp);
+      });
+      instanced.instanceMatrix.needsUpdate = true;
+      group.add(instanced);
+    }
+
+    this.paving = group;
+    this.scene.add(group);
   }
 
   /** Maison ou villa de décor, reculée derrière la scène. */

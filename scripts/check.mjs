@@ -13,6 +13,8 @@ import { fillPlanter, PLANT_SPECIES } from "../public/3d/plants-builder.js";
 import { PRESETS } from "../lib/garden/presets.mjs";
 import { buildBuilding } from "../lib/garden/buildings.mjs";
 import { groundGeometry, groundCovers } from "../lib/garden/ground-geometry.mjs";
+import { fenceEdges } from "../lib/garden/fence.mjs";
+import { PAVINGS, pavingPitch, pavingLayout, isPavable } from "../lib/garden/paving.mjs";
 
 const ROOT = path.join(import.meta.dirname, "..");
 const GLB_DIR = path.join(ROOT, "public/models_web/glb");
@@ -368,7 +370,120 @@ for (const preset of PRESETS.filter((p) => p.pool)) {
   );
 }
 
-console.log("\n7. Sauvegarde du projet : aller-retour à l'identique\n");
+console.log("\n7. Grillage : des travées, pas une toile\n");
+
+// Un pourtour régulier doit donner exactement une boucle fermée : autant de
+// travées que de piquets, et aucune diagonale de coin.
+for (const preset of PRESETS.filter((p) => p.items.some((i) => i.ref.startsWith("PQ")))) {
+  const posts = preset.items.filter((i) => i.ref.startsWith("PQ")).map((i) => ({ x: i.x, z: i.z }));
+  const edges = fenceEdges(posts);
+  ok(
+    edges.length === posts.length,
+    `« ${preset.label} » : ${posts.length} piquets forment une boucle fermée`,
+    `${edges.length} travées`
+  );
+
+  let maxSpan = 0;
+  for (const [i, j] of edges) {
+    const span = Math.hypot(posts[j].x - posts[i].x, posts[j].z - posts[i].z);
+    maxSpan = Math.max(maxSpan, span);
+    // Une travée relie deux voisins du pourtour : elle est donc alignée sur
+    // un axe. Une diagonale signalerait un raccord en travers du terrain.
+    const alignee =
+      Math.abs(posts[j].x - posts[i].x) < 0.01 || Math.abs(posts[j].z - posts[i].z) < 0.01;
+    ok(alignee, `« ${preset.label} » : la travée ${i}-${j} suit le pourtour`);
+  }
+  ok(maxSpan < 2.5, `« ${preset.label} » : aucune travée trop longue`, `${maxSpan.toFixed(2)} m`);
+}
+
+// Le défaut signalé : des piquets posés à la main, proches les uns des
+// autres, ne doivent pas tous se relier entre eux.
+const grappe = [
+  { x: 0, z: 0 },
+  { x: 0.4, z: 0 },
+  { x: 0.8, z: 0 },
+  { x: 1.2, z: 0 },
+];
+const edgesGrappe = fenceEdges(grappe);
+ok(
+  edgesGrappe.length === 3,
+  "quatre piquets alignés donnent trois travées, pas six",
+  `${edgesGrappe.length} travées`
+);
+for (const [i, j] of edgesGrappe) {
+  ok(Math.abs(j - i) === 1, "chaque travée relie deux piquets consécutifs", `${i}-${j}`);
+}
+
+// Deux piquets isolés loin l'un de l'autre ne se relient pas.
+ok(
+  fenceEdges([{ x: 0, z: 0 }, { x: 9, z: 0 }]).length === 0,
+  "deux piquets trop éloignés ne sont pas reliés"
+);
+
+console.log("\n8. Dallages : un pavage continu, sans vide\n");
+
+// Côté de la dalle unitaire, lu dans le catalogue : c'est lui qui doit
+// commander le pas de pose, et non la boîte englobante de la plaque.
+for (const { ref, label } of PAVINGS) {
+  const product = db.products.find((p) => p.id === ref);
+  ok(!!product, `${ref} : la référence existe au catalogue`);
+  if (!product) continue;
+
+  const tile = product.dimensions.width / 100;
+  const pitch = pavingPitch(ref);
+  ok(!!pitch, `${ref} : pas de pose défini`);
+  if (!pitch) continue;
+
+  // Le pas doit être un multiple entier de la dalle, sinon le motif se
+  // décale de plaque en plaque et laisse un joint ouvert.
+  const colsExactes = pitch.x / tile;
+  const rangsExacts = pitch.z / tile;
+  ok(
+    Math.abs(colsExactes - Math.round(colsExactes)) < 1e-9,
+    `${label} : le pas en longueur vaut un nombre entier de dalles`,
+    `${colsExactes.toFixed(3)}`
+  );
+  ok(
+    Math.abs(rangsExacts - Math.round(rangsExacts)) < 1e-9,
+    `${label} : le pas en largeur vaut un nombre entier de dalles`,
+    `${rangsExacts.toFixed(3)}`
+  );
+
+  // Le pas ne doit pas dépasser la boîte du GLB : ce serait un vide franc.
+  const glb = readGlb(path.join(GLB_DIR, `${ref}.glb`));
+  const box = new THREE.Box3();
+  for (const acc of Object.values(glb.accessors)) {
+    if (acc.type === "VEC3" && acc.min && acc.max) {
+      box.expandByPoint(new THREE.Vector3().fromArray(acc.min));
+      box.expandByPoint(new THREE.Vector3().fromArray(acc.max));
+    }
+  }
+  const size = box.getSize(new THREE.Vector3());
+  ok(pitch.x <= size.x + 1e-6, `${label} : aucun vide en longueur`, `pas ${pitch.x} > plaque ${size.x.toFixed(3)}`);
+  ok(pitch.z <= size.z + 1e-6, `${label} : aucun vide en largeur`, `pas ${pitch.z} > plaque ${size.z.toFixed(3)}`);
+
+  // Les plaques posées doivent se suivre exactement, sans trou ni décalage.
+  const layout = pavingLayout(ref, { width: 8, depth: 6 });
+  ok(layout.positions.length === layout.cols * layout.rows, `${label} : grille complète`);
+  const xs = [...new Set(layout.positions.map((p) => +p.x.toFixed(6)))].sort((a, b) => a - b);
+  const zs = [...new Set(layout.positions.map((p) => +p.z.toFixed(6)))].sort((a, b) => a - b);
+  for (let i = 1; i < xs.length; i++) {
+    ok(Math.abs(xs[i] - xs[i - 1] - pitch.x) < 1e-6, `${label} : plaques jointives en longueur`);
+  }
+  for (let i = 1; i < zs.length; i++) {
+    ok(Math.abs(zs[i] - zs[i - 1] - pitch.z) < 1e-6, `${label} : plaques jointives en largeur`);
+  }
+  // Et le pavage couvre au moins la surface demandée.
+  ok(layout.cols * pitch.x >= 8 - 1e-9, `${label} : la surface demandée est couverte en longueur`);
+  ok(layout.rows * pitch.z >= 6 - 1e-9, `${label} : la surface demandée est couverte en largeur`);
+}
+
+// Les exemples qui posent une terrasse doivent employer une référence pavable.
+for (const preset of PRESETS.filter((p) => p.paving)) {
+  ok(isPavable(preset.paving), `« ${preset.label} » : ${preset.paving} est une dalle de champ`);
+}
+
+console.log("\n9. Sauvegarde du projet : aller-retour à l'identique\n");
 
 // Ce que l'éditeur écrit dans localStorage et relit ensuite.
 const project = [

@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import type { GardenScene, PlacedItem, CameraMode } from "@/lib/garden/scene";
 import { GROUNDS, groundCss, type GroundKind } from "@/lib/garden/grounds";
 import type { BuildingKind } from "@/lib/garden/buildings.mjs";
+import { PAVINGS, pavingCount } from "@/lib/garden/paving.mjs";
 import { PRESETS } from "@/lib/garden/presets.mjs";
 import { FINISHES, DEFAULT_FINISH } from "@/lib/finishes";
 import { PLANT_SPECIES } from "@/lib/plants";
@@ -35,6 +36,7 @@ export default function GardenEditor({ products }: { products: EditorProduct[] }
   const [building, setBuilding] = useState<BuildingKind>("aucune");
   const [fenceMesh, setFenceMesh] = useState(true);
   const [poolWater, setPoolWater] = useState(true);
+  const [paving, setPaving] = useState("");
   const poolRef = useRef<{ width: number; depth: number; x?: number; z?: number } | null>(null);
 
   const byRef = useMemo(() => new Map(products.map((p) => [p.id, p])), [products]);
@@ -112,6 +114,8 @@ export default function GardenEditor({ products }: { products: EditorProduct[] }
     scene.setPool(preset.pool ? { ...preset.pool, water: poolWater } : null);
     const kind = (preset.building ?? "aucune") as BuildingKind;
     scene.setBuilding(kind, preset.buildingZ);
+    scene.setPaving(preset.paving ?? null, preset.pavingArea);
+    setPaving(preset.paving ?? "");
     setBuilding(kind);
     if (preset.ground) {
       const kind = preset.ground as GroundKind;
@@ -315,6 +319,33 @@ export default function GardenEditor({ products }: { products: EditorProduct[] }
                 </button>
               ))}
             </div>
+          </div>
+
+          <div className="flex flex-col gap-1.5">
+            <span className="text-xs uppercase tracking-wide text-ink-faint">Terrasse dallée</span>
+            <select
+              value={paving}
+              onChange={(e) => {
+                setPaving(e.target.value);
+                sceneRef.current?.setPaving(e.target.value || null);
+              }}
+              className="input w-full text-sm"
+            >
+              <option value="">Aucune</option>
+              {PAVINGS.map((p) => (
+                <option key={p.ref} value={p.ref}>
+                  {p.label}
+                </option>
+              ))}
+            </select>
+            {paving && (
+              <span className="text-xs leading-snug text-ink-faint">
+                {(() => {
+                  const c = pavingCount(paving, { width: 16, depth: 12 });
+                  return c ? `${c.tiles} dalles · ${c.m2.toFixed(1)} m²` : "";
+                })()}
+              </span>
+            )}
           </div>
 
           <label className="flex items-center gap-2 text-sm text-ink-soft">
