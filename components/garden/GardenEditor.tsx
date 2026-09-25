@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import type { GardenScene, PlacedItem, CameraMode } from "@/lib/garden/scene";
 import { GROUNDS, groundCss, type GroundKind } from "@/lib/garden/grounds";
+import type { BuildingKind } from "@/lib/garden/buildings";
 import { PRESETS } from "@/lib/garden/presets.mjs";
 import { FINISHES, DEFAULT_FINISH } from "@/lib/finishes";
 import { PLANT_SPECIES } from "@/lib/plants";
@@ -31,6 +32,10 @@ export default function GardenEditor({ products }: { products: EditorProduct[] }
   const [saved, setSaved] = useState<string | null>(null);
   const [ground, setGround] = useState<GroundKind>("pelouse");
   const [camera, setCameraMode] = useState<CameraMode>("orbite");
+  const [building, setBuilding] = useState<BuildingKind>("aucune");
+  const [fenceMesh, setFenceMesh] = useState(true);
+  const [poolWater, setPoolWater] = useState(true);
+  const poolRef = useRef<{ width: number; depth: number; x?: number; z?: number } | null>(null);
 
   const byRef = useMemo(() => new Map(products.map((p) => [p.id, p])), [products]);
   const categories = useMemo(
@@ -103,7 +108,11 @@ export default function GardenEditor({ products }: { products: EditorProduct[] }
     if (!scene || !preset) return;
     scene.clear();
     scene.setPlot(preset.plot ?? null);
-    scene.setPool(preset.pool ?? null);
+    poolRef.current = preset.pool ?? null;
+    scene.setPool(preset.pool ? { ...preset.pool, water: poolWater } : null);
+    const kind = (preset.building ?? "aucune") as BuildingKind;
+    scene.setBuilding(kind, preset.buildingZ);
+    setBuilding(kind);
     if (preset.ground) {
       const kind = preset.ground as GroundKind;
       scene.setGround(kind);
@@ -282,6 +291,58 @@ export default function GardenEditor({ products }: { products: EditorProduct[] }
 
       {/* Projet */}
       <aside className="flex flex-col gap-4">
+        <div className="card flex flex-col gap-3 p-4">
+          <h2 className="text-lg font-normal text-ink">Le décor</h2>
+
+          <div className="flex flex-col gap-1.5">
+            <span className="text-xs uppercase tracking-wide text-ink-faint">Bâtiment</span>
+            <div className="flex flex-wrap gap-2">
+              {(["aucune", "maison", "villa"] as BuildingKind[]).map((k) => (
+                <button
+                  key={k}
+                  type="button"
+                  onClick={() => {
+                    sceneRef.current?.setBuilding(k);
+                    setBuilding(k);
+                  }}
+                  className={`rounded-full border px-3 py-1 text-xs ${
+                    building === k
+                      ? "border-grass-500 bg-leaf-50 text-grass-700"
+                      : "border-line text-ink-soft hover:border-leaf-400"
+                  }`}
+                >
+                  {k === "aucune" ? "Aucun" : k === "maison" ? "Maison" : "Villa"}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <label className="flex items-center gap-2 text-sm text-ink-soft">
+            <input
+              type="checkbox"
+              checked={fenceMesh}
+              onChange={(e) => {
+                setFenceMesh(e.target.checked);
+                sceneRef.current?.setFenceMesh(e.target.checked);
+              }}
+            />
+            Grillage entre les piquets
+          </label>
+
+          <label className="flex items-center gap-2 text-sm text-ink-soft">
+            <input
+              type="checkbox"
+              checked={poolWater}
+              onChange={(e) => {
+                setPoolWater(e.target.checked);
+                const pool = poolRef.current;
+                if (pool) sceneRef.current?.setPool({ ...pool, water: e.target.checked });
+              }}
+            />
+            Bassin rempli d&apos;eau
+          </label>
+        </div>
+
         <div className="card p-4">
           <h2 className="mb-3 text-lg font-normal text-ink">Exemples</h2>
           <div className="flex flex-col gap-2">

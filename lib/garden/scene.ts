@@ -9,6 +9,7 @@ import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 import { paletteFor } from "@/lib/finishes";
 import { groundColor, type GroundKind } from "@/lib/garden/grounds";
+import { buildBuilding, buildingDepth, type BuildingKind } from "@/lib/garden/buildings";
 
 export type PlacedItem = {
   id: string;
@@ -59,6 +60,10 @@ export class GardenScene {
   private water: THREE.Mesh | null = null;
   private keys = new Set<string>();
   private walking = false;
+  private fencePanels: THREE.Group | null = null;
+  private fenceTexture: THREE.CanvasTexture | null = null;
+  private fenceMeshEnabled = true;
+  private building: THREE.Group | null = null;
   readonly isMobile: boolean;
   private loader = new GLTFLoader();
   private cache = new Map<string, THREE.Object3D>();
@@ -153,7 +158,7 @@ export class GardenScene {
     this.renderer.domElement.addEventListener("pointerdown", this.onPointerDown);
     this.renderer.domElement.addEventListener("pointermove", this.onPointerMove);
     this.renderer.domElement.addEventListener("pointerup", this.onPointerUp);
-    window.addEventListener("keydown", this.onKeyDown);
+    window.addEventListener("keydown", this.onKeyDown, { passive: false });
     window.addEventListener("keyup", this.onKeyUp);
 
     this.loop();
@@ -203,8 +208,27 @@ export class GardenScene {
     this.controls.target.add(move);
   }
 
+  private static readonly SCROLL_KEYS = new Set([
+    "arrowup",
+    "arrowdown",
+    "arrowleft",
+    "arrowright",
+    " ",
+    "pagedown",
+    "pageup",
+  ]);
+
   private onKeyDown = (e: KeyboardEvent) => {
-    this.keys.add(e.key.toLowerCase());
+    const key = e.key.toLowerCase();
+    // En mode marche, les flèches pilotent la caméra : il faut empêcher la
+    // page de défiler en même temps. On laisse passer si la frappe vise un
+    // champ de saisie.
+    const target = e.target as HTMLElement | null;
+    const typing =
+      target &&
+      (target.tagName === "INPUT" || target.tagName === "TEXTAREA" || target.isContentEditable);
+    if (this.walking && !typing && GardenScene.SCROLL_KEYS.has(key)) e.preventDefault();
+    this.keys.add(key);
   };
 
   private onKeyUp = (e: KeyboardEvent) => {
@@ -339,6 +363,7 @@ export class GardenScene {
     holder.add(model);
     const half: Half = { x: size.x / 2, z: size.z / 2 };
     holder.userData.half = half;
+    holder.userData.height = size.y;
     holder.userData.model = model;
 
     // L'emprise n'est connue qu'ici, une fois le modèle mesuré : c'est donc
@@ -465,9 +490,110 @@ export class GardenScene {
     (this.plot.material as THREE.MeshStandardMaterial).color.setHex(color);
   }
 
+  /** Tend (ou retire) le grillage entre les piquets posés. */
+  setFenceMesh(enabled: boolean) {
+    this.fenceMeshEnabled = enabled;
+    this.syncFenceMesh();
+  }
+
+  // Grillage : on relie chaque piquet à ses voisins proches. Le seuil exclut
+  // les diagonales de coin (2,26 m pour un pas de 1,60 m) tout en gardant les
+  // travées d'un alignement.
+  private syncFenceMesh() {
+    if (this.fencePanels) {
+      this.scene.remove(this.fencePanels);
+      this.fencePanels.traverse((o) => (o as THREE.Mesh).geometry?.dispose());
+      this.fencePanels = null;
+    }
+    if (!this.fenceMeshEnabled) return;
+
+    const posts = [...this.objects.values()].filter((o) => FENCE_REFS.has(o.userData.ref as string));
+    if (posts.length < 2) return;
+
+    const group = new THREE.Group();
+    const material = this.fenceMaterial();
+    const MAX_SPAN = 2;
+    const seen = new Set<string>();
+
+    for (let i = 0; i < posts.length; i++) {
+      for (let j = i + 1; j < posts.length; j++) {
+        const a = posts[i].position;
+        const b = posts[j].position;
+        const span = Math.hypot(b.x - a.x, b.z - a.z);
+        if (span < 0.2 || span > MAX_SPAN) continue;
+        const key = `${i}-${j}`;
+        if (seen.has(key)) continue;
+        seen.add(key);
+
+        // Hauteur du grillage : celle du piquet, moins un retrait en tête.
+        const height = Math.max(0.4, (posts[i].userData.height as number) - 0.15);
+        const panel = new THREE.Mesh(new THREE.PlaneGeometry(span, height), material);
+        panel.position.set((a.x + b.x) / 2, height / 2, (a.z + b.z) / 2);
+        panel.rotation.y = Math.atan2(b.x - a.x, b.z - a.z) + Math.PI / 2;
+        // Le motif se répète en fonction de la travée, pour que les mailles
+        // gardent la même taille quelle que soit la distance entre piquets.
+        panel.scale.set(1, 1, 1);
+        group.add(panel);
+      }
+    }
+
+    this.fencePanels = group;
+    this.scene.add(group);
+  }
+
+  // Texture de grillage dessinée une fois sur un canevas : une maille losange
+  // claire sur fond transparent, bien plus légère que des barreaux modélisés.
+  private fenceMaterial() {
+    if (!this.fenceTexture) {
+      const size = 64;
+      const canvas = document.createElement("canvas");
+      canvas.width = size;
+      canvas.height = size;
+      const ctx = canvas.getContext("2d")!;
+      ctx.clearRect(0, 0, size, size);
+      ctx.strokeStyle = "rgba(190, 195, 190, 0.95)";
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.moveTo(0, 0);
+      ctx.lineTo(size, size);
+      ctx.moveTo(size, 0);
+      ctx.lineTo(0, size);
+      ctx.stroke();
+      const texture = new THREE.CanvasTexture(canvas);
+      texture.wrapS = THREE.RepeatWrapping;
+      texture.wrapT = THREE.RepeatWrapping;
+      texture.repeat.set(12, 12);
+      this.fenceTexture = texture;
+    }
+    return new THREE.MeshStandardMaterial({
+      map: this.fenceTexture,
+      transparent: true,
+      alphaTest: 0.35,
+      side: THREE.DoubleSide,
+      roughness: 0.7,
+      metalness: 0.3,
+    });
+  }
+
+  /** Maison ou villa de décor, reculée derrière la scène. */
+  setBuilding(kind: BuildingKind, z?: number) {
+    if (this.building) {
+      this.scene.remove(this.building);
+      this.building.traverse((o) => (o as THREE.Mesh).geometry?.dispose());
+      this.building = null;
+    }
+    const built = buildBuilding(kind);
+    if (!built) return;
+    // Posé en fond de scène, façade tournée vers la caméra.
+    built.position.z = z ?? -(buildingDepth(kind) / 2 + 7);
+    this.building = built;
+    this.scene.add(built);
+  }
+
   // La parcelle suit les clôtures posées : on la redessine sur l'emprise des
   // piquets, avec une marge pour qu'elle affleure sous eux.
   private syncPlotToFences() {
+    this.syncFenceMesh();
     if (this.manualPlot) return;
     const posts = [...this.objects.values()].filter((o) => FENCE_REFS.has(o.userData.ref as string));
     if (posts.length < 3) {
@@ -493,7 +619,9 @@ export class GardenScene {
    * Bassin rectangulaire avec margelles et eau. Procédural : aucun modèle à
    * charger, et les dimensions restent libres.
    */
-  setPool(spec: { width: number; depth: number; x?: number; z?: number } | null) {
+  setPool(
+    spec: { width: number; depth: number; x?: number; z?: number; water?: boolean } | null
+  ) {
     if (this.pool) {
       this.scene.remove(this.pool);
       this.pool.traverse((o) => {
@@ -519,20 +647,23 @@ export class GardenScene {
     basin.receiveShadow = true;
     group.add(basin);
 
-    // Eau : plan translucide, légèrement animé.
-    this.water = new THREE.Mesh(
-      new THREE.PlaneGeometry(w - 0.05, d - 0.05),
-      new THREE.MeshStandardMaterial({
-        color: 0x3aa3c9,
-        roughness: 0.12,
-        metalness: 0.25,
-        transparent: true,
-        opacity: 0.82,
-      })
-    );
-    this.water.rotation.x = -Math.PI / 2;
-    this.water.position.y = -0.12;
-    group.add(this.water);
+    // Eau : plan translucide, légèrement animé. Un bassin vide s'en passe et
+    // laisse voir le fond, comme une piscine hors saison ou en construction.
+    if (spec.water !== false) {
+      this.water = new THREE.Mesh(
+        new THREE.PlaneGeometry(w - 0.05, d - 0.05),
+        new THREE.MeshStandardMaterial({
+          color: 0x3aa3c9,
+          roughness: 0.12,
+          metalness: 0.25,
+          transparent: true,
+          opacity: 0.82,
+        })
+      );
+      this.water.rotation.x = -Math.PI / 2;
+      this.water.position.y = -0.12;
+      group.add(this.water);
+    }
 
     // Margelles : quatre dalles claires autour du bassin.
     const coping = new THREE.MeshStandardMaterial({ color: 0xe6e0d4, roughness: 0.9 });
