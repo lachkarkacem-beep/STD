@@ -135,6 +135,18 @@ console.log(`   ${db.products.length} références contrôlées`);
 
 console.log("\n2. Plantation : les sujets tiennent dans la cavité\n");
 
+// L'interface propose les espèces depuis lib/plants.ts, la géométrie vient de
+// plants-builder.js : une liste plus longue que l'autre donnerait un choix qui
+// ne produit rien, ou une espèce dessinée que personne ne peut demander.
+{
+  const tsSrc = fs.readFileSync(path.join(ROOT, "lib/plants.ts"), "utf8");
+  const tsIds = [...tsSrc.matchAll(/id:\s*"([a-z]+)"/g)].map((m) => m[1]);
+  const jsIds = PLANT_SPECIES.map((s) => s.id);
+  ok(tsIds.length === jsIds.length, "les deux listes d'espèces ont la même longueur", `${tsIds.length} / ${jsIds.length}`);
+  for (const id of jsIds) ok(tsIds.includes(id), `l'espèce ${id} est proposée par l'interface`);
+  for (const id of tsIds) ok(jsIds.includes(id), `l'espèce ${id} est bien dessinée`);
+}
+
 const plantable = [];
 for (const p of db.products) {
   const file = path.join(GLB_DIR, `${p.id}.glb`);
@@ -597,22 +609,122 @@ ok(courte.length === 6 && !courte.includes("…"), "six pages s'affichent toutes
 console.log("\n11. Effets animés : flammes et jets d'eau\n");
 
 const knownAll = new Set(db.products.map((p) => p.id));
+
+// Matrice monde d'un nœud, transformations parentes comprises. Se contenter
+// d'additionner les translations donne des hauteurs fausses dès qu'un nœud
+// porte une rotation ou une échelle.
+function worldMatrixFactory(json) {
+  const parentOf = new Map();
+  (json.nodes ?? []).forEach((n, i) => (n.children ?? []).forEach((c) => parentOf.set(c, i)));
+  return (idx) => {
+    const chain = [];
+    let c = idx;
+    while (c !== undefined) {
+      chain.unshift(c);
+      c = parentOf.get(c);
+    }
+    const m = new THREE.Matrix4();
+    for (const i of chain) {
+      const n = json.nodes[i];
+      const l = new THREE.Matrix4();
+      if (n.matrix) l.fromArray(n.matrix);
+      else
+        l.compose(
+          new THREE.Vector3().fromArray(n.translation ?? [0, 0, 0]),
+          new THREE.Quaternion().fromArray(n.rotation ?? [0, 0, 0, 1]),
+          new THREE.Vector3().fromArray(n.scale ?? [1, 1, 1])
+        );
+      m.multiply(l);
+    }
+    return m;
+  };
+}
+
+// Boîtes monde des primitives d'un matériau donné, prises une à une.
+function materialBoxes(ref, material) {
+  const json = readGlb(path.join(GLB_DIR, `${ref}.glb`));
+  const mi = (json.materials ?? []).findIndex((m) => m.name === material);
+  const world = worldMatrixFactory(json);
+  const boxes = [];
+  (json.nodes ?? []).forEach((node, ni) => {
+    if (node.mesh === undefined) return;
+    for (const p of json.meshes[node.mesh].primitives ?? []) {
+      if (material && p.material !== mi) continue;
+      const a = json.accessors[p.attributes.POSITION];
+      if (!a?.min || !a?.max) continue;
+      boxes.push(
+        new THREE.Box3(
+          new THREE.Vector3().fromArray(a.min),
+          new THREE.Vector3().fromArray(a.max)
+        ).applyMatrix4(world(ni))
+      );
+    }
+  });
+  return boxes;
+}
+
+/** Sommet réel d'un modèle, tous matériaux confondus. */
+function modelTop(ref) {
+  const box = new THREE.Box3();
+  for (const b of materialBoxes(ref, null)) box.union(b);
+  return box.max.y;
+}
+
+/** Hauteurs des nappes d'eau du modèle, de la plus haute à la plus basse. */
+function waterLevels(ref) {
+  const levels = materialBoxes(ref, "eau").map((b) => +b.max.y.toFixed(3));
+  return [...new Set(levels)].sort((a, b) => b - a);
+}
+
 for (const [ref, spec] of Object.entries(EFFECT_ANCHORS)) {
   ok(knownAll.has(ref), `effet : la référence ${ref} existe au catalogue`);
   const product = db.products.find((p) => p.id === ref);
   if (!product) continue;
 
-  const hauteur = product.dimensions.height / 100;
-  // L'effet doit s'accrocher sur la pièce, pas flotter au-dessus ni sous le sol.
-  ok(spec.y > 0.1, `${ref} : l'effet n'est pas au ras du sol`, `${spec.y} m`);
-  ok(spec.y <= hauteur, `${ref} : l'effet reste sous le sommet de la pièce`, `${spec.y} / ${hauteur} m`);
-
-  if (spec.kind === "eau") {
-    // L'eau doit retomber sans traverser le sol.
-    ok(spec.fall > 0, `${ref} : la chute d'eau a une hauteur`);
-    ok(spec.y - spec.fall > -0.05, `${ref} : l'eau ne tombe pas sous le sol`, `${(spec.y - spec.fall).toFixed(2)} m`);
-  } else {
+  if (spec.kind === "feu") {
     ok(spec.size > 0, `${ref} : la flamme a une taille`);
+    ok(spec.y > 0.1, `${ref} : la flamme n'est pas au ras du sol`, `${spec.y} m`);
+    ok(
+      spec.y <= product.dimensions.height / 100,
+      `${ref} : la flamme reste sous le sommet`,
+      `${spec.y} m`
+    );
+    continue;
+  }
+
+  const sommet = modelTop(ref);
+  const nappes = waterLevels(ref);
+  ok(nappes.length > 0, `${ref} : le modèle contient bien des nappes d'eau`);
+  ok(spec.spouts?.length > 0, `${ref} : au moins un jet déclaré`);
+
+  const cascade = product.category === "Fontaines";
+  if (cascade) {
+    // Sur une fontaine, l'eau doit jaillir du sommet, pas d'une vasque.
+    ok(
+      Math.abs(spec.spouts[0].y - sommet) < 0.02,
+      `${ref} : le jet part du sommet de la fontaine`,
+      `${spec.spouts[0].y} vs ${sommet.toFixed(3)} m`
+    );
+    ok(
+      spec.spouts.length === nappes.length,
+      `${ref} : autant de chutes que de vasques`,
+      `${spec.spouts.length} chutes / ${nappes.length} vasques`
+    );
+  }
+
+  for (const [i, s] of spec.spouts.entries()) {
+    const arrivee = +(s.y - s.fall).toFixed(3);
+    // Le point d'arrivée doit coïncider avec une nappe réelle du modèle :
+    // c'est ce qui garantit que l'eau ne traverse ni le fond ni le socle.
+    const nappe = nappes.find((n) => Math.abs(n - arrivee) < 0.03);
+    ok(
+      nappe !== undefined,
+      `${ref} : le jet ${i + 1} atteint une nappe d'eau`,
+      `arrivée ${arrivee} m, nappes ${nappes.join(", ")}`
+    );
+    ok(s.fall > 0, `${ref} : le jet ${i + 1} a une hauteur de chute`);
+    ok(arrivee > 0, `${ref} : le jet ${i + 1} ne descend pas sous le sol`, `${arrivee} m`);
+    ok(s.y <= sommet + 0.01, `${ref} : le jet ${i + 1} part d'un point du modèle`, `${s.y} m`);
   }
 }
 

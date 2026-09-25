@@ -20,7 +20,7 @@ export default async function ComptePage() {
 
   return (
     <div className="mx-auto max-w-3xl px-6 py-12">
-      <h1 className="mb-1 text-2xl font-semibold text-ink">
+      <h1 className="mb-1 text-3xl font-normal text-ink">
         Bonjour {profile?.full_name?.split(" ")[0] ?? ""}
       </h1>
       <p className="mb-2 text-sm text-ink-soft">
@@ -28,7 +28,7 @@ export default async function ComptePage() {
       </p>
       <p className="mb-8 text-sm leading-relaxed text-ink-soft">{COMPTE_INTRO}</p>
 
-      <h2 className="mb-4 text-lg font-semibold text-ink">Mes demandes de devis</h2>
+      <h2 className="mb-4 text-xl font-normal text-ink">Mes demandes de devis</h2>
 
       {!quotes || quotes.length === 0 ? (
         <p className="text-sm leading-relaxed text-ink-soft">

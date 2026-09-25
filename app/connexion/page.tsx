@@ -5,7 +5,7 @@ import LoginForm from "@/components/LoginForm";
 export default function LoginPage() {
   return (
     <div className="mx-auto max-w-sm px-6 py-16">
-      <h1 className="mb-8 text-2xl font-medium text-ink">Connexion</h1>
+      <h1 className="mb-8 text-3xl font-normal text-ink">Connexion</h1>
       <Suspense>
         <LoginForm />
       </Suspense>

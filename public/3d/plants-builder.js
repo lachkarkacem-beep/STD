@@ -14,7 +14,11 @@ export const PLANT_SPECIES = [
   { id: "rosier", label: "Rosier buisson", height: 0.55, spread: 0.35 },
   { id: "buis", label: "Buis boule", height: 0.4, spread: 0.36 },
   { id: "olivier", label: "Olivier", height: 0.9, spread: 0.5 },
+  { id: "bonsai", label: "Olivier bonsaï", height: 0.42, spread: 0.38 },
   { id: "palmier", label: "Palmier nain", height: 0.7, spread: 0.55 },
+  { id: "yucca", label: "Yucca elephantipes", height: 1.1, spread: 0.5 },
+  { id: "dodonaea", label: "Dodonaea", height: 0.85, spread: 0.45 },
+  { id: "laurier", label: "Laurier-rose", height: 0.95, spread: 0.5 },
   { id: "succulente", label: "Succulentes", height: 0.18, spread: 0.22 },
   { id: "graminee", label: "Graminées", height: 0.6, spread: 0.3 },
 ];
@@ -212,8 +216,161 @@ function buildGraminee(THREE, r, h, w) {
   return g;
 }
 
+/**
+ * Tronc noueux : une pile de segments qui s'affinent en serpentant. C'est ce
+ * décalage d'un segment à l'autre qui donne le port tourmenté d'un vieil
+ * olivier, qu'un simple cylindre ne rend pas.
+ */
+function gnarledTrunk(THREE, g, r, height, baseRadius, sway) {
+  const material = mat(THREE, "tronc");
+  const segments = 5;
+  let x = 0;
+  let z = 0;
+  for (let i = 0; i < segments; i++) {
+    const h = height / segments;
+    const rb = baseRadius * (1 - i / (segments + 1.5));
+    const rt = baseRadius * (1 - (i + 1) / (segments + 1.5));
+    const seg = mesh(THREE, new THREE.CylinderGeometry(rt, rb, h * 1.12, 6), material, "tige");
+    x += (r() - 0.5) * sway;
+    z += (r() - 0.5) * sway;
+    seg.position.set(x, h * (i + 0.5), z);
+    seg.rotation.set((r() - 0.5) * 0.18, r() * Math.PI, (r() - 0.5) * 0.18);
+    g.add(seg);
+  }
+  return { x, z };
+}
+
+/** Olivier bonsaï : tronc noueux court, plateaux de feuillage argenté. */
+function buildBonsai(THREE, r, h, w) {
+  const g = new THREE.Group();
+  const top = gnarledTrunk(THREE, g, r, h * 0.5, w * 0.075, w * 0.06);
+  const feuilles = mat(THREE, "feuillesArgent");
+  // Trois plateaux étagés, comme une taille en nuages.
+  const tiers = [
+    { y: h * 0.56, rx: w * 0.3, ry: h * 0.09 },
+    { y: h * 0.74, rx: w * 0.22, ry: h * 0.075 },
+    { y: h * 0.9, rx: w * 0.14, ry: h * 0.06 },
+  ];
+  for (const [i, t] of tiers.entries()) {
+    const cluster = mesh(THREE, new THREE.IcosahedronGeometry(t.rx, 1), feuilles, "feuilles");
+    cluster.scale.y = t.ry / t.rx;
+    cluster.position.set(top.x + (r() - 0.5) * w * 0.1, t.y, top.z + (r() - 0.5) * w * 0.1);
+    g.add(cluster);
+    if (i === 0) {
+      const side = mesh(THREE, new THREE.IcosahedronGeometry(t.rx * 0.62, 1), feuilles, "feuilles");
+      side.scale.y = 0.5;
+      side.position.set(top.x - t.rx * 0.9, t.y - h * 0.04, top.z + (r() - 0.5) * w * 0.1);
+      g.add(side);
+    }
+  }
+  return g;
+}
+
+/** Yucca elephantipes : troncs étagés coiffés de rosettes de longues feuilles. */
+function buildYucca(THREE, r, h, w) {
+  const g = new THREE.Group();
+  const tronc = mat(THREE, "tronc");
+  const feuilles = mat(THREE, "feuilles");
+
+  // Deux ou trois cannes de hauteurs différentes, comme les sujets vendus en bac.
+  const cannes = [
+    { h: h * 0.62, x: 0, z: 0, s: 1 },
+    { h: h * 0.42, x: w * 0.16, z: w * 0.08, s: 0.8 },
+    { h: h * 0.26, x: -w * 0.14, z: -w * 0.1, s: 0.66 },
+  ];
+
+  for (const canne of cannes) {
+    const stipe = mesh(
+      THREE,
+      new THREE.CylinderGeometry(w * 0.055 * canne.s, w * 0.075 * canne.s, canne.h, 7),
+      tronc,
+      "tige"
+    );
+    stipe.position.set(canne.x, canne.h / 2, canne.z);
+    g.add(stipe);
+
+    const n = 11;
+    for (let i = 0; i < n; i++) {
+      const a = (i / n) * Math.PI * 2 + r() * 0.3;
+      const longueur = w * (0.45 + r() * 0.25) * canne.s;
+      const feuille = mesh(THREE, new THREE.ConeGeometry(w * 0.05 * canne.s, longueur, 3), feuilles, "feuilles");
+      feuille.scale.z = 0.14;
+      feuille.position.set(canne.x, canne.h, canne.z);
+      // Les feuilles retombent d'autant plus qu'elles sont basses dans la rosette.
+      const tombe = 0.5 + (i / n) * 0.7;
+      feuille.rotation.set(tombe, a, 0, "YXZ");
+      feuille.translateOnAxis(new THREE.Vector3(0, 1, 0), longueur * 0.42);
+      g.add(feuille);
+    }
+  }
+  return g;
+}
+
+/** Dodonaea : arbuste dense au feuillage fin, teinté de bronze. */
+function buildDodonaea(THREE, r, h, w) {
+  const g = new THREE.Group();
+  gnarledTrunk(THREE, g, r, h * 0.3, w * 0.05, w * 0.03);
+  const bronze = new THREE.MeshStandardMaterial({ color: 0x6f7a3f, roughness: 0.85 });
+  bronze.name = "feuilles";
+
+  // Masse dense montée en fuseau : le port dressé caractéristique.
+  for (let i = 0; i < 9; i++) {
+    const t = i / 8;
+    const rayon = w * (0.3 - t * 0.16) * (0.85 + r() * 0.3);
+    const amas = mesh(THREE, new THREE.IcosahedronGeometry(rayon, 1), bronze, "feuilles");
+    amas.position.set(
+      (r() - 0.5) * w * 0.18,
+      h * (0.3 + t * 0.62),
+      (r() - 0.5) * w * 0.18
+    );
+    g.add(amas);
+  }
+  return g;
+}
+
+/** Laurier-rose : buisson souple ponctué de fleurs. */
+function buildLaurier(THREE, r, h, w) {
+  const g = new THREE.Group();
+  const tige = mat(THREE, "tige");
+  const feuilles = mat(THREE, "feuillesSombre");
+  const fleurs = new THREE.MeshStandardMaterial({ color: 0xdf7f9c, roughness: 0.7 });
+  fleurs.name = "fleurs";
+
+  const n = 7;
+  for (let i = 0; i < n; i++) {
+    const a = (i / n) * Math.PI * 2 + r() * 0.5;
+    const hauteur = h * (0.6 + r() * 0.4);
+    const inclinaison = 0.1 + r() * 0.16;
+    const branche = mesh(THREE, new THREE.CylinderGeometry(0.006, 0.012, hauteur, 4), tige, "tige");
+    branche.position.set(Math.cos(a) * w * 0.07, hauteur / 2, Math.sin(a) * w * 0.07);
+    branche.rotation.set(Math.cos(a) * inclinaison, 0, -Math.sin(a) * inclinaison);
+    g.add(branche);
+
+    const sommet = new THREE.Vector3(
+      Math.cos(a) * w * (0.07 + hauteur * inclinaison * 0.5),
+      hauteur * 0.96,
+      Math.sin(a) * w * (0.07 + hauteur * inclinaison * 0.5)
+    );
+    const amas = mesh(THREE, new THREE.IcosahedronGeometry(w * (0.14 + r() * 0.07), 1), feuilles, "feuilles");
+    amas.scale.y = 1.25;
+    amas.position.copy(sommet);
+    g.add(amas);
+
+    if (i % 2 === 0) {
+      const fleur = mesh(THREE, new THREE.IcosahedronGeometry(w * 0.055, 0), fleurs, "fleurs");
+      fleur.position.set(sommet.x, sommet.y + w * 0.1, sommet.z);
+      g.add(fleur);
+    }
+  }
+  return g;
+}
+
 const BUILDERS = {
   geranium: buildGeranium,
+  bonsai: buildBonsai,
+  yucca: buildYucca,
+  dodonaea: buildDodonaea,
+  laurier: buildLaurier,
   lavande: buildLavande,
   rosier: buildRosier,
   buis: buildBuis,

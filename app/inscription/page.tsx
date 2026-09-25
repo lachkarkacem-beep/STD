@@ -5,7 +5,7 @@ import { SIGNUP_INTRO } from "@/lib/marketing";
 export default function SignupPage() {
   return (
     <div className="mx-auto max-w-sm px-6 py-16">
-      <h1 className="mb-3 text-2xl font-semibold text-ink">Créer un compte</h1>
+      <h1 className="mb-3 text-3xl font-normal text-ink">Créer un compte</h1>
       <p className="mb-8 text-sm leading-relaxed text-ink-soft">{SIGNUP_INTRO}</p>
       <SignupForm />
       <p className="mt-6 text-sm text-ink-soft">

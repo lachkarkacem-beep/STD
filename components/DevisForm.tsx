@@ -66,7 +66,7 @@ export default function DevisForm({ userId }: { userId: string }) {
   if (sent) {
     return (
       <div className="card flex flex-col gap-3 p-8">
-        <h2 className="text-lg font-semibold text-ink">Merci, votre demande nous est bien parvenue</h2>
+        <h2 className="text-xl font-normal text-ink">Merci, votre demande nous est bien parvenue</h2>
         <p className="text-sm leading-relaxed text-ink-soft">
           Nous prenons le temps de l&apos;étudier et revenons vers vous sous 24 à 48 heures. Notre
           réponse vous attendra dans{" "}

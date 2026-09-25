@@ -10,7 +10,7 @@ export default async function DevisPage() {
 
   return (
     <div className="mx-auto max-w-2xl px-6 py-12">
-      <h1 className="mb-3 text-2xl font-semibold text-ink">Mon devis</h1>
+      <h1 className="mb-3 text-3xl font-normal text-ink">Mon devis</h1>
       <p className="mb-8 text-sm leading-relaxed text-ink-soft">{DEVIS_INTRO}</p>
       <DevisForm userId={user.id} />
     </div>

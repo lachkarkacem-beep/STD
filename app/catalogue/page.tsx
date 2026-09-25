@@ -12,7 +12,7 @@ export default function CataloguePage({
 
   return (
     <div className="mx-auto max-w-6xl px-6 py-12">
-      <h1 className="mb-3 text-2xl font-semibold text-ink">Catalogue</h1>
+      <h1 className="mb-3 text-3xl font-normal text-ink">Catalogue</h1>
       <p className="mb-8 max-w-2xl text-sm leading-relaxed text-ink-soft">{CATALOGUE_INTRO}</p>
       <CatalogueGrid
         products={products}

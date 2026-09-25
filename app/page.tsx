@@ -3,6 +3,7 @@ import { getCategories, getProducts, dimLine, has3D, glbSrc } from "@/lib/catalo
 import { HERO, VALUE_PROPS, STEPS, AUDIENCE, FINAL_CTA } from "@/lib/marketing";
 import { ACTIVITIES, COMPANY } from "@/lib/company";
 import ProductThumb from "@/components/ProductThumb";
+import LogoViewer from "@/components/LogoViewer";
 
 export default function HomePage() {
   const products = getProducts();
@@ -18,21 +19,27 @@ export default function HomePage() {
 
   return (
     <div>
-      <header className="mx-auto max-w-6xl px-6 pb-12 pt-16">
-        <span className="mb-4 block text-xs font-semibold uppercase tracking-widest text-grass-600">
-          {HERO.kicker}
-        </span>
-        <h1 className="max-w-3xl text-5xl font-normal leading-[1.08] tracking-tight text-ink sm:text-6xl">
-          {HERO.title}
-        </h1>
-        <p className="mt-6 max-w-2xl text-base leading-relaxed text-ink-soft">{HERO.subtitle}</p>
-        <div className="mt-8 flex flex-wrap gap-4">
-          <Link href="/catalogue" className="btn-primary">
-            {HERO.primaryCta}
-          </Link>
-          <Link href="/flipbook" className="btn-secondary">
-            {HERO.secondaryCta}
-          </Link>
+      <header className="mx-auto grid max-w-6xl grid-cols-1 items-center gap-10 px-6 pb-12 pt-16 lg:grid-cols-[minmax(0,1fr)_minmax(280px,380px)]">
+        <div>
+          <span className="mb-4 block text-xs font-semibold uppercase tracking-widest text-grass-600">
+            {HERO.kicker}
+          </span>
+          <h1 className="max-w-3xl text-5xl font-normal leading-[1.08] tracking-tight text-ink sm:text-6xl">
+            {HERO.title}
+          </h1>
+          <p className="mt-6 max-w-2xl text-base leading-relaxed text-ink-soft">{HERO.subtitle}</p>
+          <div className="mt-8 flex flex-wrap gap-4">
+            <Link href="/catalogue" className="btn-primary">
+              {HERO.primaryCta}
+            </Link>
+            <Link href="/flipbook" className="btn-secondary">
+              {HERO.secondaryCta}
+            </Link>
+          </div>
+        </div>
+
+        <div className="flex justify-center lg:justify-end">
+          <LogoViewer />
         </div>
       </header>
 
@@ -91,7 +98,7 @@ export default function HomePage() {
                 <span className="font-heading text-3xl font-normal text-brand-500">
                   {s.number}
                 </span>
-                <h3 className="text-base font-semibold text-ink">{s.title}</h3>
+                <h3 className="text-xl font-normal text-ink">{s.title}</h3>
                 <p className="text-sm leading-relaxed text-ink-soft">{s.body}</p>
               </div>
             ))}

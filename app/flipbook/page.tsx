@@ -25,7 +25,7 @@ export default function FlipbookPage() {
 
   return (
     <div className="mx-auto max-w-4xl px-6 py-12">
-      <h1 className="mb-2 text-2xl font-semibold text-ink">Catalogue photo</h1>
+      <h1 className="mb-2 text-3xl font-normal text-ink">Catalogue photo</h1>
       <p className="mb-8 max-w-2xl text-sm leading-relaxed text-ink-soft">{FLIPBOOK_INTRO}</p>
       {pages.length === 0 ? (
         <p className="text-sm text-ink-faint">Aucune page pour le moment.</p>
