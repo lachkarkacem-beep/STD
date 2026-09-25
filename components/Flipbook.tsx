@@ -1,7 +1,8 @@
 "use client";
 
-import { forwardRef } from "react";
+import { forwardRef, useRef, useState } from "react";
 import HTMLFlipBook from "react-pageflip";
+import { pageNumbers } from "@/lib/pagination.mjs";
 
 // react-pageflip exige que chaque page soit un élément capable de porter une
 // ref : d'où ces enveloppes, et non des <div> directement dans le livre.
@@ -54,33 +55,101 @@ function BackCover() {
 }
 
 export default function Flipbook({ pages }: { pages: string[] }) {
+  const bookRef = useRef<{ pageFlip: () => { flip: (i: number) => void; flipNext: () => void; flipPrev: () => void } } | null>(null);
+  const [page, setPage] = useState(0);
+
+  // Couverture + pages + quatrième de couverture.
+  const total = pages.length + 2;
+  const current = page + 1;
+
+  const flipTo = (n: number) => bookRef.current?.pageFlip()?.flip(n - 1);
+
+  const numberClass = (active: boolean) =>
+    `h-9 min-w-9 rounded-full border px-3 text-sm transition-colors ${
+      active
+        ? "border-brand-500 bg-brand-500 text-white"
+        : "border-line text-ink-soft hover:border-brand-300 hover:text-brand-600"
+    }`;
+
   return (
-    <div className="flex justify-center">
-      {/* @ts-expect-error react-pageflip's types don't model children/ref cleanly */}
-      <HTMLFlipBook
-        width={420}
-        height={594}
-        size="stretch"
-        minWidth={280}
-        maxWidth={700}
-        minHeight={396}
-        maxHeight={990}
-        showCover
-        maxShadowOpacity={0.4}
-        className="shadow-card"
-      >
-        <Page>
-          <Cover />
-        </Page>
-        {pages.map((src) => (
-          <Page key={src} className="bg-white">
-            <img src={src} alt="" className="h-full w-full object-contain" />
+    <div className="flex flex-col gap-6">
+      <div className="flex justify-center">
+        {/* @ts-expect-error react-pageflip's types don't model children/ref cleanly */}
+        <HTMLFlipBook
+          ref={bookRef}
+          width={420}
+          height={594}
+          size="stretch"
+          minWidth={280}
+          maxWidth={700}
+          minHeight={396}
+          maxHeight={990}
+          showCover
+          maxShadowOpacity={0.4}
+          className="shadow-card"
+          onFlip={(e: { data: number }) => setPage(e.data)}
+        >
+          <Page>
+            <Cover />
           </Page>
-        ))}
-        <Page>
-          <BackCover />
-        </Page>
-      </HTMLFlipBook>
+          {pages.map((src) => (
+            <Page key={src} className="bg-white">
+              <img src={src} alt="" className="h-full w-full object-contain" />
+            </Page>
+          ))}
+          <Page>
+            <BackCover />
+          </Page>
+        </HTMLFlipBook>
+      </div>
+
+      <nav
+        aria-label="Pages du catalogue photo"
+        className="flex flex-wrap items-center justify-center gap-2 border-t border-line pt-6"
+      >
+        <button
+          type="button"
+          onClick={() => bookRef.current?.pageFlip()?.flipPrev()}
+          disabled={current === 1}
+          aria-label="Page précédente"
+          className="flex h-9 items-center gap-1 rounded-full border border-line px-4 text-sm text-ink-soft transition-colors hover:border-brand-300 hover:text-brand-600 disabled:cursor-not-allowed disabled:opacity-35 disabled:hover:border-line disabled:hover:text-ink-soft"
+        >
+          ‹ Précédent
+        </button>
+
+        {pageNumbers(current, total).map((n, i) =>
+          n === "…" ? (
+            <span key={`gap-${i}`} className="px-1 text-sm text-ink-faint">
+              …
+            </span>
+          ) : (
+            <button
+              key={n}
+              type="button"
+              onClick={() => flipTo(n)}
+              aria-label={`Page ${n}`}
+              aria-current={n === current ? "page" : undefined}
+              className={numberClass(n === current)}
+            >
+              {n}
+            </button>
+          )
+        )}
+
+        <button
+          type="button"
+          onClick={() => bookRef.current?.pageFlip()?.flipNext()}
+          disabled={current === total}
+          aria-label="Page suivante"
+          className="flex h-9 items-center gap-1 rounded-full border border-line px-4 text-sm text-ink-soft transition-colors hover:border-brand-300 hover:text-brand-600 disabled:cursor-not-allowed disabled:opacity-35 disabled:hover:border-line disabled:hover:text-ink-soft"
+        >
+          Suivant ›
+        </button>
+
+        <span className="ml-3 text-xs text-ink-faint">
+          Page {current} sur {total}
+        </span>
+      </nav>
     </div>
   );
 }

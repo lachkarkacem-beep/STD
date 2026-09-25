@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
 import ProductThumb from "@/components/ProductThumb";
 import ZoomViewer from "@/components/ZoomViewer";
+import { pageNumbers } from "@/lib/pagination.mjs";
 import { dimLine, has3D, glbSrc, type Category, type Product } from "@/lib/catalog";
 
 const PER_PAGE = 12;
@@ -129,22 +130,28 @@ export default function CatalogueGrid({
             ‹
           </button>
 
-          {Array.from({ length: pageCount }, (_, i) => i + 1).map((n) => (
-            <button
-              key={n}
-              type="button"
-              onClick={() => goTo(n)}
-              aria-label={`Page ${n}`}
-              aria-current={n === current ? "page" : undefined}
-              className={`h-9 min-w-9 rounded-full border px-3 text-sm transition-colors ${
-                n === current
-                  ? "border-brand-500 bg-brand-500 text-white"
-                  : "border-line text-ink-soft hover:border-brand-300 hover:text-brand-600"
-              }`}
-            >
-              {n}
-            </button>
-          ))}
+          {pageNumbers(current, pageCount).map((n, i) =>
+            n === "…" ? (
+              <span key={`gap-${i}`} className="px-1 text-sm text-ink-faint">
+                …
+              </span>
+            ) : (
+              <button
+                key={n}
+                type="button"
+                onClick={() => goTo(n)}
+                aria-label={`Page ${n}`}
+                aria-current={n === current ? "page" : undefined}
+                className={`h-9 min-w-9 rounded-full border px-3 text-sm transition-colors ${
+                  n === current
+                    ? "border-brand-500 bg-brand-500 text-white"
+                    : "border-line text-ink-soft hover:border-brand-300 hover:text-brand-600"
+                }`}
+              >
+                {n}
+              </button>
+            )
+          )}
 
           <button
             type="button"

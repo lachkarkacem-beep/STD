@@ -16,6 +16,7 @@ import { groundGeometry, groundCovers } from "../lib/garden/ground-geometry.mjs"
 import { fenceEdges } from "../lib/garden/fence.mjs";
 import { PAVINGS, pavingPitch, pavingLayout, isPavable } from "../lib/garden/paving.mjs";
 import { ROTATION_STEP, angleFromCenter, normalizeAngle, snapAngle, toDegrees } from "../lib/garden/rotation.mjs";
+import { pageNumbers } from "../lib/pagination.mjs";
 
 const ROOT = path.join(import.meta.dirname, "..");
 const GLB_DIR = path.join(ROOT, "public/models_web/glb");
@@ -564,7 +565,35 @@ ok(
 ok(toDegrees(angleFromCenter(0, 0, 0, 1)) === 0, "pointeur au nord : 0°");
 ok(toDegrees(angleFromCenter(2, 3, 2, 4)) === 0, "l'angle est mesuré depuis le centre de la pièce");
 
-console.log("\n10. Sauvegarde du projet : aller-retour à l'identique\n");
+console.log("\n10. Pagination du catalogue photo\n");
+
+// Les numéros affichés autour de la page courante : la première, la dernière
+// et les voisines, le reste replié. Cinquante et une pages ne tiennent pas
+// dans une barre.
+for (const [current, total] of [
+  [1, 53],
+  [2, 53],
+  [27, 53],
+  [52, 53],
+  [53, 53],
+]) {
+  const nums = pageNumbers(current, total);
+  const chiffres = nums.filter((n) => n !== "…");
+  ok(chiffres.includes(1), `page ${current}/${total} : la première page reste accessible`);
+  ok(chiffres.includes(total), `page ${current}/${total} : la dernière page reste accessible`);
+  ok(chiffres.includes(current), `page ${current}/${total} : la page courante est présente`);
+  ok(nums.length <= 9, `page ${current}/${total} : la barre reste courte`, `${nums.length} entrées`);
+  // Les numéros doivent rester strictement croissants, sans doublon.
+  for (let i = 1; i < chiffres.length; i++) {
+    ok(chiffres[i] > chiffres[i - 1], `page ${current}/${total} : numéros ordonnés et uniques`);
+  }
+}
+
+// Un catalogue court s'affiche en entier, sans repli.
+const courte = pageNumbers(3, 6);
+ok(courte.length === 6 && !courte.includes("…"), "six pages s'affichent toutes");
+
+console.log("\n11. Sauvegarde du projet : aller-retour à l'identique\n");
 
 // Ce que l'éditeur écrit dans localStorage et relit ensuite.
 const project = [
