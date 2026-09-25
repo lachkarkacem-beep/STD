@@ -617,7 +617,10 @@ export class GardenScene {
    */
   async setPaving(ref: string | null, area?: { width: number; depth: number; x?: number; z?: number }) {
     this.pavingRef = ref;
-    this.pavingArea = area ?? null;
+    // Changer de dallage depuis le sélecteur ne transmet pas de surface :
+    // sans cette conservation, la terrasse d'un exemple reprendrait la taille
+    // par défaut et se déplacerait sous les pièces déjà posées.
+    if (area) this.pavingArea = area;
     await this.rebuildPaving();
   }
 
