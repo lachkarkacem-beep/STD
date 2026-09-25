@@ -965,6 +965,424 @@
         55
       ],
       "plantable": false
+    },
+    {
+      "id": "PASPIERRE",
+      "name": "Pas japonais — Pierre",
+      "category": "Pas japonais",
+      "file": "glb/PASPIERRE.glb",
+      "sizeKB": 243,
+      "dimensions_cm": {
+        "width": 55,
+        "depth": 40,
+        "height": 5
+      },
+      "bbox_cm_WxDxH": [
+        55,
+        40,
+        5
+      ],
+      "plantable": false
+    },
+    {
+      "id": "PIEDGEANT1",
+      "name": "Pas japonais — Pied géant 1",
+      "category": "Pas japonais",
+      "file": "glb/PIEDGEANT1.glb",
+      "sizeKB": 109,
+      "dimensions_cm": {
+        "width": 45,
+        "depth": 50,
+        "height": 4
+      },
+      "bbox_cm_WxDxH": [
+        45,
+        50,
+        4
+      ],
+      "plantable": false
+    },
+    {
+      "id": "PIEDGEANT2",
+      "name": "Pas japonais — Pied géant 2",
+      "category": "Pas japonais",
+      "file": "glb/PIEDGEANT2.glb",
+      "sizeKB": 109,
+      "dimensions_cm": {
+        "width": 30,
+        "depth": 40,
+        "height": 4
+      },
+      "bbox_cm_WxDxH": [
+        30,
+        40,
+        4
+      ],
+      "plantable": false
+    },
+    {
+      "id": "BP27-100",
+      "name": "Bordure BP27, 100 cm",
+      "category": "Bordures",
+      "file": "glb/BP27-100.glb",
+      "sizeKB": 383,
+      "dimensions_cm": {
+        "width": 100,
+        "depth": 5,
+        "height": 35
+      },
+      "bbox_cm_WxDxH": [
+        100,
+        5,
+        35
+      ],
+      "plantable": false
+    },
+    {
+      "id": "BP27-60",
+      "name": "Bordure BP27, 60 cm",
+      "category": "Bordures",
+      "file": "glb/BP27-60.glb",
+      "sizeKB": 232,
+      "dimensions_cm": {
+        "width": 60,
+        "depth": 5,
+        "height": 35
+      },
+      "bbox_cm_WxDxH": [
+        60,
+        5,
+        35
+      ],
+      "plantable": false
+    },
+    {
+      "id": "BP27-40",
+      "name": "Bordure BP27, 40 cm",
+      "category": "Bordures",
+      "file": "glb/BP27-40.glb",
+      "sizeKB": 156,
+      "dimensions_cm": {
+        "width": 40,
+        "depth": 5,
+        "height": 35
+      },
+      "bbox_cm_WxDxH": [
+        40,
+        5,
+        35
+      ],
+      "plantable": false
+    },
+    {
+      "id": "FLECH1",
+      "name": "Bordure Flèche 1",
+      "category": "Bordures",
+      "file": "glb/FLECH1.glb",
+      "sizeKB": 102,
+      "dimensions_cm": {
+        "width": 37,
+        "depth": 5,
+        "height": 42
+      },
+      "bbox_cm_WxDxH": [
+        37,
+        5,
+        42
+      ],
+      "plantable": false
+    },
+    {
+      "id": "FLECH2",
+      "name": "Bordure Flèche 2",
+      "category": "Bordures",
+      "file": "glb/FLECH2.glb",
+      "sizeKB": 117,
+      "dimensions_cm": {
+        "width": 55,
+        "depth": 5,
+        "height": 42
+      },
+      "bbox_cm_WxDxH": [
+        55,
+        5,
+        42
+      ],
+      "plantable": false
+    },
+    {
+      "id": "BORDURET2",
+      "name": "Bordure T2",
+      "category": "Bordures",
+      "file": "glb/BORDURET2.glb",
+      "sizeKB": 18,
+      "dimensions_cm": {
+        "width": 30,
+        "depth": 6,
+        "height": 50
+      },
+      "bbox_cm_WxDxH": [
+        30,
+        6,
+        50
+      ],
+      "plantable": false
+    },
+    {
+      "id": "BORDUREBOIS",
+      "name": "Bordure Bois",
+      "category": "Bordures",
+      "file": "glb/BORDUREBOIS.glb",
+      "sizeKB": 24,
+      "dimensions_cm": {
+        "width": 20,
+        "depth": 4,
+        "height": 40
+      },
+      "bbox_cm_WxDxH": [
+        20,
+        4,
+        40
+      ],
+      "plantable": false
+    },
+    {
+      "id": "BORDURES",
+      "name": "Bordure S",
+      "category": "Bordures",
+      "file": "glb/BORDURES.glb",
+      "sizeKB": 18,
+      "dimensions_cm": {
+        "width": 50,
+        "depth": 10,
+        "height": 20
+      },
+      "bbox_cm_WxDxH": [
+        50,
+        10,
+        20
+      ],
+      "plantable": false
+    },
+    {
+      "id": "F100",
+      "name": "Jet d'eau mural F100",
+      "category": "Jets d'eau muraux",
+      "file": "glb/F100.glb",
+      "sizeKB": 216,
+      "dimensions_cm": {
+        "width": 46,
+        "depth": 50,
+        "height": 105
+      },
+      "bbox_cm_WxDxH": [
+        46,
+        50,
+        105
+      ],
+      "plantable": false
+    },
+    {
+      "id": "F170",
+      "name": "Jet d'eau mural F170",
+      "category": "Jets d'eau muraux",
+      "file": "glb/F170.glb",
+      "sizeKB": 183,
+      "dimensions_cm": {
+        "width": 56,
+        "depth": 63,
+        "height": 110
+      },
+      "bbox_cm_WxDxH": [
+        56,
+        63,
+        110
+      ],
+      "plantable": false
+    },
+    {
+      "id": "F40",
+      "name": "Jet d'eau mural F40",
+      "category": "Jets d'eau muraux",
+      "file": "glb/F40.glb",
+      "sizeKB": 149,
+      "dimensions_cm": {
+        "width": 40,
+        "depth": 32,
+        "height": 82
+      },
+      "bbox_cm_WxDxH": [
+        40,
+        32,
+        82
+      ],
+      "plantable": false
+    },
+    {
+      "id": "F625",
+      "name": "Jet d'eau mural F625",
+      "category": "Jets d'eau muraux",
+      "file": "glb/F625.glb",
+      "sizeKB": 95,
+      "dimensions_cm": {
+        "width": 40,
+        "depth": 40,
+        "height": 120
+      },
+      "bbox_cm_WxDxH": [
+        40,
+        40,
+        120
+      ],
+      "plantable": false
+    },
+    {
+      "id": "F86",
+      "name": "Jet d'eau mural F86",
+      "category": "Jets d'eau muraux",
+      "file": "glb/F86.glb",
+      "sizeKB": 136,
+      "dimensions_cm": {
+        "width": 67,
+        "depth": 34,
+        "height": 135
+      },
+      "bbox_cm_WxDxH": [
+        67,
+        34,
+        135
+      ],
+      "plantable": false
+    },
+    {
+      "id": "F22",
+      "name": "Fontaine F22",
+      "category": "Fontaines",
+      "file": "glb/F22.glb",
+      "sizeKB": 230,
+      "dimensions_cm": {
+        "width": 120,
+        "depth": 120,
+        "height": 170,
+        "diameter": 120
+      },
+      "bbox_cm_WxDxH": [
+        120,
+        120,
+        170
+      ],
+      "plantable": false
+    },
+    {
+      "id": "F11",
+      "name": "Fontaine F11",
+      "category": "Fontaines",
+      "file": "glb/F11.glb",
+      "sizeKB": 519,
+      "dimensions_cm": {
+        "width": 105,
+        "depth": 105,
+        "height": 230,
+        "diameter": 105
+      },
+      "bbox_cm_WxDxH": [
+        105,
+        105,
+        230
+      ],
+      "plantable": false
+    },
+    {
+      "id": "F1",
+      "name": "Fontaine F1",
+      "category": "Fontaines",
+      "file": "glb/F1.glb",
+      "sizeKB": 256,
+      "dimensions_cm": {
+        "width": 64,
+        "depth": 64,
+        "height": 150,
+        "diameter": 64
+      },
+      "bbox_cm_WxDxH": [
+        64,
+        64,
+        150
+      ],
+      "plantable": false
+    },
+    {
+      "id": "F21",
+      "name": "Fontaine F21",
+      "category": "Fontaines",
+      "file": "glb/F21.glb",
+      "sizeKB": 236,
+      "dimensions_cm": {
+        "width": 80,
+        "depth": 80,
+        "height": 145,
+        "diameter": 80
+      },
+      "bbox_cm_WxDxH": [
+        80,
+        80,
+        145
+      ],
+      "plantable": false
+    },
+    {
+      "id": "BARBACUE1",
+      "name": "Barbecue 1",
+      "category": "Barbecues",
+      "file": "glb/BARBACUE1.glb",
+      "sizeKB": 129,
+      "dimensions_cm": {
+        "width": 96,
+        "depth": 60,
+        "height": 97
+      },
+      "bbox_cm_WxDxH": [
+        96,
+        60,
+        97
+      ],
+      "plantable": false
+    },
+    {
+      "id": "BARBACUE2",
+      "name": "Barbecue 2",
+      "category": "Barbecues",
+      "file": "glb/BARBACUE2.glb",
+      "sizeKB": 119,
+      "dimensions_cm": {
+        "width": 96,
+        "depth": 60,
+        "height": 97
+      },
+      "bbox_cm_WxDxH": [
+        96,
+        60,
+        97
+      ],
+      "plantable": false
+    },
+    {
+      "id": "BARBACUE3",
+      "name": "Barbecue 3 avec hotte",
+      "category": "Barbecues",
+      "file": "glb/BARBACUE3.glb",
+      "sizeKB": 156,
+      "dimensions_cm": {
+        "width": 96,
+        "depth": 60,
+        "height": 230
+      },
+      "bbox_cm_WxDxH": [
+        96,
+        60,
+        230
+      ],
+      "plantable": false
     }
   ]
 }

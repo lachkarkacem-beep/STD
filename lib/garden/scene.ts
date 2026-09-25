@@ -8,6 +8,7 @@ import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 import { paletteFor } from "@/lib/finishes";
+import { groundColor, type GroundKind } from "@/lib/garden/grounds";
 
 export type PlacedItem = {
   id: string;
@@ -19,7 +20,13 @@ export type PlacedItem = {
   rotation: number;
 };
 
-export type CameraMode = "orbite" | "dessus" | "hauteur";
+export type CameraMode = "orbite" | "dessus" | "hauteur" | "marche";
+
+export type { GroundKind } from "@/lib/garden/grounds";
+
+// Références qui délimitent un terrain : poser des clôtures redessine la
+// parcelle au sol.
+const FENCE_REFS = new Set(["PQ200", "PQ250"]);
 
 const GRID = 0.1; // aimantation au sol : 10 cm
 const snap = (v: number) => Math.round(v / GRID) * GRID;
@@ -47,6 +54,12 @@ export class GardenScene {
   private controls: OrbitControls;
   private ground: THREE.Mesh;
   private plot: THREE.Mesh;
+  private manualPlot: { width: number; depth: number; x?: number; z?: number } | null = null;
+  private pool: THREE.Group | null = null;
+  private water: THREE.Mesh | null = null;
+  private keys = new Set<string>();
+  private walking = false;
+  readonly isMobile: boolean;
   private loader = new GLTFLoader();
   private cache = new Map<string, THREE.Object3D>();
   private objects = new Map<string, THREE.Object3D>();
@@ -62,10 +75,22 @@ export class GardenScene {
   onSelect: (id: string | null) => void = () => {};
 
   constructor(private mount: HTMLElement) {
-    this.renderer = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true });
-    this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    // Mode allégé sur mobile : même scène, mêmes fichiers, mais moins de
+    // pixels à calculer et des ombres plus grossières. Rien n'est retiré,
+    // seule la charge de rendu baisse.
+    const mobile =
+      typeof window !== "undefined" &&
+      (window.matchMedia("(pointer: coarse)").matches || window.innerWidth < 820);
+    this.isMobile = mobile;
+
+    this.renderer = new THREE.WebGLRenderer({
+      antialias: !mobile,
+      preserveDrawingBuffer: true,
+      powerPreference: mobile ? "low-power" : "high-performance",
+    });
+    this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, mobile ? 1.5 : 2));
     this.renderer.shadowMap.enabled = true;
-    this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    this.renderer.shadowMap.type = mobile ? THREE.BasicShadowMap : THREE.PCFSoftShadowMap;
     mount.appendChild(this.renderer.domElement);
     this.renderer.domElement.style.width = "100%";
     this.renderer.domElement.style.height = "100%";
@@ -89,7 +114,7 @@ export class GardenScene {
     const sun = new THREE.DirectionalLight(0xfff4e2, 2.6);
     sun.position.set(8, 12, 6);
     sun.castShadow = true;
-    sun.shadow.mapSize.set(2048, 2048);
+    sun.shadow.mapSize.set(mobile ? 1024 : 2048, mobile ? 1024 : 2048);
     const s = 16;
     Object.assign(sun.shadow.camera, { left: -s, right: s, top: s, bottom: -s, near: 0.5, far: 50 });
     sun.shadow.camera.updateProjectionMatrix();
@@ -128,6 +153,8 @@ export class GardenScene {
     this.renderer.domElement.addEventListener("pointerdown", this.onPointerDown);
     this.renderer.domElement.addEventListener("pointermove", this.onPointerMove);
     this.renderer.domElement.addEventListener("pointerup", this.onPointerUp);
+    window.addEventListener("keydown", this.onKeyDown);
+    window.addEventListener("keyup", this.onKeyUp);
 
     this.loop();
   }
@@ -142,8 +169,46 @@ export class GardenScene {
 
   private loop = () => {
     this.frame = requestAnimationFrame(this.loop);
+    if (this.walking) this.stepWalk();
+    if (this.water) {
+      // Respiration lente de la surface : assez pour que l'eau ne soit pas figée,
+      // assez discrète pour ne pas distraire.
+      const t = performance.now() / 1000;
+      this.water.position.y = -0.12 + Math.sin(t * 0.8) * 0.006;
+    }
     this.controls.update();
     this.renderer.render(this.scene, this.camera);
+  };
+
+  // Déplacement à hauteur d'homme : les touches avancent la cible et la
+  // caméra ensemble, dans la direction du regard.
+  private stepWalk() {
+    const forward = (this.keys.has("z") || this.keys.has("w") || this.keys.has("arrowup") ? 1 : 0) -
+      (this.keys.has("s") || this.keys.has("arrowdown") ? 1 : 0);
+    const strafe = (this.keys.has("d") || this.keys.has("arrowright") ? 1 : 0) -
+      (this.keys.has("q") || this.keys.has("a") || this.keys.has("arrowleft") ? 1 : 0);
+    if (!forward && !strafe) return;
+
+    const speed = this.keys.has("shift") ? 0.14 : 0.06;
+    const dir = new THREE.Vector3();
+    this.camera.getWorldDirection(dir);
+    dir.y = 0;
+    dir.normalize();
+    const right = new THREE.Vector3().crossVectors(dir, new THREE.Vector3(0, 1, 0));
+
+    const move = new THREE.Vector3()
+      .addScaledVector(dir, forward * speed)
+      .addScaledVector(right, strafe * speed);
+    this.camera.position.add(move);
+    this.controls.target.add(move);
+  }
+
+  private onKeyDown = (e: KeyboardEvent) => {
+    this.keys.add(e.key.toLowerCase());
+  };
+
+  private onKeyUp = (e: KeyboardEvent) => {
+    this.keys.delete(e.key.toLowerCase());
   };
 
   private setPointer(e: PointerEvent) {
@@ -195,6 +260,7 @@ export class GardenScene {
     this.renderer.domElement.releasePointerCapture(e.pointerId);
     this.dragging = null;
     this.controls.enabled = true;
+    this.syncPlotToFences();
     this.emit();
   };
 
@@ -284,6 +350,7 @@ export class GardenScene {
     this.objects.set(item.id, holder);
     this.scene.add(holder);
 
+    this.syncPlotToFences();
     this.applyFinish(item.id, item.finish);
     if (item.species) await this.applySpecies(item.id, item.species);
     this.emit();
@@ -347,6 +414,7 @@ export class GardenScene {
     if (!holder) return;
     this.scene.remove(holder);
     this.objects.delete(id);
+    this.syncPlotToFences();
     if (this.selectedId === id) this.select(null);
     this.emit();
   }
@@ -370,18 +438,139 @@ export class GardenScene {
     this.scene.add(this.selection);
   }
 
-  /** Affiche (ou masque) la parcelle de terre nue sous les pièces. */
-  setPlot(size: { width: number; depth: number } | null) {
+  /** Affiche (ou masque) la parcelle sous les pièces. */
+  setPlot(size: { width: number; depth: number; x?: number; z?: number } | null) {
     if (!size) {
       this.plot.visible = false;
+      this.manualPlot = null;
       return;
     }
+    this.manualPlot = size;
     this.plot.geometry.dispose();
     this.plot.geometry = new THREE.PlaneGeometry(size.width, size.depth);
+    this.plot.position.x = size.x ?? 0;
+    this.plot.position.z = size.z ?? 0;
     this.plot.visible = true;
   }
 
+  /** Couleur du sol général (pelouse, terre, sable…). */
+  setGround(kind: GroundKind) {
+    const color = groundColor(kind);
+    (this.ground.material as THREE.MeshStandardMaterial).color.setHex(color);
+  }
+
+  /** Couleur de la parcelle délimitée. */
+  setPlotGround(kind: GroundKind) {
+    const color = groundColor(kind);
+    (this.plot.material as THREE.MeshStandardMaterial).color.setHex(color);
+  }
+
+  // La parcelle suit les clôtures posées : on la redessine sur l'emprise des
+  // piquets, avec une marge pour qu'elle affleure sous eux.
+  private syncPlotToFences() {
+    if (this.manualPlot) return;
+    const posts = [...this.objects.values()].filter((o) => FENCE_REFS.has(o.userData.ref as string));
+    if (posts.length < 3) {
+      this.plot.visible = false;
+      return;
+    }
+    const box = new THREE.Box3();
+    for (const p of posts) {
+      const half = p.userData.half as Half;
+      box.expandByPoint(new THREE.Vector3(p.position.x - half.x, 0, p.position.z - half.z));
+      box.expandByPoint(new THREE.Vector3(p.position.x + half.x, 0, p.position.z + half.z));
+    }
+    const size = box.getSize(new THREE.Vector3());
+    const center = box.getCenter(new THREE.Vector3());
+    if (size.x < 0.5 || size.z < 0.5) return;
+    this.plot.geometry.dispose();
+    this.plot.geometry = new THREE.PlaneGeometry(size.x, size.z);
+    this.plot.position.set(center.x, this.plot.position.y, center.z);
+    this.plot.visible = true;
+  }
+
+  /**
+   * Bassin rectangulaire avec margelles et eau. Procédural : aucun modèle à
+   * charger, et les dimensions restent libres.
+   */
+  setPool(spec: { width: number; depth: number; x?: number; z?: number } | null) {
+    if (this.pool) {
+      this.scene.remove(this.pool);
+      this.pool.traverse((o) => {
+        const m = o as THREE.Mesh;
+        m.geometry?.dispose();
+      });
+      this.pool = null;
+      this.water = null;
+    }
+    if (!spec) return;
+
+    const { width: w, depth: d } = spec;
+    const group = new THREE.Group();
+    group.position.set(spec.x ?? 0, 0, spec.z ?? 0);
+
+    // Cuvette : un fond clair et des parois, creusés sous le niveau du sol.
+    const depthOfWater = 1.4;
+    const basin = new THREE.Mesh(
+      new THREE.BoxGeometry(w, depthOfWater, d),
+      new THREE.MeshStandardMaterial({ color: 0x9fd4e8, roughness: 0.5, side: THREE.BackSide })
+    );
+    basin.position.y = -depthOfWater / 2;
+    basin.receiveShadow = true;
+    group.add(basin);
+
+    // Eau : plan translucide, légèrement animé.
+    this.water = new THREE.Mesh(
+      new THREE.PlaneGeometry(w - 0.05, d - 0.05),
+      new THREE.MeshStandardMaterial({
+        color: 0x3aa3c9,
+        roughness: 0.12,
+        metalness: 0.25,
+        transparent: true,
+        opacity: 0.82,
+      })
+    );
+    this.water.rotation.x = -Math.PI / 2;
+    this.water.position.y = -0.12;
+    group.add(this.water);
+
+    // Margelles : quatre dalles claires autour du bassin.
+    const coping = new THREE.MeshStandardMaterial({ color: 0xe6e0d4, roughness: 0.9 });
+    const band = 0.4;
+    const pieces: [number, number, number, number][] = [
+      [w + band * 2, band, 0, -d / 2 - band / 2],
+      [w + band * 2, band, 0, d / 2 + band / 2],
+      [band, d, -w / 2 - band / 2, 0],
+      [band, d, w / 2 + band / 2, 0],
+    ];
+    for (const [sx, sz, px, pz] of pieces) {
+      const slab = new THREE.Mesh(new THREE.BoxGeometry(sx, 0.08, sz), coping);
+      slab.position.set(px, 0.04, pz);
+      slab.castShadow = true;
+      slab.receiveShadow = true;
+      group.add(slab);
+    }
+
+    this.pool = group;
+    this.scene.add(group);
+  }
+
   setCamera(mode: CameraMode) {
+    this.walking = mode === "marche";
+    if (this.walking) {
+      const t = this.controls.target;
+      this.camera.position.set(t.x, 1.65, t.z + 4);
+      this.controls.target.set(t.x, 1.55, t.z);
+      this.controls.maxPolarAngle = Math.PI / 2 + 0.25;
+      this.controls.minDistance = 0.4;
+      this.controls.update();
+      return;
+    }
+    this.controls.minDistance = 1.5;
+    this.applyCamera(mode);
+  }
+
+  private applyCamera(mode: CameraMode) {
     const t = this.controls.target;
     if (mode === "dessus") {
       this.camera.position.set(t.x, 14, t.z + 0.01);
@@ -427,6 +616,8 @@ export class GardenScene {
     this.renderer.domElement.removeEventListener("pointerdown", this.onPointerDown);
     this.renderer.domElement.removeEventListener("pointermove", this.onPointerMove);
     this.renderer.domElement.removeEventListener("pointerup", this.onPointerUp);
+    window.removeEventListener("keydown", this.onKeyDown);
+    window.removeEventListener("keyup", this.onKeyUp);
     this.controls.dispose();
     this.scene.traverse((o) => {
       const m = o as THREE.Mesh;

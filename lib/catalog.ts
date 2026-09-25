@@ -92,6 +92,8 @@ export function dimLine(p: Product) {
     case "slab":
     case "plinthe":
       return `${d.width} × ${d.depth} cm · ép. ${d.height} cm`;
+    case "bordure":
+      return `L ${d.width} × H ${d.height} cm · ép. ${d.depth} cm`;
     default:
       return `${d.width} × ${d.depth} × ${d.height} cm`;
   }
@@ -116,6 +118,13 @@ export function specRows(p: Product) {
         { label: "Longueur", value: `${d.width} cm` },
         { label: "Largeur", value: `${d.depth} cm` },
         { label: "Épaisseur", value: `${d.height} cm` },
+      ];
+    // Une bordure se lit en longueur de pose, épaisseur et hauteur hors sol.
+    if (p.dimensionType === "bordure")
+      return [
+        { label: "Longueur", value: `${d.width} cm` },
+        { label: "Épaisseur", value: `${d.depth} cm` },
+        { label: "Hauteur", value: `${d.height} cm` },
       ];
     if (p.dimensionType === "well")
       return [

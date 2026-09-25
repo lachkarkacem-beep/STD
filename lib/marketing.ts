@@ -80,6 +80,16 @@ export const CATEGORY_TEASERS: Record<string, string> = {
     "Des dalles et pavés autobloquants aux motifs chaleureux — bois, tapis, brique — pour habiller vos allées et vos terrasses.",
   "Tables et bancs":
     "De quoi s'asseoir et se retrouver dehors : bancs, tables et tabourets en pierre, rehaussés d'un décor de carreaux, qui restent en place toute l'année.",
+  "Pas japonais":
+    "Des dalles posées dans l'herbe pour tracer un chemin qui se devine, et guider le pas jusqu'au fond du jardin.",
+  Bordures:
+    "Une ligne nette entre l'allée et le massif : bordures ajourées, dentelées ou sobres, qui tiennent la terre et dessinent l'espace.",
+  "Jets d'eau muraux":
+    "Le bruit de l'eau contre un mur : fontaines murales en pierre, robinet en fer forgé, pour rafraîchir une entrée ou un patio.",
+  Fontaines:
+    "Vasques superposées, feuillages sculptés et flamme au sommet : la pièce qui devient le cœur d'une cour.",
+  Barbecues:
+    "Pierre et briques, grille en fer, hotte si vous le souhaitez : le coin grillades qui s'installe pour de bon sur la terrasse.",
 };
 
 export const CATALOGUE_INTRO =

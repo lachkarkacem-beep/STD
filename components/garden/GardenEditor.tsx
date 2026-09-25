@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import type { GardenScene, PlacedItem, CameraMode } from "@/lib/garden/scene";
+import { GROUNDS, groundCss, type GroundKind } from "@/lib/garden/grounds";
 import { PRESETS } from "@/lib/garden/presets.mjs";
 import { FINISHES, DEFAULT_FINISH } from "@/lib/finishes";
 import { PLANT_SPECIES } from "@/lib/plants";
@@ -28,6 +29,8 @@ export default function GardenEditor({ products }: { products: EditorProduct[] }
   const [category, setCategory] = useState<string>("Toutes");
   const [ready, setReady] = useState(false);
   const [saved, setSaved] = useState<string | null>(null);
+  const [ground, setGround] = useState<GroundKind>("pelouse");
+  const [camera, setCameraMode] = useState<CameraMode>("orbite");
 
   const byRef = useMemo(() => new Map(products.map((p) => [p.id, p])), [products]);
   const categories = useMemo(
@@ -100,6 +103,12 @@ export default function GardenEditor({ products }: { products: EditorProduct[] }
     if (!scene || !preset) return;
     scene.clear();
     scene.setPlot(preset.plot ?? null);
+    scene.setPool(preset.pool ?? null);
+    if (preset.ground) {
+      const kind = preset.ground as GroundKind;
+      scene.setGround(kind);
+      setGround(kind);
+    }
     preset.items.forEach((it) =>
       scene.add({
         id: newId(),
@@ -221,20 +230,54 @@ export default function GardenEditor({ products }: { products: EditorProduct[] }
 
         <div className="flex flex-wrap items-center gap-2 text-sm">
           <span className="text-xs text-ink-faint">Vue</span>
-          {(["orbite", "dessus", "hauteur"] as CameraMode[]).map((m) => (
+          {(["orbite", "dessus", "hauteur", "marche"] as CameraMode[]).map((m) => (
             <button
               key={m}
               type="button"
-              onClick={() => sceneRef.current?.setCamera(m)}
-              className="rounded-full border border-line px-3 py-1 text-xs text-ink-soft hover:border-leaf-400"
+              onClick={() => {
+                sceneRef.current?.setCamera(m);
+                setCameraMode(m);
+              }}
+              className={`rounded-full border px-3 py-1 text-xs ${
+                camera === m
+                  ? "border-grass-500 bg-leaf-50 text-grass-700"
+                  : "border-line text-ink-soft hover:border-leaf-400"
+              }`}
             >
-              {m === "orbite" ? "Libre" : m === "dessus" ? "De dessus" : "Hauteur d'homme"}
+              {m === "orbite"
+                ? "Libre"
+                : m === "dessus"
+                  ? "De dessus"
+                  : m === "hauteur"
+                    ? "Hauteur d'homme"
+                    : "Se déplacer"}
             </button>
           ))}
-          <span className="ml-auto text-xs text-ink-faint">
-            Cliquez une pièce pour la sélectionner, glissez pour la déplacer.
-          </span>
+
+          <span className="ml-4 text-xs text-ink-faint">Sol</span>
+          {GROUNDS.map((g) => (
+            <button
+              key={g.id}
+              type="button"
+              onClick={() => {
+                sceneRef.current?.setGround(g.id);
+                setGround(g.id);
+              }}
+              title={g.label}
+              aria-label={g.label}
+              className={`h-6 w-6 rounded-full border-2 ${
+                ground === g.id ? "border-brand-500" : "border-line"
+              }`}
+              style={{ background: groundCss(g.id) }}
+            />
+          ))}
         </div>
+
+        <p className="text-xs leading-relaxed text-ink-faint">
+          {camera === "marche"
+            ? "Déplacez-vous avec ZQSD ou les flèches, Maj pour accélérer. Glissez pour regarder autour de vous."
+            : "Cliquez une pièce pour la sélectionner, glissez pour la déplacer. Posez au moins trois piquets de clôture pour délimiter un terrain : la parcelle suit leur tracé."}
+        </p>
       </div>
 
       {/* Projet */}

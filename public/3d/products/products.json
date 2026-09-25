@@ -62,6 +62,31 @@
       "id": "Tables et bancs",
       "label": "Tables et bancs",
       "note": "Bancs, tables et tabourets en pierre reconstituée, décor de carreaux, pour s'asseoir au jardin."
+    },
+    {
+      "id": "Pas japonais",
+      "label": "Pas japonais",
+      "note": "Dalles isolées à poser dans l'herbe ou le gravier pour dessiner un cheminement."
+    },
+    {
+      "id": "Bordures",
+      "label": "Bordures",
+      "note": "Bordures décoratives pour souligner une allée, contenir un massif ou border une pelouse."
+    },
+    {
+      "id": "Jets d'eau muraux",
+      "label": "Jets d'eau muraux",
+      "note": "Fontaines murales en pierre reconstituée, avec robinet en fer forgé."
+    },
+    {
+      "id": "Fontaines",
+      "label": "Fontaines",
+      "note": "Fontaines sur pied, vasques superposées et décors sculptés."
+    },
+    {
+      "id": "Barbecues",
+      "label": "Barbecues",
+      "note": "Barbecues maçonnés en pierre et briques, avec grille."
     }
   ],
   "model3DPolicy": {
@@ -1698,6 +1723,525 @@
       "description": "Tabouret carré au décor de carreaux. Se glisse sous la table, se déplace au gré des besoins et fait aussi bien office de sellette pour un pot.",
       "available": true,
       "catalogPage": 21
+    },
+    {
+      "id": "PASPIERRE",
+      "name": "Pas japonais — Pierre",
+      "category": "Pas japonais",
+      "shape": "Irrégulière",
+      "dimensionType": "slab",
+      "dimensions": {
+        "width": 55,
+        "depth": 40,
+        "height": 5
+      },
+      "weight": null,
+      "image": "products/PASPIERRE/product.jpg",
+      "model3D": "viewer.html?ref=PASPIERRE",
+      "model3DSource": "procedural",
+      "formats": [
+        "GLB"
+      ],
+      "description": "Dalle au contour libre, imitant la pierre naturelle fendue. Posée tous les soixante centimètres dans une pelouse, elle dessine un chemin qui se devine plus qu'il ne s'impose.",
+      "notes": "Le catalogue n'indique qu'un diamètre de 55 cm : la profondeur de 40 cm et l'épaisseur de 5 cm sont des hypothèses du modèle 3D. Le contour irrégulier est simplifié — une photo de dessus permettrait de le rendre fidèlement.",
+      "available": true,
+      "catalogPage": 13
+    },
+    {
+      "id": "PIEDGEANT1",
+      "name": "Pas japonais — Pied géant 1",
+      "category": "Pas japonais",
+      "shape": "Empreinte",
+      "dimensionType": "slab",
+      "dimensions": {
+        "width": 45,
+        "depth": 50,
+        "height": 4
+      },
+      "weight": null,
+      "image": "products/PIEDGEANT1/product.jpg",
+      "model3D": "viewer.html?ref=PIEDGEANT1",
+      "model3DSource": "procedural",
+      "formats": [
+        "GLB"
+      ],
+      "description": "Une empreinte de pied géant, à poser en alternance pour amuser le regard le long d'une allée de jardin ou vers une aire de jeux.",
+      "notes": "Le catalogue imprimé ne donne pas l'épaisseur de cette pièce : le modèle 3D retient 5 cm, valeur à confirmer avant commande.",
+      "available": true,
+      "catalogPage": 13
+    },
+    {
+      "id": "PIEDGEANT2",
+      "name": "Pas japonais — Pied géant 2",
+      "category": "Pas japonais",
+      "shape": "Empreinte",
+      "dimensionType": "slab",
+      "dimensions": {
+        "width": 30,
+        "depth": 40,
+        "height": 4
+      },
+      "weight": null,
+      "image": "products/PIEDGEANT2/product.jpg",
+      "model3D": "viewer.html?ref=PIEDGEANT2",
+      "model3DSource": "procedural",
+      "formats": [
+        "GLB"
+      ],
+      "description": "La version plus étroite de l'empreinte, qui alterne avec la première pour composer une marche naturelle.",
+      "notes": "Le catalogue imprimé ne donne pas l'épaisseur de cette pièce : le modèle 3D retient 5 cm, valeur à confirmer avant commande.",
+      "available": true,
+      "catalogPage": 13
+    },
+    {
+      "id": "BP27-100",
+      "name": "Bordure BP27, 100 cm",
+      "category": "Bordures",
+      "shape": "Droite",
+      "dimensionType": "bordure",
+      "dimensions": {
+        "width": 100,
+        "depth": 5,
+        "height": 35
+      },
+      "weight": null,
+      "image": "products/BP27-100/product.jpg",
+      "model3D": "viewer.html?ref=BP27-100",
+      "model3DSource": "procedural",
+      "formats": [
+        "GLB"
+      ],
+      "description": "Grande bordure ajourée à palmettes et fleurs de lys. Alignée le long d'une allée, elle tient le massif tout en laissant passer la lumière.",
+      "notes": "Les décors (palmettes, fleurs de lys) sont simplifiés sur le modèle 3D ; une photo de face permettrait de les restituer fidèlement. Épaisseur de 5 cm retenue faute d'indication au catalogue.",
+      "available": true,
+      "catalogPage": 14
+    },
+    {
+      "id": "BP27-60",
+      "name": "Bordure BP27, 60 cm",
+      "category": "Bordures",
+      "shape": "Droite",
+      "dimensionType": "bordure",
+      "dimensions": {
+        "width": 60,
+        "depth": 5,
+        "height": 35
+      },
+      "weight": null,
+      "image": "products/BP27-60/product.jpg",
+      "model3D": "viewer.html?ref=BP27-60",
+      "model3DSource": "procedural",
+      "formats": [
+        "GLB"
+      ],
+      "description": "Le même décor ajouré en format intermédiaire, pour suivre une courbe sans multiplier les coupes.",
+      "notes": "Décors simplifiés sur le modèle 3D ; épaisseur de 5 cm retenue faute d'indication au catalogue.",
+      "available": true,
+      "catalogPage": 14
+    },
+    {
+      "id": "BP27-40",
+      "name": "Bordure BP27, 40 cm",
+      "category": "Bordures",
+      "shape": "Droite",
+      "dimensionType": "bordure",
+      "dimensions": {
+        "width": 40,
+        "depth": 5,
+        "height": 35
+      },
+      "weight": null,
+      "image": "products/BP27-40/product.jpg",
+      "model3D": "viewer.html?ref=BP27-40",
+      "model3DSource": "procedural",
+      "formats": [
+        "GLB"
+      ],
+      "description": "Le petit module de la famille BP27, utile pour terminer une ligne ou épouser un tracé serré.",
+      "notes": "Décors simplifiés sur le modèle 3D ; épaisseur de 5 cm retenue faute d'indication au catalogue.",
+      "available": true,
+      "catalogPage": 14
+    },
+    {
+      "id": "FLECH1",
+      "name": "Bordure Flèche 1",
+      "category": "Bordures",
+      "shape": "Dentelée",
+      "dimensionType": "bordure",
+      "dimensions": {
+        "width": 37,
+        "depth": 5,
+        "height": 42
+      },
+      "weight": null,
+      "image": "products/FLECH1/product.jpg",
+      "model3D": "viewer.html?ref=FLECH1",
+      "model3DSource": "procedural",
+      "formats": [
+        "GLB"
+      ],
+      "description": "Bordure à crête en pointes de flèche, d'inspiration ferronnerie. Elle donne du relief à la limite d'un massif sans l'enfermer.",
+      "notes": "Le catalogue imprimé ne donne pas l'épaisseur de cette pièce : le modèle 3D retient 5 cm, valeur à confirmer avant commande.",
+      "available": true,
+      "catalogPage": 14
+    },
+    {
+      "id": "FLECH2",
+      "name": "Bordure Flèche 2",
+      "category": "Bordures",
+      "shape": "Dentelée",
+      "dimensionType": "bordure",
+      "dimensions": {
+        "width": 55,
+        "depth": 5,
+        "height": 42
+      },
+      "weight": null,
+      "image": "products/FLECH2/product.jpg",
+      "model3D": "viewer.html?ref=FLECH2",
+      "model3DSource": "procedural",
+      "formats": [
+        "GLB"
+      ],
+      "description": "Le grand module à pointes de flèche, qui couvre plus de linéaire pour un même dessin.",
+      "notes": "Le catalogue imprimé ne donne pas l'épaisseur de cette pièce : le modèle 3D retient 5 cm, valeur à confirmer avant commande.",
+      "available": true,
+      "catalogPage": 14
+    },
+    {
+      "id": "BORDURET2",
+      "name": "Bordure T2",
+      "category": "Bordures",
+      "shape": "Droite",
+      "dimensionType": "bordure",
+      "dimensions": {
+        "width": 30,
+        "depth": 6,
+        "height": 50
+      },
+      "weight": null,
+      "image": "products/BORDURET2/product.jpg",
+      "model3D": "viewer.html?ref=BORDURET2",
+      "model3DSource": "procedural",
+      "formats": [
+        "GLB"
+      ],
+      "description": "Bordure haute et sobre, sans décor, pour retenir une terre en léger dénivelé ou border proprement une allée.",
+      "available": true,
+      "catalogPage": 14
+    },
+    {
+      "id": "BORDUREBOIS",
+      "name": "Bordure Bois",
+      "category": "Bordures",
+      "shape": "Rondins",
+      "dimensionType": "bordure",
+      "dimensions": {
+        "width": 20,
+        "depth": 4,
+        "height": 40
+      },
+      "weight": null,
+      "image": "products/BORDUREBOIS/product.jpg",
+      "model3D": "viewer.html?ref=BORDUREBOIS",
+      "model3DSource": "procedural",
+      "formats": [
+        "GLB"
+      ],
+      "description": "Une palissade de rondins imitant le bois, avec la tenue de la pierre. Chaleureuse au pied d'un massif, elle ne grise pas et ne pourrit pas.",
+      "notes": "Le catalogue imprimé ne donne pas l'épaisseur de cette pièce : le modèle 3D retient 5 cm, valeur à confirmer avant commande.",
+      "available": true,
+      "catalogPage": 14
+    },
+    {
+      "id": "BORDURES",
+      "name": "Bordure S",
+      "category": "Bordures",
+      "shape": "Droite",
+      "dimensionType": "bordure",
+      "dimensions": {
+        "width": 50,
+        "depth": 10,
+        "height": 20
+      },
+      "weight": null,
+      "image": "products/BORDURES/product.jpg",
+      "model3D": "viewer.html?ref=BORDURES",
+      "model3DSource": "procedural",
+      "formats": [
+        "GLB"
+      ],
+      "description": "Bordure basse et épaisse, la plus discrète de la gamme : elle marque la limite sans couper la vue.",
+      "available": true,
+      "catalogPage": 14
+    },
+    {
+      "id": "F100",
+      "name": "Jet d'eau mural F100",
+      "category": "Jets d'eau muraux",
+      "shape": "Murale",
+      "dimensionType": "box",
+      "dimensions": {
+        "width": 46,
+        "depth": 50,
+        "height": 105
+      },
+      "weight": null,
+      "image": "products/F100/product.jpg",
+      "model3D": "viewer.html?ref=F100",
+      "model3DSource": "procedural",
+      "formats": [
+        "GLB"
+      ],
+      "description": "Fontaine murale à bassin, robinet en fer forgé et grille au sol. Adossée à un mur d'entrée, elle apporte le bruit de l'eau dans un petit espace.",
+      "available": true,
+      "catalogPage": 19
+    },
+    {
+      "id": "F170",
+      "name": "Jet d'eau mural F170",
+      "category": "Jets d'eau muraux",
+      "shape": "Murale",
+      "dimensionType": "box",
+      "dimensions": {
+        "width": 56,
+        "depth": 63,
+        "height": 110
+      },
+      "weight": null,
+      "image": "products/F170/product.jpg",
+      "model3D": "viewer.html?ref=F170",
+      "model3DSource": "procedural",
+      "formats": [
+        "GLB"
+      ],
+      "description": "Fontaine murale à vasque large et dosseret mouluré. Le robinet en fer forgé verse dans un bassin généreux.",
+      "available": true,
+      "catalogPage": 19
+    },
+    {
+      "id": "F40",
+      "name": "Jet d'eau mural F40",
+      "category": "Jets d'eau muraux",
+      "shape": "Murale",
+      "dimensionType": "box",
+      "dimensions": {
+        "width": 40,
+        "depth": 32,
+        "height": 82
+      },
+      "weight": null,
+      "image": "products/F40/product.jpg",
+      "model3D": "viewer.html?ref=F40",
+      "model3DSource": "procedural",
+      "formats": [
+        "GLB"
+      ],
+      "description": "La plus compacte des fontaines murales, grille au sol comprise. Elle se glisse dans un patio ou au bout d'une terrasse étroite.",
+      "available": true,
+      "catalogPage": 19
+    },
+    {
+      "id": "F625",
+      "name": "Jet d'eau mural F625",
+      "category": "Jets d'eau muraux",
+      "shape": "Murale",
+      "dimensionType": "box",
+      "dimensions": {
+        "width": 40,
+        "depth": 40,
+        "height": 120
+      },
+      "weight": null,
+      "image": "products/F625/product.jpg",
+      "model3D": "viewer.html?ref=F625",
+      "model3DSource": "procedural",
+      "formats": [
+        "GLB"
+      ],
+      "description": "Fontaine murale élancée, dosseret haut et bassin resserré : elle prend peu de place au sol et occupe joliment la hauteur d'un mur.",
+      "available": true,
+      "catalogPage": 19
+    },
+    {
+      "id": "F86",
+      "name": "Jet d'eau mural F86",
+      "category": "Jets d'eau muraux",
+      "shape": "Murale",
+      "dimensionType": "box",
+      "dimensions": {
+        "width": 67,
+        "depth": 34,
+        "height": 135
+      },
+      "weight": null,
+      "image": "products/F86/product.jpg",
+      "model3D": "viewer.html?ref=F86",
+      "model3DSource": "procedural",
+      "formats": [
+        "GLB"
+      ],
+      "description": "Fontaine murale large et peu profonde, au dosseret sculpté. Le robinet en fer forgé coule dans une vasque en demi-lune.",
+      "available": true,
+      "catalogPage": 19
+    },
+    {
+      "id": "F22",
+      "name": "Fontaine F22",
+      "category": "Fontaines",
+      "shape": "Ronde",
+      "dimensionType": "cylinder",
+      "dimensions": {
+        "width": 120,
+        "depth": 120,
+        "height": 170,
+        "diameter": 120
+      },
+      "weight": null,
+      "image": "products/F22/product.jpg",
+      "model3D": "viewer.html?ref=F22",
+      "model3DSource": "procedural",
+      "formats": [
+        "GLB"
+      ],
+      "description": "Grande fontaine circulaire à vasques superposées, couronnée d'une flamme sculptée. Posée au centre d'une cour, elle en devient le point de mire.",
+      "available": true,
+      "catalogPage": 20
+    },
+    {
+      "id": "F11",
+      "name": "Fontaine F11",
+      "category": "Fontaines",
+      "shape": "Ronde",
+      "dimensionType": "cylinder",
+      "dimensions": {
+        "width": 105,
+        "depth": 105,
+        "height": 230,
+        "diameter": 105
+      },
+      "weight": null,
+      "image": "products/F11/product.jpg",
+      "model3D": "viewer.html?ref=F11",
+      "model3DSource": "procedural",
+      "formats": [
+        "GLB"
+      ],
+      "description": "La plus haute de la gamme : deux vasques, un fût mouluré et un décor de feuillages qui monte jusqu'à la flamme du sommet.",
+      "available": true,
+      "catalogPage": 20
+    },
+    {
+      "id": "F1",
+      "name": "Fontaine F1",
+      "category": "Fontaines",
+      "shape": "Ronde",
+      "dimensionType": "cylinder",
+      "dimensions": {
+        "width": 64,
+        "depth": 64,
+        "height": 150,
+        "diameter": 64
+      },
+      "weight": null,
+      "image": "products/F1/product.jpg",
+      "model3D": "viewer.html?ref=F1",
+      "model3DSource": "procedural",
+      "formats": [
+        "GLB"
+      ],
+      "description": "Fontaine élancée à vasque unique, d'un dessin sobre. Elle trouve sa place dans un patio ou à l'angle d'un jardin clos.",
+      "available": true,
+      "catalogPage": 20
+    },
+    {
+      "id": "F21",
+      "name": "Fontaine F21",
+      "category": "Fontaines",
+      "shape": "Ronde",
+      "dimensionType": "cylinder",
+      "dimensions": {
+        "width": 80,
+        "depth": 80,
+        "height": 145,
+        "diameter": 80
+      },
+      "weight": null,
+      "image": "products/F21/product.jpg",
+      "model3D": "viewer.html?ref=F21",
+      "model3DSource": "procedural",
+      "formats": [
+        "GLB"
+      ],
+      "description": "Fontaine à deux vasques et feuillages sculptés, d'une hauteur mesurée qui s'accorde aux jardins de taille moyenne.",
+      "available": true,
+      "catalogPage": 20
+    },
+    {
+      "id": "BARBACUE1",
+      "name": "Barbecue 1",
+      "category": "Barbecues",
+      "shape": "Maçonné",
+      "dimensionType": "box",
+      "dimensions": {
+        "width": 96,
+        "depth": 60,
+        "height": 97
+      },
+      "weight": null,
+      "image": "products/BARBACUE1/product.jpg",
+      "model3D": "viewer.html?ref=BARBACUE1",
+      "model3DSource": "procedural",
+      "formats": [
+        "GLB"
+      ],
+      "description": "Barbecue maçonné en pierre et briques, grille en fer et plan de travail latéral. De quoi installer durablement le coin grillades de la terrasse.",
+      "available": true,
+      "catalogPage": 22
+    },
+    {
+      "id": "BARBACUE2",
+      "name": "Barbecue 2",
+      "category": "Barbecues",
+      "shape": "Maçonné",
+      "dimensionType": "box",
+      "dimensions": {
+        "width": 96,
+        "depth": 60,
+        "height": 97
+      },
+      "weight": null,
+      "image": "products/BARBACUE2/product.jpg",
+      "model3D": "viewer.html?ref=BARBACUE2",
+      "model3DSource": "procedural",
+      "formats": [
+        "GLB"
+      ],
+      "description": "Même gabarit que le premier, en briques saumon : une teinte plus chaude, qui s'accorde aux façades claires.",
+      "available": true,
+      "catalogPage": 22
+    },
+    {
+      "id": "BARBACUE3",
+      "name": "Barbecue 3 avec hotte",
+      "category": "Barbecues",
+      "shape": "Maçonné",
+      "dimensionType": "box",
+      "dimensions": {
+        "width": 96,
+        "depth": 60,
+        "height": 230
+      },
+      "weight": null,
+      "image": "products/BARBACUE3/product.jpg",
+      "model3D": "viewer.html?ref=BARBACUE3",
+      "model3DSource": "procedural",
+      "formats": [
+        "GLB"
+      ],
+      "description": "Le modèle complet : foyer maçonné, hotte et cheminée en terre cuite. La fumée est tirée vers le haut, loin des convives.",
+      "available": true,
+      "catalogPage": 22
     }
   ],
   "dataNotes": {
