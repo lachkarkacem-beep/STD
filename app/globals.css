@@ -40,4 +40,49 @@
   .badge-answered {
     @apply inline-flex items-center rounded-full bg-leaf-50 px-3 py-1 text-xs font-medium text-grass-700;
   }
+
+  /* Feuilletage du catalogue : la page entrante pivote depuis le bord vers
+     lequel on tourne, comme une feuille qu'on rabat. Les deux sens sont le
+     miroir l'un de l'autre — revenir en arrière défait le geste. */
+  .page-tourne-avant,
+  .page-tourne-arriere {
+    transform-origin: left center;
+    animation: page-tourne 420ms cubic-bezier(0.22, 0.61, 0.36, 1) both;
+    perspective: 1400px;
+  }
+  .page-tourne-arriere {
+    transform-origin: right center;
+    animation-name: page-tourne-retour;
+  }
+}
+
+@keyframes page-tourne {
+  from {
+    opacity: 0;
+    transform: perspective(1400px) rotateY(-14deg) translateX(3%);
+  }
+  to {
+    opacity: 1;
+    transform: perspective(1400px) rotateY(0) translateX(0);
+  }
+}
+
+@keyframes page-tourne-retour {
+  from {
+    opacity: 0;
+    transform: perspective(1400px) rotateY(14deg) translateX(-3%);
+  }
+  to {
+    opacity: 1;
+    transform: perspective(1400px) rotateY(0) translateX(0);
+  }
+}
+
+/* Une animation de page ne doit pas s'imposer à qui demande moins de
+   mouvement : le contenu apparaît alors sans pivoter. */
+@media (prefers-reduced-motion: reduce) {
+  .page-tourne-avant,
+  .page-tourne-arriere {
+    animation: none;
+  }
 }

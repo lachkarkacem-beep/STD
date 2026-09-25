@@ -10,6 +10,7 @@ import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 import { paletteFor } from "@/lib/finishes";
 import { groundColor, type GroundKind } from "@/lib/garden/grounds";
 import { buildBuilding, buildingDepth } from "@/lib/garden/buildings.mjs";
+import { groundGeometry } from "@/lib/garden/ground-geometry.mjs";
 import type { BuildingKind } from "@/lib/garden/buildings.mjs";
 
 export type PlacedItem = {
@@ -126,9 +127,10 @@ export class GardenScene {
     sun.shadow.camera.updateProjectionMatrix();
     this.scene.add(sun);
 
-    // Pelouse : un simple plan teinté, sans texture, pour rester léger.
+    // Pelouse : un simple plan teinté, sans texture, pour rester léger. Il est
+    // percé lorsqu'un bassin est posé, faute de quoi il recouvrirait l'eau.
     this.ground = new THREE.Mesh(
-      new THREE.PlaneGeometry(120, 120),
+      groundGeometry(null),
       new THREE.MeshStandardMaterial({ color: 0x7fa65c, roughness: 1 })
     );
     this.ground.rotation.x = -Math.PI / 2;
@@ -623,6 +625,11 @@ export class GardenScene {
   setPool(
     spec: { width: number; depth: number; x?: number; z?: number; water?: boolean } | null
   ) {
+    // Percer le sol fait partie de la pose du bassin : sans cela, la pelouse
+    // masque l'eau et les parois, et le bassin paraît vide.
+    this.ground.geometry.dispose();
+    this.ground.geometry = groundGeometry(spec);
+
     if (this.pool) {
       this.scene.remove(this.pool);
       this.pool.traverse((o) => {

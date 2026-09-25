@@ -12,6 +12,7 @@ import * as THREE from "three";
 import { fillPlanter, PLANT_SPECIES } from "../public/3d/plants-builder.js";
 import { PRESETS } from "../lib/garden/presets.mjs";
 import { buildBuilding } from "../lib/garden/buildings.mjs";
+import { groundGeometry, groundCovers } from "../lib/garden/ground-geometry.mjs";
 
 const ROOT = path.join(import.meta.dirname, "..");
 const GLB_DIR = path.join(ROOT, "public/models_web/glb");
@@ -327,7 +328,47 @@ for (const kind of ["maison", "villa"]) {
   }
 }
 
-console.log("\n6. Sauvegarde du projet : aller-retour à l'identique\n");
+console.log("\n6. Bassins : le sol est bien percé\n");
+
+// Sans percement, la pelouse recouvre l'eau et le bassin paraît vide.
+const plein = groundGeometry(null);
+ok(groundCovers(plein, 0, 0), "sans bassin, le sol couvre le centre de la scène");
+ok(groundCovers(plein, 12, -8), "sans bassin, le sol couvre un point quelconque");
+
+for (const preset of PRESETS.filter((p) => p.pool)) {
+  const pool = preset.pool;
+  const geometry = groundGeometry(pool);
+  const cx = pool.x ?? 0;
+  const cz = pool.z ?? 0;
+
+  ok(
+    !groundCovers(geometry, cx, cz),
+    `« ${preset.label} » : le sol est ouvert au centre du bassin`,
+    `(${cx}, ${cz})`
+  );
+  // Quatre points intérieurs, à mi-chemin du bord.
+  for (const [dx, dz] of [
+    [0.4, 0],
+    [-0.4, 0],
+    [0, 0.4],
+    [0, -0.4],
+  ]) {
+    const px = cx + (pool.width / 2) * dx;
+    const pz = cz + (pool.depth / 2) * dz;
+    ok(!groundCovers(geometry, px, pz), `« ${preset.label} » : ouvert en (${px.toFixed(1)}, ${pz.toFixed(1)})`);
+  }
+  // Et le sol reprend juste au-delà des margelles.
+  ok(
+    groundCovers(geometry, cx + pool.width / 2 + 0.5, cz),
+    `« ${preset.label} » : le sol reprend au-delà du bassin`
+  );
+  ok(
+    groundCovers(geometry, cx, cz + pool.depth / 2 + 0.5),
+    `« ${preset.label} » : le sol reprend derrière le bassin`
+  );
+}
+
+console.log("\n7. Sauvegarde du projet : aller-retour à l'identique\n");
 
 // Ce que l'éditeur écrit dans localStorage et relit ensuite.
 const project = [
