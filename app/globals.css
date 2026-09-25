@@ -16,6 +16,14 @@
   h1 {
     letter-spacing: -0.015em;
   }
+  /* Le reset de Tailwind impose border-width:0 à tous les éléments, ce qui
+     empêche les contrôles natifs d'afficher leur état : une case cochée
+     restait visuellement vide. */
+  [type="checkbox"],
+  [type="radio"] {
+    appearance: auto;
+    accent-color: theme(colors.grass.500);
+  }
 }
 
 @layer components {

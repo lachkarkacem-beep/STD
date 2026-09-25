@@ -23,6 +23,44 @@ export type EditorProduct = {
 const STORAGE_KEY = "std-jardin";
 const newId = () => Math.random().toString(36).slice(2, 10);
 
+/**
+ * Interrupteur dessiné de bout en bout. Les cases à cocher natives ne
+ * survivent pas au reset de Tailwind, qui impose border-width:0 à tous les
+ * éléments : elles restaient visuellement vides quel que soit leur état.
+ */
+function Toggle({
+  label,
+  checked,
+  onChange,
+}: {
+  label: string;
+  checked: boolean;
+  onChange: (value: boolean) => void;
+}) {
+  return (
+    <button
+      type="button"
+      role="switch"
+      aria-checked={checked}
+      onClick={() => onChange(!checked)}
+      className="flex items-center gap-3 text-left text-sm text-ink-soft"
+    >
+      <span
+        className={`relative h-5 w-9 shrink-0 rounded-full transition-colors ${
+          checked ? "bg-grass-500" : "bg-line"
+        }`}
+      >
+        <span
+          className={`absolute top-0.5 h-4 w-4 rounded-full bg-white shadow transition-all ${
+            checked ? "left-[18px]" : "left-0.5"
+          }`}
+        />
+      </span>
+      {label}
+    </button>
+  );
+}
+
 export default function GardenEditor({ products }: { products: EditorProduct[] }) {
   const router = useRouter();
   const mountRef = useRef<HTMLDivElement>(null);
@@ -429,30 +467,34 @@ export default function GardenEditor({ products }: { products: EditorProduct[] }
             )}
           </div>
 
-          <label className="flex items-center gap-2 text-sm text-ink-soft">
-            <input
-              type="checkbox"
-              checked={fenceMesh}
-              onChange={(e) => {
-                setFenceMesh(e.target.checked);
-                sceneRef.current?.setFenceMesh(e.target.checked);
-              }}
-            />
-            Grillage entre les piquets
-          </label>
+          {/* Interrupteurs dessinés, et non cases natives : le reset de
+              Tailwind pose border-width:0 sur tout, ce qui empêchait la case
+              d'afficher son état coché — on croyait activer l'eau en la
+              coupant. */}
+          <Toggle
+            label="Grillage entre les piquets"
+            checked={fenceMesh}
+            onChange={(v) => {
+              setFenceMesh(v);
+              sceneRef.current?.setFenceMesh(v);
+            }}
+          />
 
-          <label className="flex items-center gap-2 text-sm text-ink-soft">
-            <input
-              type="checkbox"
-              checked={poolWater}
-              onChange={(e) => {
-                setPoolWater(e.target.checked);
-                const pool = poolRef.current;
-                if (pool) sceneRef.current?.setPool({ ...pool, water: e.target.checked });
-              }}
-            />
-            Bassin rempli d&apos;eau
-          </label>
+          <Toggle
+            label="Bassin rempli d'eau"
+            checked={poolWater}
+            onChange={(v) => {
+              setPoolWater(v);
+              const pool = poolRef.current;
+              if (pool) sceneRef.current?.setPool({ ...pool, water: v });
+            }}
+          />
+
+          {!poolRef.current && (
+            <p className="text-xs leading-snug text-ink-faint">
+              Aucun bassin dans la scène : chargez « Villa avec piscine » pour en poser un.
+            </p>
+          )}
         </div>
 
         <div className="card p-4">
