@@ -254,6 +254,67 @@ export default function GardenEditor({ products }: { products: EditorProduct[] }
       <div className="flex flex-col gap-3">
         <div className="relative h-[70vh] overflow-hidden rounded-xl border border-line bg-surface-soft">
           <div ref={mountRef} className="h-full w-full" />
+
+          {/* Commandes posées sur la scène : la rotation est le geste le plus
+              courant, elle ne doit pas obliger à chercher dans un panneau. */}
+          <div className="pointer-events-none absolute bottom-3 left-3 flex items-center gap-2">
+            <div className="pointer-events-auto flex items-center gap-1 rounded-full border border-line bg-surface/95 p-1 shadow-card">
+              <button
+                type="button"
+                disabled={!selected}
+                onClick={() => selected && sceneRef.current?.rotate(selected.id, -ROTATION_STEP)}
+                aria-label="Pivoter de 15° vers la gauche"
+                title="Pivoter à gauche (Maj + R)"
+                className="h-9 w-9 rounded-full text-lg text-ink-soft hover:bg-leaf-50 hover:text-grass-700 disabled:opacity-30 disabled:hover:bg-transparent"
+              >
+                ↺
+              </button>
+              <span className="min-w-12 text-center text-xs text-ink-faint">
+                {selected ? `${toDegrees(selected.rotation)}°` : "—"}
+              </span>
+              <button
+                type="button"
+                disabled={!selected}
+                onClick={() => selected && sceneRef.current?.rotate(selected.id, ROTATION_STEP)}
+                aria-label="Pivoter de 15° vers la droite"
+                title="Pivoter à droite (R)"
+                className="h-9 w-9 rounded-full text-lg text-ink-soft hover:bg-leaf-50 hover:text-grass-700 disabled:opacity-30 disabled:hover:bg-transparent"
+              >
+                ↻
+              </button>
+            </div>
+
+            {selected && (
+              <div className="pointer-events-auto flex items-center gap-1 rounded-full border border-line bg-surface/95 p-1 shadow-card">
+                <button
+                  type="button"
+                  onClick={duplicate}
+                  title="Dupliquer"
+                  aria-label="Dupliquer la pièce"
+                  className="h-9 w-9 rounded-full text-ink-soft hover:bg-leaf-50 hover:text-grass-700"
+                >
+                  ⧉
+                </button>
+                <button
+                  type="button"
+                  onClick={() => sceneRef.current?.remove(selected.id)}
+                  title="Retirer (Suppr)"
+                  aria-label="Retirer la pièce"
+                  className="h-9 w-9 rounded-full text-brand-600 hover:bg-brand-50"
+                >
+                  ✕
+                </button>
+              </div>
+            )}
+          </div>
+
+          {!selected && ready && (
+            <div className="pointer-events-none absolute bottom-16 left-3 max-w-56 rounded-lg bg-ink/75 px-3 py-2 text-xs leading-snug text-white">
+              Cliquez une pièce pour la sélectionner : vous pourrez alors la
+              pivoter, la dupliquer ou la retirer.
+            </div>
+          )}
+
           {!ready && (
             <div className="absolute inset-0 flex items-center justify-center text-sm text-ink-faint">
               Chargement de la scène…

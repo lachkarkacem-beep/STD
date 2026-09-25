@@ -112,11 +112,13 @@ export default function CatalogueGrid({
         ))}
       </div>
 
-      {pageCount > 1 && (
-        <nav
-          aria-label="Pages du catalogue"
-          className="mt-10 flex flex-wrap items-center justify-center gap-2 border-t border-line pt-8"
-        >
+      {/* Toujours affichée, même sur une famille qui tient en une page : une
+          barre qui disparaît donne l'impression que la pagination n'existe
+          pas. Les flèches sont alors simplement inactives. */}
+      <nav
+        aria-label="Pages du catalogue"
+        className="mt-10 flex flex-wrap items-center justify-center gap-2 border-t border-line pt-8"
+      >
           <button
             type="button"
             onClick={() => goTo(current - 1)}
@@ -154,11 +156,11 @@ export default function CatalogueGrid({
             ›
           </button>
 
-          <span className="ml-3 text-xs text-ink-faint">
-            Page {current} sur {pageCount} · {filtered.length} références
-          </span>
-        </nav>
-      )}
+        <span className="ml-3 text-xs text-ink-faint">
+          Page {current} sur {pageCount} · {filtered.length} référence
+          {filtered.length > 1 ? "s" : ""}
+        </span>
+      </nav>
 
       {zoomed && (
         <ZoomViewer
