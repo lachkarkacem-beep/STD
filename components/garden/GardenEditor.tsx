@@ -6,6 +6,7 @@ import type { GardenScene, PlacedItem, CameraMode } from "@/lib/garden/scene";
 import { GROUNDS, groundCss, type GroundKind } from "@/lib/garden/grounds";
 import type { BuildingKind } from "@/lib/garden/buildings.mjs";
 import { PAVINGS, pavingCount } from "@/lib/garden/paving.mjs";
+import { ROTATION_STEP, toDegrees } from "@/lib/garden/rotation.mjs";
 import { PRESETS } from "@/lib/garden/presets.mjs";
 import { FINISHES, DEFAULT_FINISH } from "@/lib/finishes";
 import { PLANT_SPECIES } from "@/lib/plants";
@@ -82,6 +83,25 @@ export default function GardenEditor({ products }: { products: EditorProduct[] }
       sceneRef.current = null;
     };
   }, []);
+
+  // Raccourcis clavier sur la pièce sélectionnée : R pour pivoter, Suppr pour
+  // retirer. Ignorés dès que la frappe vise un champ de saisie.
+  useEffect(() => {
+    if (!selectedId) return;
+    const onKey = (e: KeyboardEvent) => {
+      const target = e.target as HTMLElement | null;
+      if (
+        target &&
+        (target.tagName === "INPUT" || target.tagName === "TEXTAREA" || target.isContentEditable)
+      )
+        return;
+      const key = e.key.toLowerCase();
+      if (key === "r") sceneRef.current?.rotate(selectedId, e.shiftKey ? -ROTATION_STEP : ROTATION_STEP);
+      else if (key === "delete" || key === "suppr") sceneRef.current?.remove(selectedId);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [selectedId]);
 
   // Sauvegarde continue.
   useEffect(() => {
@@ -289,7 +309,7 @@ export default function GardenEditor({ products }: { products: EditorProduct[] }
         <p className="text-xs leading-relaxed text-ink-faint">
           {camera === "marche"
             ? "Déplacez-vous avec ZQSD ou les flèches, Maj pour accélérer. Glissez pour regarder autour de vous."
-            : "Cliquez une pièce pour la sélectionner, glissez pour la déplacer. Posez au moins trois piquets de clôture pour délimiter un terrain : la parcelle suit leur tracé."}
+            : "Cliquez une pièce pour la sélectionner, glissez pour la déplacer. Maj + glisser (ou clic droit) la fait pivoter, R au clavier la tourne de 15°. Trois piquets de clôture suffisent à délimiter un terrain."}
         </p>
       </div>
 
@@ -432,13 +452,48 @@ export default function GardenEditor({ products }: { products: EditorProduct[] }
               </select>
             )}
 
+            <div className="flex flex-col gap-2">
+              <div className="flex items-center gap-2">
+                <span className="text-xs uppercase tracking-wide text-ink-faint">Orientation</span>
+                <span className="text-sm text-ink-soft">{toDegrees(selected.rotation)}°</span>
+                <button
+                  type="button"
+                  onClick={() => sceneRef.current?.rotate(selected.id, -ROTATION_STEP)}
+                  aria-label="Pivoter de 15° vers la gauche"
+                  className="ml-auto h-7 w-7 rounded-full border border-line hover:border-leaf-400"
+                >
+                  ↺
+                </button>
+                <button
+                  type="button"
+                  onClick={() => sceneRef.current?.rotate(selected.id, ROTATION_STEP)}
+                  aria-label="Pivoter de 15° vers la droite"
+                  className="h-7 w-7 rounded-full border border-line hover:border-leaf-400"
+                >
+                  ↻
+                </button>
+              </div>
+              <input
+                type="range"
+                min={0}
+                max={345}
+                step={15}
+                value={toDegrees(selected.rotation)}
+                onChange={(e) =>
+                  sceneRef.current?.setRotation(selected.id, (Number(e.target.value) * Math.PI) / 180)
+                }
+                aria-label="Orientation de la pièce"
+                className="w-full accent-brand-500"
+              />
+            </div>
+
             <div className="flex flex-wrap gap-2 text-xs">
               <button
                 type="button"
-                onClick={() => sceneRef.current?.rotate(selected.id)}
+                onClick={() => sceneRef.current?.setRotation(selected.id, 0)}
                 className="rounded-full border border-line px-3 py-1 hover:border-leaf-400"
               >
-                Pivoter 15°
+                Remettre droit
               </button>
               <button
                 type="button"

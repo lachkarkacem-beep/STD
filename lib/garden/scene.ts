@@ -13,6 +13,7 @@ import { buildBuilding, buildingDepth } from "@/lib/garden/buildings.mjs";
 import { groundGeometry } from "@/lib/garden/ground-geometry.mjs";
 import { fenceEdges } from "@/lib/garden/fence.mjs";
 import { pavingLayout } from "@/lib/garden/paving.mjs";
+import { ROTATION_STEP, angleFromCenter, normalizeAngle, snapAngle } from "@/lib/garden/rotation.mjs";
 import type { BuildingKind } from "@/lib/garden/buildings.mjs";
 
 export type PlacedItem = {
@@ -77,6 +78,7 @@ export class GardenScene {
   private pointer = new THREE.Vector2();
   private selection: THREE.Box3Helper | null = null;
   private dragging: string | null = null;
+  private rotating: string | null = null;
   private frame = 0;
   private observer: ResizeObserver;
 
@@ -164,6 +166,7 @@ export class GardenScene {
     this.renderer.domElement.addEventListener("pointerdown", this.onPointerDown);
     this.renderer.domElement.addEventListener("pointermove", this.onPointerMove);
     this.renderer.domElement.addEventListener("pointerup", this.onPointerUp);
+    this.renderer.domElement.addEventListener("contextmenu", this.onContextMenu);
     window.addEventListener("keydown", this.onKeyDown, { passive: false });
     window.addEventListener("keyup", this.onKeyUp);
 
@@ -263,13 +266,27 @@ export class GardenScene {
     const id = hits.length ? this.ownerOf(hits[0].object) : null;
     this.select(id);
     if (id) {
-      this.dragging = id;
+      // Maj enfoncée, ou clic droit : on oriente la pièce au lieu de la
+      // déplacer. Le même geste sert aux deux, sans outil à sélectionner.
+      if (e.shiftKey || e.button === 2) this.rotating = id;
+      else this.dragging = id;
       this.controls.enabled = false;
       this.renderer.domElement.setPointerCapture(e.pointerId);
     }
   };
 
   private onPointerMove = (e: PointerEvent) => {
+    if (this.rotating) {
+      this.setPointer(e);
+      const hit = this.raycaster.intersectObject(this.ground)[0];
+      const obj = this.objects.get(this.rotating);
+      if (!hit || !obj) return;
+      // La pièce suit la souris ; sans Alt, l'angle se cale sur le pas de 15°.
+      const raw = angleFromCenter(obj.position.x, obj.position.z, hit.point.x, hit.point.z);
+      this.setRotation(this.rotating, e.altKey ? raw : snapAngle(raw));
+      return;
+    }
+
     if (!this.dragging) return;
     this.setPointer(e);
     const hit = this.raycaster.intersectObject(this.ground)[0];
@@ -286,13 +303,18 @@ export class GardenScene {
   };
 
   private onPointerUp = (e: PointerEvent) => {
-    if (!this.dragging) return;
+    if (!this.dragging && !this.rotating) return;
     this.renderer.domElement.releasePointerCapture(e.pointerId);
     this.dragging = null;
+    this.rotating = null;
     this.controls.enabled = true;
     this.syncPlotToFences();
     this.emit();
   };
+
+  // Le clic droit sert à orienter : le menu contextuel du navigateur
+  // interromprait le geste.
+  private onContextMenu = (e: Event) => e.preventDefault();
 
   // Collision : emprises au sol (boîtes alignées), avec une petite tolérance
   // pour que deux pièces puissent se toucher sans être refusées.
@@ -428,11 +450,21 @@ export class GardenScene {
     model.add(plantation);
   }
 
-  rotate(id: string, step = Math.PI / 12) {
+  /** Tourne d'un pas, dans un sens ou dans l'autre. */
+  rotate(id: string, step = ROTATION_STEP) {
     const holder = this.objects.get(id);
     if (!holder) return;
-    const rotation = (holder.userData.rotation as number) + step;
+    this.setRotation(id, (holder.userData.rotation as number) + step);
+  }
+
+  /** Oriente une pièce à un angle donné, si la place le permet. */
+  setRotation(id: string, angle: number) {
+    const holder = this.objects.get(id);
+    if (!holder) return;
+    const rotation = normalizeAngle(angle);
     const half = holder.userData.half as Half;
+    // Une pièce qui tourne balaie plus large : la rotation est refusée si
+    // elle ferait mordre une voisine.
     if (this.collidesAt(half, holder.position.x, holder.position.z, rotation, id)) return;
     holder.userData.rotation = rotation;
     holder.rotation.y = rotation;
@@ -807,6 +839,7 @@ export class GardenScene {
     this.renderer.domElement.removeEventListener("pointerdown", this.onPointerDown);
     this.renderer.domElement.removeEventListener("pointermove", this.onPointerMove);
     this.renderer.domElement.removeEventListener("pointerup", this.onPointerUp);
+    this.renderer.domElement.removeEventListener("contextmenu", this.onContextMenu);
     window.removeEventListener("keydown", this.onKeyDown);
     window.removeEventListener("keyup", this.onKeyUp);
     this.controls.dispose();

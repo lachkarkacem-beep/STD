@@ -15,6 +15,7 @@ import { buildBuilding } from "../lib/garden/buildings.mjs";
 import { groundGeometry, groundCovers } from "../lib/garden/ground-geometry.mjs";
 import { fenceEdges } from "../lib/garden/fence.mjs";
 import { PAVINGS, pavingPitch, pavingLayout, isPavable } from "../lib/garden/paving.mjs";
+import { ROTATION_STEP, angleFromCenter, normalizeAngle, snapAngle, toDegrees } from "../lib/garden/rotation.mjs";
 
 const ROOT = path.join(import.meta.dirname, "..");
 const GLB_DIR = path.join(ROOT, "public/models_web/glb");
@@ -483,7 +484,50 @@ for (const preset of PRESETS.filter((p) => p.paving)) {
   ok(isPavable(preset.paving), `« ${preset.label} » : ${preset.paving} est une dalle de champ`);
 }
 
-console.log("\n9. Sauvegarde du projet : aller-retour à l'identique\n");
+console.log("\n9. Rotation : pas, calage et affichage\n");
+
+ok(Math.abs(ROTATION_STEP - Math.PI / 12) < 1e-12, "le pas vaut 15°");
+ok(toDegrees(ROTATION_STEP) === 15, "un pas s'affiche 15°", String(toDegrees(ROTATION_STEP)));
+
+// Vingt-quatre pas font le tour complet et ramènent à zéro : sans
+// normalisation, l'angle affiché dériverait indéfiniment.
+let angle = 0;
+for (let i = 0; i < 24; i++) angle += ROTATION_STEP;
+ok(toDegrees(angle) === 0, "vingt-quatre pas ramènent à 0°", `${toDegrees(angle)}°`);
+
+// Tourner dans un sens puis dans l'autre doit rendre l'orientation d'origine.
+ok(
+  toDegrees(normalizeAngle(ROTATION_STEP * 5 - ROTATION_STEP * 5)) === 0,
+  "un aller-retour revient au point de départ"
+);
+ok(toDegrees(normalizeAngle(-ROTATION_STEP)) === 345, "un pas négatif s'affiche 345°");
+
+// Le calage doit attraper le pas le plus proche, des deux côtés.
+for (const [brut, attendu] of [
+  [0.01, 0],
+  [(14 * Math.PI) / 180, 15],
+  [(16 * Math.PI) / 180, 15],
+  [(22 * Math.PI) / 180, 15],
+  [(23.5 * Math.PI) / 180, 30],
+  [(-10 * Math.PI) / 180, 345],
+]) {
+  ok(
+    toDegrees(snapAngle(brut)) === attendu,
+    `${((brut * 180) / Math.PI).toFixed(1)}° se cale sur ${attendu}°`,
+    `${toDegrees(snapAngle(brut))}°`
+  );
+}
+
+// L'angle suivi à la souris : une pièce à l'origine, le pointeur plein est.
+ok(
+  toDegrees(angleFromCenter(0, 0, 1, 0)) === 90,
+  "pointeur à l'est : 90°",
+  `${toDegrees(angleFromCenter(0, 0, 1, 0))}°`
+);
+ok(toDegrees(angleFromCenter(0, 0, 0, 1)) === 0, "pointeur au nord : 0°");
+ok(toDegrees(angleFromCenter(2, 3, 2, 4)) === 0, "l'angle est mesuré depuis le centre de la pièce");
+
+console.log("\n10. Sauvegarde du projet : aller-retour à l'identique\n");
 
 // Ce que l'éditeur écrit dans localStorage et relit ensuite.
 const project = [
