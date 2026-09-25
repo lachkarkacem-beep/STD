@@ -88,6 +88,152 @@
   }
 }
 
+/* ------------------------------------------------------------------ */
+/* Carte de l'atelier : tout le chrome de Leaflet est repris, sinon la    */
+/* section trahirait l'embed ajouté après coup.                          */
+/* ------------------------------------------------------------------ */
+
+/* L'imagerie satellite tire vers le bleu-gris. On la réchauffe très
+   légèrement pour qu'elle s'accorde au terracotta, sans la dénaturer :
+   au-delà, la végétation vire et la carte devient illisible. */
+.leaflet-tile-pane {
+  filter: saturate(0.92) contrast(1.04) sepia(0.14);
+}
+
+.leaflet-container {
+  background: theme(colors.sable.200);
+  font-family: theme(fontFamily.body);
+}
+
+/* Le marqueur : le logo sur son plateau blanc, une pointe terracotta, et
+   l'étiquette dessous. */
+.atelier-pin {
+  background: none;
+  border: 0;
+}
+.atelier-pin__logo {
+  position: absolute;
+  left: 50%;
+  top: 0;
+  display: block;
+  width: 44px;
+  height: 44px;
+  transform: translateX(-50%);
+  border-radius: 9999px;
+  background: #fff;
+  padding: 3px;
+  box-shadow: 0 3px 10px rgba(43, 43, 43, 0.35);
+  outline: 2px solid theme(colors.brand.500);
+}
+.atelier-pin__logo img {
+  width: 100%;
+  height: 100%;
+  border-radius: 9999px;
+  object-fit: cover;
+  display: block;
+}
+/* La pointe désigne le point exact : sans elle, le disque flotte et l'on ne
+   sait pas ce qu'il montre. */
+.atelier-pin__pointe {
+  position: absolute;
+  left: 50%;
+  top: 43px;
+  width: 0;
+  height: 0;
+  transform: translateX(-50%);
+  border-left: 7px solid transparent;
+  border-right: 7px solid transparent;
+  border-top: 13px solid theme(colors.brand.500);
+}
+.atelier-pin__label {
+  position: absolute;
+  left: 50%;
+  top: 58px;
+  transform: translateX(-50%);
+  white-space: nowrap;
+  border-radius: 9999px;
+  background: theme(colors.brand.500);
+  padding: 3px 10px;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  color: #fff;
+  box-shadow: 0 2px 8px rgba(43, 43, 43, 0.3);
+}
+.atelier-pin:hover .atelier-pin__logo {
+  outline-color: theme(colors.grass.500);
+}
+.atelier-pin:hover .atelier-pin__label {
+  background: theme(colors.grass.600);
+}
+
+/* La bulle : celle de Leaflet a ses propres coins, son ombre et sa flèche.
+   On la ramène à la carte du site. */
+.atelier-popup .leaflet-popup-content-wrapper {
+  border-radius: theme(borderRadius.lg);
+  border: 1px solid theme(colors.sable.200);
+  background: theme(colors.surface.DEFAULT);
+  box-shadow: theme(boxShadow.card);
+  padding: 0;
+}
+.atelier-popup .leaflet-popup-content {
+  margin: 0;
+  padding: 16px 18px;
+  line-height: 1.55;
+}
+.atelier-popup .leaflet-popup-tip {
+  background: theme(colors.surface.DEFAULT);
+  border: 1px solid theme(colors.sable.200);
+  box-shadow: none;
+}
+.atelier-popup__titre {
+  margin: 0 0 6px;
+  font-family: theme(fontFamily.heading);
+  font-size: 19px;
+  font-weight: 500;
+  color: theme(colors.ink.DEFAULT);
+}
+.atelier-popup__corps {
+  margin: 0;
+  font-size: 13px;
+  color: theme(colors.ink.soft);
+}
+.atelier-popup__tel {
+  display: inline-block;
+  margin-top: 10px;
+  font-size: 13px;
+  font-weight: 500;
+  color: theme(colors.brand.600);
+}
+.atelier-popup__tel:hover {
+  color: theme(colors.grass.700);
+}
+.atelier-popup .leaflet-popup-close-button {
+  color: theme(colors.ink.faint);
+  padding: 10px 10px 0 0;
+}
+.atelier-popup .leaflet-popup-close-button:hover {
+  color: theme(colors.brand.600);
+}
+
+/* Boutons de zoom et attribution : mêmes arrondis, mêmes traits que le site. */
+.leaflet-control-zoom a {
+  border-color: theme(colors.sable.200);
+  color: theme(colors.ink.soft);
+}
+.leaflet-control-zoom a:hover {
+  color: theme(colors.grass.700);
+  border-color: theme(colors.grass.500);
+}
+.leaflet-control-attribution {
+  background: rgba(255, 255, 255, 0.82);
+  color: theme(colors.ink.faint);
+  font-size: 10px;
+}
+.leaflet-control-attribution a {
+  color: theme(colors.ink.soft);
+}
+
 /* Une animation de page ne doit pas s'imposer à qui demande moins de
    mouvement : le contenu apparaît alors sans pivoter. */
 @media (prefers-reduced-motion: reduce) {

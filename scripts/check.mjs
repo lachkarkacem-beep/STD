@@ -1131,7 +1131,174 @@ console.log("\n18. Bande défilante de l'accueil\n");
   }
 }
 
-console.log("\n19. Ton des textes et palette du logo\n");
+console.log("\n19. Distance jusqu'à l'atelier\n");
+
+{
+  const geo = await import("../lib/geo.mjs");
+  const { ATELIER, haversine, routeKm, trajet, formatKm, formatDuree, vitesse, VILLES, chercheVille } =
+    geo;
+
+  // L'atelier est bien là où le relevé le place, et pas ailleurs.
+  ok(Math.abs(ATELIER.lat - 37.179625) < 1e-6, "latitude de l'atelier");
+  ok(Math.abs(ATELIER.lon - 9.9591517) < 1e-6, "longitude de l'atelier");
+
+  // L'adresse annoncée sur le site et celle de la carte doivent désigner le
+  // même endroit : c'est le genre d'écart qu'on ne voit jamais.
+  const societe = fs.readFileSync(path.join(ROOT, "lib/company.ts"), "utf8");
+  ok(/Bizerte/.test(societe), "company.ts situe bien l'entreprise à Bizerte");
+
+  // Orthodromie : la seule valeur exacte du module. On la confronte à des
+  // distances connues, calculées indépendamment.
+  ok(haversine(ATELIER, ATELIER) === 0, "distance nulle entre un point et lui-même");
+  for (const [a, b] of [
+    [VILLES[0], VILLES[4]],
+    [ATELIER, VILLES[20]],
+  ]) {
+    ok(
+      Math.abs(haversine(a, b) - haversine(b, a)) < 1e-9,
+      "la distance ne dépend pas du sens de lecture"
+    );
+  }
+
+  // Un degré de latitude vaut environ 111,2 km, partout sur le globe.
+  const unDegre = haversine({ lat: 36, lon: 10 }, { lat: 37, lon: 10 });
+  ok(
+    Math.abs(unDegre - 111.2) < 0.6,
+    "un degré de latitude fait bien ~111 km",
+    `${unDegre.toFixed(2)} km`
+  );
+
+  // Références vérifiables : l'atelier est à une quinzaine de kilomètres de
+  // Bizerte et à une soixantaine de Tunis par la route.
+  const reperes = [
+    { ville: "Bizerte", volMin: 10, volMax: 16, kmMin: 13, kmMax: 22 },
+    { ville: "Tunis", volMin: 43, volMax: 49, kmMin: 52, kmMax: 70 },
+    { ville: "Sfax", volMin: 270, volMax: 292, kmMin: 300, kmMax: 380 },
+  ];
+  for (const r of reperes) {
+    const ville = VILLES.find((v) => v.nom === r.ville);
+    const t = trajet(ville);
+    ok(
+      t.volOiseau >= r.volMin && t.volOiseau <= r.volMax,
+      `${r.ville} : vol d'oiseau plausible`,
+      `${t.volOiseau.toFixed(1)} km hors de [${r.volMin}, ${r.volMax}]`
+    );
+    ok(
+      t.km >= r.kmMin && t.km <= r.kmMax,
+      `${r.ville} : distance routière plausible`,
+      `${t.km.toFixed(1)} km hors de [${r.kmMin}, ${r.kmMax}]`
+    );
+  }
+
+  // Depuis l'étranger, aucun temps de voiture ne doit être annoncé : la
+  // Méditerranée ne se traverse pas au volant. « Marseille : 940 km par la
+  // route, 10 h en voiture » était affiché avant ce contrôle.
+  const ailleurs = [
+    { nom: "Marseille", lat: 43.2965, lon: 5.3698 },
+    { nom: "Paris", lat: 48.8566, lon: 2.3522 },
+    { nom: "Palerme", lat: 38.1157, lon: 13.3615 },
+    { nom: "Alger", lat: 36.7538, lon: 3.0588 },
+  ];
+  for (const p of ailleurs) {
+    const t = trajet(p);
+    ok(t.routier === false, `${p.nom} : reconnu hors de Tunisie`);
+    ok(t.duree === null, `${p.nom} : aucun temps de voiture annoncé`);
+    ok(t.km === null, `${p.nom} : aucune distance routière annoncée`);
+    ok(t.volOiseau > 100, `${p.nom} : le vol d'oiseau reste donné`);
+  }
+  // Et toutes les villes du pays restent, elles, en trajet routier.
+  for (const v of VILLES) {
+    ok(trajet(v).routier === true, `${v.nom} : trajet routier`);
+  }
+
+  // La route est toujours plus longue que le vol d'oiseau, jamais l'inverse.
+  for (const v of VILLES) {
+    const t = trajet(v);
+    ok(t.km >= t.volOiseau, `${v.nom} : la route ne raccourcit pas le trajet`);
+    ok(t.km < t.volOiseau * 1.6, `${v.nom} : le détour reste raisonnable`);
+    ok(
+      t.minutes > 0 && t.minutes < 12 * 60,
+      `${v.nom} : durée dans les bornes du pays`,
+      `${t.minutes.toFixed(0)} min`
+    );
+  }
+
+  // Monotonie : aller plus loin ne peut pas prendre moins de temps.
+  const ordonnees = VILLES.map((v) => trajet(v)).sort((a, b) => a.km - b.km);
+  for (let i = 1; i < ordonnees.length; i++) {
+    ok(
+      ordonnees[i].minutes >= ordonnees[i - 1].minutes,
+      "une ville plus lointaine n'est jamais plus rapide à atteindre",
+      `${ordonnees[i].km.toFixed(0)} km en ${ordonnees[i].minutes.toFixed(0)} min contre ${ordonnees[i - 1].km.toFixed(0)} km en ${ordonnees[i - 1].minutes.toFixed(0)} min`
+    );
+  }
+
+  // Les vitesses retenues doivent rester celles d'une voiture.
+  for (const km of [1, 5, 9, 12, 39, 41, 120, 200, 600]) {
+    const v = vitesse(km);
+    ok(v >= 25 && v <= 110, `vitesse plausible à ${km} km`, `${v} km/h`);
+  }
+
+  // Mise en forme : on n'affiche jamais plus de précision qu'on n'en a, et
+  // jamais « 0 min ».
+  ok(formatKm(0.42) === "420 m", "sous le kilomètre, on parle en mètres");
+  ok(formatKm(3.46) === "3,5 km", "virgule décimale française sous 10 km");
+  ok(formatKm(58.4) === "58 km", "au-delà de 10 km, pas de décimale");
+  ok(formatDuree(0.2) === "moins d'une minute", "jamais « 0 min »");
+  ok(formatDuree(25) === "25 min", "durée courte en minutes");
+  ok(formatDuree(60) === "1 h", "une heure juste ne traîne pas de « 00 »");
+  ok(formatDuree(133) === "2 h 13", "durée longue en heures et minutes");
+
+  // Reconnaissance des villes tapées à la main.
+  ok(chercheVille("Tunis")?.nom === "Tunis", "« Tunis » est reconnu");
+  ok(chercheVille("tunis")?.nom === "Tunis", "la casse n'a pas d'importance");
+  ok(chercheVille("BÉJA")?.nom === "Béja", "les accents n'ont pas d'importance");
+  ok(
+    chercheVille("12 rue de Carthage, Sousse")?.nom === "Sousse",
+    "une ville se retrouve dans une adresse complète"
+  );
+  ok(
+    chercheVille("Menzel Bourguiba")?.nom === "Menzel Bourguiba",
+    "le nom le plus long l'emporte sur un nom qu'il contient"
+  );
+  ok(chercheVille("Marseille") === null, "une ville inconnue n'est pas inventée");
+  ok(chercheVille("") === null, "une saisie vide ne renvoie rien");
+
+  // Chaque ville de la table doit être en Tunisie : une coordonnée saisie de
+  // travers donnerait une distance absurde sans que rien ne proteste.
+  for (const v of VILLES) {
+    ok(
+      v.lat > 30 && v.lat < 38 && v.lon > 7 && v.lon < 12,
+      `${v.nom} : coordonnées dans les limites du pays`,
+      `${v.lat}, ${v.lon}`
+    );
+  }
+  ok(new Set(VILLES.map((v) => v.nom)).size === VILLES.length, "aucune ville en double");
+
+  // La carte ne doit pas réclamer de clé : c'est ce qui la rend déployable.
+  const carte = fs.readFileSync(path.join(ROOT, "components/AtelierMap.tsx"), "utf8");
+  ok(!/api[_-]?key|access[_-]?token/i.test(carte), "la carte ne dépend d'aucune clé d'API");
+  ok(carte.includes("World_Imagery"), "la carte est en vue satellite");
+  ok(/attribution/.test(carte), "l'imagerie est attribuée, comme sa licence l'exige");
+
+  // Les coordonnées du marqueur viennent du module, pas d'une recopie.
+  ok(carte.includes("ATELIER.lat"), "le marqueur reprend les coordonnées du module");
+
+  // Le géocodeur doit se nommer : Nominatim refuse les requêtes anonymes.
+  const api = fs.readFileSync(path.join(ROOT, "app/api/distance/route.ts"), "utf8");
+  ok(/User-Agent/.test(api), "le géocodeur s'identifie auprès de Nominatim");
+  ok(/AbortSignal\.timeout/.test(api), "l'appel au géocodeur est borné dans le temps");
+  ok(/catch/.test(api), "une panne du géocodeur est rattrapée");
+
+  // L'estimation doit être annoncée comme telle.
+  const section = fs.readFileSync(path.join(ROOT, "components/NousTrouver.tsx"), "utf8");
+  ok(
+    /[Ee]stimation/.test(section),
+    "le résultat est présenté comme une estimation, pas comme un itinéraire"
+  );
+}
+
+console.log("\n20. Ton des textes et palette du logo\n");
 
 {
   // Les formules que la charte proscrit. Elles reviennent seules dès qu'on
@@ -1158,6 +1325,7 @@ console.log("\n19. Ton des textes et palette du logo\n");
     "app/previsualiser/page.tsx",
     "app/flipbook/page.tsx",
     "components/Flipbook.tsx",
+    "components/NousTrouver.tsx",
     "components/SiteHeader.tsx",
     "components/SiteFooter.tsx",
   ];

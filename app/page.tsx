@@ -8,6 +8,8 @@ import dynamic from "next/dynamic";
 
 // La bande embarque three.js : elle ne se charge qu'à l'approche du regard.
 const GalleryRibbon = dynamic(() => import("@/components/GalleryRibbon"), { ssr: false });
+// Même précaution pour la carte, qui embarque Leaflet.
+const NousTrouver = dynamic(() => import("@/components/NousTrouver"));
 
 export default function HomePage() {
   const products = getProducts();
@@ -179,6 +181,8 @@ export default function HomePage() {
           </p>
         </div>
       </section>
+
+      <NousTrouver />
 
       <section className="mx-auto mb-20 max-w-6xl px-6">
         <div className="flex flex-col items-start gap-5 rounded-xl bg-brand-500 p-10 text-white sm:flex-row sm:items-center">
