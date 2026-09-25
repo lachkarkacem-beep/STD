@@ -48,7 +48,7 @@ const config: Config = {
         line: "#e6e6e6",
       },
       fontFamily: {
-        heading: ["Poppins", "Inter", "system-ui", "sans-serif"],
+        heading: ["'Cormorant Garamond'", "Georgia", "serif"],
         body: ["Inter", "system-ui", "sans-serif"],
       },
       borderRadius: {

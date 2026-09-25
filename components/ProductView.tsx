@@ -105,7 +105,7 @@ export default function ProductView({
           <span className="text-xs uppercase tracking-widest text-brand-600">
             Réf. {product.id} · {product.category}
           </span>
-          <h1 className="font-heading text-3xl font-semibold leading-tight text-ink">
+          <h1 className="font-heading text-4xl font-normal leading-tight text-ink">
             {product.name}
           </h1>
           {teaser && <p className="text-base leading-relaxed text-ink">{teaser}</p>}

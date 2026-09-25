@@ -21,7 +21,7 @@ export default function HomePage() {
         <span className="mb-4 block text-xs font-semibold uppercase tracking-widest text-grass-600">
           {HERO.kicker}
         </span>
-        <h1 className="max-w-3xl text-4xl font-semibold leading-tight tracking-tight text-ink sm:text-5xl">
+        <h1 className="max-w-3xl text-5xl font-normal leading-[1.08] tracking-tight text-ink sm:text-6xl">
           {HERO.title}
         </h1>
         <p className="mt-6 max-w-2xl text-base leading-relaxed text-ink-soft">{HERO.subtitle}</p>
@@ -39,7 +39,7 @@ export default function HomePage() {
         <div className="grid grid-cols-2 gap-8 rounded-xl border border-line bg-surface p-8 shadow-card sm:grid-cols-4">
           {stats.map((s) => (
             <div key={s.label} className="flex flex-col gap-1">
-              <span className="font-heading text-3xl font-semibold text-brand-500">{s.value}</span>
+              <span className="font-heading text-4xl font-normal text-brand-500">{s.value}</span>
               <span className="text-xs uppercase tracking-wide text-ink-faint">{s.label}</span>
             </div>
           ))}
@@ -50,7 +50,7 @@ export default function HomePage() {
         <div className="grid grid-cols-1 gap-8 sm:grid-cols-2">
           {VALUE_PROPS.map((v) => (
             <div key={v.title} className="flex flex-col gap-2">
-              <h2 className="text-lg font-semibold text-ink">{v.title}</h2>
+              <h2 className="text-2xl font-normal text-ink">{v.title}</h2>
               <p className="text-sm leading-relaxed text-ink-soft">{v.body}</p>
             </div>
           ))}
@@ -59,7 +59,7 @@ export default function HomePage() {
 
       <section className="mx-auto mb-16 max-w-6xl px-6">
         <div className="mb-8 flex items-baseline gap-6">
-          <h2 className="text-xl font-semibold text-ink">Nos familles de produits</h2>
+          <h2 className="text-2xl font-normal text-ink sm:text-3xl">Nos familles de produits</h2>
           <Link href="/catalogue" className="ml-auto text-sm text-brand-600 hover:text-brand-700">
             Tout le catalogue
           </Link>
@@ -83,11 +83,11 @@ export default function HomePage() {
 
       <section className="mb-16 bg-surface py-14">
         <div className="mx-auto max-w-6xl px-6">
-          <h2 className="mb-10 text-xl font-semibold text-ink">Comment ça se passe</h2>
+          <h2 className="mb-10 text-2xl font-normal text-ink sm:text-3xl">Comment ça se passe</h2>
           <div className="grid grid-cols-1 gap-10 sm:grid-cols-3">
             {STEPS.map((s) => (
               <div key={s.number} className="flex flex-col gap-3">
-                <span className="font-heading text-2xl font-semibold text-brand-500">
+                <span className="font-heading text-3xl font-normal text-brand-500">
                   {s.number}
                 </span>
                 <h3 className="text-base font-semibold text-ink">{s.title}</h3>
@@ -100,7 +100,7 @@ export default function HomePage() {
 
       <section className="mx-auto mb-16 max-w-6xl px-6">
         <div className="mb-6 flex items-baseline gap-6">
-          <h2 className="text-xl font-semibold text-ink">Quelques pièces</h2>
+          <h2 className="text-2xl font-normal text-ink sm:text-3xl">Quelques pièces</h2>
           <span className="text-xs text-ink-faint">Vue 3D interactive sur chaque fiche</span>
         </div>
         <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
@@ -129,7 +129,7 @@ export default function HomePage() {
 
       <section className="mx-auto mb-16 max-w-6xl px-6">
         <div className="rounded-xl border border-leaf-200 bg-leaf-50 p-8">
-          <h2 className="mb-3 text-lg font-semibold text-ink">{AUDIENCE.title}</h2>
+          <h2 className="mb-3 text-xl font-normal text-ink">{AUDIENCE.title}</h2>
           <p className="max-w-3xl text-sm leading-relaxed text-ink-soft">{AUDIENCE.body}</p>
         </div>
       </section>
@@ -137,7 +137,7 @@ export default function HomePage() {
       <section className="mx-auto mb-20 max-w-6xl px-6">
         <div className="flex flex-col items-start gap-5 rounded-xl bg-brand-500 p-10 text-white sm:flex-row sm:items-center">
           <div className="flex-1">
-            <h2 className="text-xl font-semibold">{FINAL_CTA.title}</h2>
+            <h2 className="text-2xl font-normal sm:text-3xl">{FINAL_CTA.title}</h2>
             <p className="mt-2 max-w-2xl text-sm leading-relaxed text-white/90">{FINAL_CTA.body}</p>
           </div>
           <Link
