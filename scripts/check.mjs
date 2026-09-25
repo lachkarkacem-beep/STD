@@ -808,6 +808,21 @@ for (const prop of PROPS) {
 const homme = PROPS.find((p) => p.id === "SIM:homme");
 ok(Math.abs(homme.height - 1.75) < 0.01, "la silhouette mesure bien 1,75 m", `${homme.height} m`);
 
+// Les exemples qui se mettent en scène doivent citer de vrais accessoires,
+// et jamais une référence du catalogue déguisée.
+const ids = new Set(PROPS.map((p) => p.id));
+for (const preset of PRESETS.filter((p) => p.props?.length)) {
+  for (const prop of preset.props) {
+    ok(ids.has(prop.ref), `« ${preset.label} » : l'accessoire ${prop.ref} existe`);
+    ok(isProp(prop.ref), `« ${preset.label} » : ${prop.ref} n'est pas facturé`);
+  }
+}
+// Et ceux qui invitent à s'attabler méritent une mise en scène.
+for (const id of ["terrasse-repas", "coin-detente"]) {
+  const preset = PRESETS.find((p) => p.id === id);
+  ok(preset?.props?.length > 0, `« ${preset?.label ?? id} » : la scène est habitée`);
+}
+
 console.log("\n14. Conseils du paysagiste\n");
 
 // Un conseil par famille, et des espèces qui existent réellement.

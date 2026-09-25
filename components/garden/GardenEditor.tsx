@@ -193,6 +193,31 @@ export default function GardenEditor({ products }: { products: EditorProduct[] }
         rotation: it.rotation ?? 0,
       })
     );
+
+    // Les repères de simulation font vivre la scène — un parasol, deux cafés,
+    // quelqu'un debout. Ils n'entrent ni dans le devis ni dans le poids.
+    (preset.props ?? []).forEach((p) =>
+      scene.add({
+        id: newId(),
+        ref: p.ref,
+        finish: DEFAULT_FINISH,
+        species: null,
+        x: p.x,
+        z: p.z,
+        rotation: p.rotation ?? 0,
+      })
+    );
+  }
+
+  // Familles employées par un exemple, pour que la liste dise de quoi la
+  // scène est faite avant même de la charger.
+  function presetFamilies(preset: (typeof PRESETS)[number]) {
+    const seen: string[] = [];
+    for (const it of preset.items) {
+      const famille = byRef.get(it.ref)?.category;
+      if (famille && !seen.includes(famille)) seen.push(famille);
+    }
+    return seen;
   }
 
   function duplicate() {
@@ -324,17 +349,47 @@ export default function GardenEditor({ products }: { products: EditorProduct[] }
         <div className="card flex max-h-[45vh] flex-col overflow-hidden p-0">
           <h2 className="border-b border-line p-4 text-lg font-normal text-ink">Exemples</h2>
           <div className="flex flex-1 flex-col gap-2 overflow-y-auto p-3">
-            {PRESETS.map((p) => (
-              <button
-                key={p.id}
-                type="button"
-                onClick={() => loadPreset(p.id)}
-                className="rounded-lg border border-line px-3 py-2 text-left hover:border-leaf-400"
-              >
-                <span className="block text-sm text-ink">{p.label}</span>
-                <span className="block text-xs leading-snug text-ink-faint">{p.description}</span>
-              </button>
-            ))}
+            {PRESETS.map((p) => {
+              const familles = presetFamilies(p);
+              return (
+                <button
+                  key={p.id}
+                  type="button"
+                  onClick={() => loadPreset(p.id)}
+                  className="group rounded-lg border border-line p-3 text-left transition-colors hover:border-grass-500 hover:bg-leaf-50"
+                >
+                  <span className="flex items-baseline gap-2">
+                    <span className="font-heading text-base font-normal text-ink">{p.label}</span>
+                    <span className="ml-auto shrink-0 text-xs text-ink-faint">
+                      {p.items.length} pièces
+                    </span>
+                  </span>
+                  <span className="mt-1 block text-xs leading-snug text-ink-soft">
+                    {p.description}
+                  </span>
+                  <span className="mt-2 flex flex-wrap gap-1">
+                    {familles.slice(0, 4).map((f) => (
+                      <span
+                        key={f}
+                        className="rounded-full bg-surface-soft px-2 py-0.5 text-[10px] text-ink-faint group-hover:bg-white"
+                      >
+                        {f}
+                      </span>
+                    ))}
+                    {p.pool && (
+                      <span className="rounded-full bg-surface-soft px-2 py-0.5 text-[10px] text-ink-faint group-hover:bg-white">
+                        bassin
+                      </span>
+                    )}
+                    {p.props?.length && (
+                      <span className="rounded-full bg-surface-soft px-2 py-0.5 text-[10px] text-ink-faint group-hover:bg-white">
+                        mise en scène
+                      </span>
+                    )}
+                  </span>
+                </button>
+              );
+            })}
           </div>
         </div>
       </aside>
