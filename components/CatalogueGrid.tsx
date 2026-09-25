@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import ProductThumb from "@/components/ProductThumb";
-import { dimLine, has3D, viewerSrc, type Category, type Product } from "@/lib/catalog";
+import { dimLine, has3D, glbSrc, type Category, type Product } from "@/lib/catalog";
 
 export default function CatalogueGrid({
   products,
@@ -55,7 +55,7 @@ export default function CatalogueGrid({
         {filtered.map((p) => (
           <Link key={p.id} href={`/catalogue/${p.id}`} className="card flex flex-col overflow-hidden p-0">
             {has3D(p) ? (
-              <ProductThumb src={viewerSrc(p, { thumb: true })} title={p.name} />
+              <ProductThumb src={glbSrc(p)} title={p.name} />
             ) : (
               <div className="flex aspect-[4/3] items-center justify-center bg-surface-soft text-sm text-ink-faint">
                 Photo à venir

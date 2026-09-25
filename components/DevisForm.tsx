@@ -67,12 +67,12 @@ export default function DevisForm({ userId }: { userId: string }) {
   if (sent) {
     return (
       <div className="card flex flex-col gap-3 p-8">
-        <h2 className="text-lg font-medium text-ink">Demande envoyée</h2>
-        <p className="text-sm text-ink-soft">
-          Merci, votre demande de devis a été transmise. Nous répondons sous 24 à 48 heures — la
-          réponse apparaîtra dans{" "}
+        <h2 className="text-lg font-semibold text-ink">Merci, votre demande nous est bien parvenue</h2>
+        <p className="text-sm leading-relaxed text-ink-soft">
+          Nous prenons le temps de l&apos;étudier et revenons vers vous sous 24 à 48 heures. Notre
+          réponse vous attendra dans{" "}
           <a href="/compte" className="text-brand-600 hover:text-brand-700">
-            votre compte
+            votre espace
           </a>
           .
         </p>
@@ -83,12 +83,12 @@ export default function DevisForm({ userId }: { userId: string }) {
   if (cart.length === 0) {
     return (
       <div className="card flex flex-col gap-3 p-8">
-        <p className="text-sm text-ink-soft">
-          Votre devis est vide. Parcourez le{" "}
+        <p className="text-sm leading-relaxed text-ink-soft">
+          Votre sélection est encore vide. Laissez-vous inspirer par le{" "}
           <a href="/catalogue" className="text-brand-600 hover:text-brand-700">
             catalogue
           </a>{" "}
-          et ajoutez des références.
+          et réunissez ici les pièces qui vous plaisent.
         </p>
       </div>
     );

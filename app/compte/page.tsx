@@ -1,4 +1,5 @@
 import { getUserAndProfile } from "@/lib/auth";
+import { COMPTE_INTRO } from "@/lib/marketing";
 import { createClient } from "@/lib/supabase/server";
 import type { Quote } from "@/lib/supabase/types";
 
@@ -19,22 +20,25 @@ export default async function ComptePage() {
 
   return (
     <div className="mx-auto max-w-3xl px-6 py-12">
-      <h1 className="mb-1 text-2xl font-medium text-ink">Mon compte</h1>
-      <p className="mb-8 text-sm text-ink-soft">
-        {profile?.full_name} · {profile?.job_title} · {profile?.email}
+      <h1 className="mb-1 text-2xl font-semibold text-ink">
+        Bonjour {profile?.full_name?.split(" ")[0] ?? ""}
+      </h1>
+      <p className="mb-2 text-sm text-ink-soft">
+        {profile?.job_title} · {profile?.email}
       </p>
+      <p className="mb-8 text-sm leading-relaxed text-ink-soft">{COMPTE_INTRO}</p>
 
-      <h2 className="mb-4 text-lg font-medium text-ink">Mes demandes de devis</h2>
+      <h2 className="mb-4 text-lg font-semibold text-ink">Mes demandes de devis</h2>
 
       {!quotes || quotes.length === 0 ? (
-        <p className="text-sm text-ink-soft">
-          Aucune demande pour le moment. Ajoutez des références au{" "}
+        <p className="text-sm leading-relaxed text-ink-soft">
+          Aucune demande pour le moment. Laissez-vous inspirer par le{" "}
           <a href="/catalogue" className="text-brand-600 hover:text-brand-700">
             catalogue
           </a>{" "}
-          puis rendez-vous sur{" "}
+          et réunissez vos pièces dans{" "}
           <a href="/devis" className="text-brand-600 hover:text-brand-700">
-            mon devis
+            votre devis
           </a>
           .
         </p>

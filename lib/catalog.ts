@@ -1,4 +1,5 @@
 import db from "@/public/3d/products/products.json";
+import models from "@/public/models_web/models.json";
 
 export type Dimensions = {
   width?: number;
@@ -41,6 +42,8 @@ export type CatalogDb = {
 
 const catalog = db as unknown as CatalogDb;
 
+const GLB_IDS = new Set((models as { models: { id: string }[] }).models.map((m) => m.id));
+
 export function getCompany() {
   return catalog.company;
 }
@@ -57,19 +60,15 @@ export function getProduct(ref: string) {
   return catalog.products.find((p) => p.id === ref) ?? null;
 }
 
-// The only products with a working procedural 3D model are the ones that
-// carry a `geometry` spec — 6 legacy references (B105, B84, B42, B62, B58,
-// B30) still point at a "planter-bXX.html" file that was never generated,
-// so `model3D` alone is not a reliable signal.
+// Every one of the 46 references now ships a pre-baked GLB under
+// public/models_web/glb/, so all of them render — including the six
+// (B105, B84, B42, B62, B58, B30) that never had a procedural geometry spec.
 export function has3D(p: Product) {
-  return !!p.geometry;
+  return GLB_IDS.has(p.id);
 }
 
-export function viewerSrc(p: Product, opts: { finish?: string | null; thumb?: boolean } = {}) {
-  const params = new URLSearchParams({ ref: p.id });
-  if (opts.finish) params.set("finish", opts.finish);
-  if (opts.thumb) params.set("thumb", "1");
-  return `/3d/viewer.html?${params.toString()}`;
+export function glbSrc(p: Product) {
+  return `/models_web/glb/${p.id}.glb`;
 }
 
 export function dimLine(p: Product) {

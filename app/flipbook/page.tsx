@@ -1,6 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import Flipbook from "@/components/Flipbook";
+import { FLIPBOOK_INTRO } from "@/lib/marketing";
 
 function getPages(): string[] {
   const dir = path.join(process.cwd(), "public", "catalogue-flipbook");
@@ -24,10 +25,8 @@ export default function FlipbookPage() {
 
   return (
     <div className="mx-auto max-w-4xl px-6 py-12">
-      <h1 className="mb-2 text-2xl font-medium text-ink">Catalogue photo</h1>
-      <p className="mb-8 text-sm text-ink-soft">
-        Feuilletez le catalogue papier. Faites glisser un coin de page pour tourner.
-      </p>
+      <h1 className="mb-2 text-2xl font-semibold text-ink">Catalogue photo</h1>
+      <p className="mb-8 max-w-2xl text-sm leading-relaxed text-ink-soft">{FLIPBOOK_INTRO}</p>
       {pages.length === 0 ? (
         <p className="text-sm text-ink-faint">Aucune page pour le moment.</p>
       ) : (

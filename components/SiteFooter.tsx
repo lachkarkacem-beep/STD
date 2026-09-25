@@ -5,7 +5,7 @@ export default function SiteFooter() {
         <span className="font-heading font-semibold text-brand-500">
           Société Tunisienne de Décoration
         </span>
-        <span>Bacs et pots décoratifs pour maisons et jardins</span>
+        <span>La pierre qui embellit vos jardins et vos maisons</span>
         <a href="/catalogue" className="ml-auto text-brand-600 hover:text-brand-700">
           Catalogue
         </a>

@@ -1,4 +1,5 @@
 import { getUserAndProfile } from "@/lib/auth";
+import { DEVIS_INTRO } from "@/lib/marketing";
 import DevisForm from "@/components/DevisForm";
 
 export default async function DevisPage() {
@@ -9,8 +10,8 @@ export default async function DevisPage() {
 
   return (
     <div className="mx-auto max-w-2xl px-6 py-12">
-      <h1 className="mb-2 text-2xl font-medium text-ink">Mon devis</h1>
-      <p className="mb-8 text-sm text-ink-soft">Réponse de notre équipe sous 24 à 48 heures.</p>
+      <h1 className="mb-3 text-2xl font-semibold text-ink">Mon devis</h1>
+      <p className="mb-8 text-sm leading-relaxed text-ink-soft">{DEVIS_INTRO}</p>
       <DevisForm userId={user.id} />
     </div>
   );

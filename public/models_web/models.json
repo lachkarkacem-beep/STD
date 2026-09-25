@@ -1,0 +1,834 @@
+{
+  "units": "metres (GLB), cm (dimensions)",
+  "upAxis": "Y",
+  "defaultFinish": "blanc",
+  "finishes": [
+    {
+      "id": "blanc",
+      "label": "Blanc",
+      "body": "#f2f0ec",
+      "swatch": "#f2f0ec"
+    },
+    {
+      "id": "gris",
+      "label": "Gris",
+      "body": "#9b9b98",
+      "swatch": "#9b9b98"
+    },
+    {
+      "id": "noir",
+      "label": "Noir",
+      "body": "#33322f",
+      "swatch": "#33322f"
+    },
+    {
+      "id": "saumon",
+      "label": "Saumon",
+      "body": "#dfa189",
+      "swatch": "#dfa189"
+    },
+    {
+      "id": "rouge-clair",
+      "label": "Rouge clair",
+      "body": "#c2614c",
+      "swatch": "#c2614c"
+    }
+  ],
+  "models": [
+    {
+      "id": "B105",
+      "name": "Bac rectangulaire à lames",
+      "category": "Bacs à fleurs",
+      "file": "glb/B105.glb",
+      "sizeKB": 162,
+      "dimensions_cm": {
+        "width": 82,
+        "depth": 43,
+        "height": 40
+      },
+      "bbox_cm_WxDxH": [
+        82,
+        43,
+        40
+      ]
+    },
+    {
+      "id": "B84",
+      "name": "Bac rectangulaire à lames, profondeur réduite",
+      "category": "Bacs à fleurs",
+      "file": "glb/B84.glb",
+      "sizeKB": 162,
+      "dimensions_cm": {
+        "width": 82,
+        "depth": 30,
+        "height": 40
+      },
+      "bbox_cm_WxDxH": [
+        82,
+        30,
+        40
+      ]
+    },
+    {
+      "id": "B42",
+      "name": "Bac carré à bandeaux",
+      "category": "Bacs à fleurs",
+      "file": "glb/B42.glb",
+      "sizeKB": 144,
+      "dimensions_cm": {
+        "width": 35,
+        "depth": 35,
+        "height": 40
+      },
+      "bbox_cm_WxDxH": [
+        35,
+        35,
+        40
+      ]
+    },
+    {
+      "id": "B62",
+      "name": "Bac carré haut à bandeaux",
+      "category": "Bacs à fleurs",
+      "file": "glb/B62.glb",
+      "sizeKB": 188,
+      "dimensions_cm": {
+        "width": 35,
+        "depth": 35,
+        "height": 60
+      },
+      "bbox_cm_WxDxH": [
+        35,
+        35,
+        60
+      ]
+    },
+    {
+      "id": "B58",
+      "name": "Pot hexagonal à panneaux",
+      "category": "Pots décoratifs",
+      "file": "glb/B58.glb",
+      "sizeKB": 393,
+      "dimensions_cm": {
+        "width": 40,
+        "depth": 40,
+        "height": 43
+      },
+      "bbox_cm_WxDxH": [
+        35.4,
+        40,
+        43
+      ]
+    },
+    {
+      "id": "B30",
+      "name": "Pot rond à écailles",
+      "category": "Pots décoratifs",
+      "file": "glb/B30.glb",
+      "sizeKB": 670,
+      "dimensions_cm": {
+        "width": 41,
+        "depth": 41,
+        "height": 41,
+        "diameter": 41
+      },
+      "bbox_cm_WxDxH": [
+        41,
+        41,
+        41
+      ]
+    },
+    {
+      "id": "BS225",
+      "name": "Bac rectangulaire à cannelures, grande série",
+      "category": "Bacs à fleurs",
+      "file": "glb/BS225.glb",
+      "sizeKB": 273,
+      "dimensions_cm": {
+        "width": 108,
+        "depth": 58,
+        "height": 70
+      },
+      "bbox_cm_WxDxH": [
+        108,
+        58,
+        70
+      ]
+    },
+    {
+      "id": "BS150",
+      "name": "Bac carré à cannelures",
+      "category": "Bacs à fleurs",
+      "file": "glb/BS150.glb",
+      "sizeKB": 242,
+      "dimensions_cm": {
+        "width": 58,
+        "depth": 58,
+        "height": 70
+      },
+      "bbox_cm_WxDxH": [
+        58,
+        58,
+        70
+      ]
+    },
+    {
+      "id": "BS160",
+      "name": "Bac carré à cannelures, base festonnée",
+      "category": "Bacs à fleurs",
+      "file": "glb/BS160.glb",
+      "sizeKB": 264,
+      "dimensions_cm": {
+        "width": 58,
+        "depth": 58,
+        "height": 70
+      },
+      "bbox_cm_WxDxH": [
+        58,
+        58,
+        70
+      ]
+    },
+    {
+      "id": "P2008",
+      "name": "Vasque sur piédouche",
+      "category": "Vasques",
+      "file": "glb/P2008.glb",
+      "sizeKB": 756,
+      "dimensions_cm": {
+        "width": 90,
+        "depth": 90,
+        "height": 90,
+        "diameter": 90
+      },
+      "bbox_cm_WxDxH": [
+        90,
+        100.6,
+        90
+      ]
+    },
+    {
+      "id": "B900",
+      "name": "Jardinière rectangulaire à cannelures",
+      "category": "Bacs à fleurs",
+      "file": "glb/B900.glb",
+      "sizeKB": 242,
+      "dimensions_cm": {
+        "width": 100,
+        "depth": 38,
+        "height": 40
+      },
+      "bbox_cm_WxDxH": [
+        100,
+        38,
+        40
+      ]
+    },
+    {
+      "id": "B729",
+      "name": "Jardinière rectangulaire à paroi lisse",
+      "category": "Bacs à fleurs",
+      "file": "glb/B729.glb",
+      "sizeKB": 29,
+      "dimensions_cm": {
+        "width": 80,
+        "depth": 38,
+        "height": 40
+      },
+      "bbox_cm_WxDxH": [
+        80,
+        38,
+        40
+      ]
+    },
+    {
+      "id": "B753",
+      "name": "Jardinière rectangulaire basse à cannelures",
+      "category": "Bacs à fleurs",
+      "file": "glb/B753.glb",
+      "sizeKB": 243,
+      "dimensions_cm": {
+        "width": 100,
+        "depth": 31,
+        "height": 36
+      },
+      "bbox_cm_WxDxH": [
+        100,
+        31,
+        36
+      ]
+    },
+    {
+      "id": "B40",
+      "name": "Jardinière rectangulaire compacte",
+      "category": "Bacs à fleurs",
+      "file": "glb/B40.glb",
+      "sizeKB": 190,
+      "dimensions_cm": {
+        "width": 70,
+        "depth": 30,
+        "height": 30
+      },
+      "bbox_cm_WxDxH": [
+        70,
+        30,
+        30
+      ]
+    },
+    {
+      "id": "B366",
+      "name": "Jardinière rectangulaire, petit format",
+      "category": "Bacs à fleurs",
+      "file": "glb/B366.glb",
+      "sizeKB": 178,
+      "dimensions_cm": {
+        "width": 60,
+        "depth": 30,
+        "height": 30
+      },
+      "bbox_cm_WxDxH": [
+        60,
+        30,
+        30
+      ]
+    },
+    {
+      "id": "B41",
+      "name": "Bac carré bas à cannelures",
+      "category": "Bacs à fleurs",
+      "file": "glb/B41.glb",
+      "sizeKB": 183,
+      "dimensions_cm": {
+        "width": 40,
+        "depth": 40,
+        "height": 25
+      },
+      "bbox_cm_WxDxH": [
+        40,
+        40,
+        25
+      ]
+    },
+    {
+      "id": "B27",
+      "name": "Bac carré très bas à cannelures",
+      "category": "Bacs à fleurs",
+      "file": "glb/B27.glb",
+      "sizeKB": 184,
+      "dimensions_cm": {
+        "width": 45,
+        "depth": 45,
+        "height": 23
+      },
+      "bbox_cm_WxDxH": [
+        45,
+        45,
+        23
+      ]
+    },
+    {
+      "id": "B80",
+      "name": "Bac carré à cannelures",
+      "category": "Bacs à fleurs",
+      "file": "glb/B80.glb",
+      "sizeKB": 242,
+      "dimensions_cm": {
+        "width": 60,
+        "depth": 60,
+        "height": 37
+      },
+      "bbox_cm_WxDxH": [
+        60,
+        60,
+        37
+      ]
+    },
+    {
+      "id": "B537",
+      "name": "Jardinière rectangulaire à rang de perles",
+      "category": "Bacs à fleurs",
+      "file": "glb/B537.glb",
+      "sizeKB": 600,
+      "dimensions_cm": {
+        "width": 80,
+        "depth": 30,
+        "height": 32
+      },
+      "bbox_cm_WxDxH": [
+        80,
+        30,
+        32
+      ]
+    },
+    {
+      "id": "B780",
+      "name": "Jardinière rectangulaire longue à paroi lisse",
+      "category": "Bacs à fleurs",
+      "file": "glb/B780.glb",
+      "sizeKB": 29,
+      "dimensions_cm": {
+        "width": 100,
+        "depth": 32,
+        "height": 36
+      },
+      "bbox_cm_WxDxH": [
+        100,
+        32,
+        36
+      ]
+    },
+    {
+      "id": "B800",
+      "name": "Jardinière rectangulaire à rang de perles",
+      "category": "Bacs à fleurs",
+      "file": "glb/B800.glb",
+      "sizeKB": 661,
+      "dimensions_cm": {
+        "width": 80,
+        "depth": 41,
+        "height": 36
+      },
+      "bbox_cm_WxDxH": [
+        80,
+        41,
+        36
+      ]
+    },
+    {
+      "id": "C255",
+      "name": "Colonne — chapiteau ionique",
+      "category": "Colonnes",
+      "file": "glb/C255.glb",
+      "sizeKB": 80,
+      "dimensions_cm": {
+        "width": 57,
+        "depth": 57,
+        "height": 290,
+        "diameter": 40
+      },
+      "bbox_cm_WxDxH": [
+        58.5,
+        57,
+        290
+      ]
+    },
+    {
+      "id": "C250",
+      "name": "Colonne — fût lisse",
+      "category": "Colonnes",
+      "file": "glb/C250.glb",
+      "sizeKB": 51,
+      "dimensions_cm": {
+        "width": 34,
+        "depth": 34,
+        "height": 225,
+        "diameter": 25
+      },
+      "bbox_cm_WxDxH": [
+        34,
+        34,
+        225
+      ]
+    },
+    {
+      "id": "C251",
+      "name": "Colonne — fût cannelé",
+      "category": "Colonnes",
+      "file": "glb/C251.glb",
+      "sizeKB": 73,
+      "dimensions_cm": {
+        "width": 34,
+        "depth": 34,
+        "height": 225,
+        "diameter": 25
+      },
+      "bbox_cm_WxDxH": [
+        34,
+        34,
+        225
+      ]
+    },
+    {
+      "id": "C2501",
+      "name": "Colonne — chapiteau à palmes",
+      "category": "Colonnes",
+      "file": "glb/C2501.glb",
+      "sizeKB": 87,
+      "dimensions_cm": {
+        "width": 37,
+        "depth": 37,
+        "height": 231,
+        "diameter": 25
+      },
+      "bbox_cm_WxDxH": [
+        37,
+        37,
+        231
+      ]
+    },
+    {
+      "id": "C2025",
+      "name": "Colonne — chapiteau à palmes",
+      "category": "Colonnes",
+      "file": "glb/C2025.glb",
+      "sizeKB": 65,
+      "dimensions_cm": {
+        "width": 35,
+        "depth": 35,
+        "height": 210,
+        "diameter": 25
+      },
+      "bbox_cm_WxDxH": [
+        35,
+        35,
+        210
+      ]
+    },
+    {
+      "id": "C300",
+      "name": "Colonne — fût lisse",
+      "category": "Colonnes",
+      "file": "glb/C300.glb",
+      "sizeKB": 51,
+      "dimensions_cm": {
+        "width": 47,
+        "depth": 47,
+        "height": 243,
+        "diameter": 30
+      },
+      "bbox_cm_WxDxH": [
+        47,
+        47,
+        243
+      ]
+    },
+    {
+      "id": "C400",
+      "name": "Colonne — chapiteau évasé",
+      "category": "Colonnes",
+      "file": "glb/C400.glb",
+      "sizeKB": 51,
+      "dimensions_cm": {
+        "width": 60,
+        "depth": 60,
+        "height": 237,
+        "diameter": 40
+      },
+      "bbox_cm_WxDxH": [
+        60,
+        60,
+        237
+      ]
+    },
+    {
+      "id": "C2013",
+      "name": "Colonne — chapiteau à palmes",
+      "category": "Colonnes",
+      "file": "glb/C2013.glb",
+      "sizeKB": 65,
+      "dimensions_cm": {
+        "width": 31,
+        "depth": 31,
+        "height": 210,
+        "diameter": 20
+      },
+      "bbox_cm_WxDxH": [
+        31,
+        31,
+        210
+      ]
+    },
+    {
+      "id": "FRZ",
+      "name": "Colonne — chapiteau corinthien",
+      "category": "Colonnes",
+      "file": "glb/FRZ.glb",
+      "sizeKB": 108,
+      "dimensions_cm": {
+        "width": 37,
+        "depth": 37,
+        "height": 216,
+        "diameter": 20
+      },
+      "bbox_cm_WxDxH": [
+        37,
+        37,
+        216
+      ]
+    },
+    {
+      "id": "C2010",
+      "name": "Colonne — chapiteau à palmes",
+      "category": "Colonnes",
+      "file": "glb/C2010.glb",
+      "sizeKB": 87,
+      "dimensions_cm": {
+        "width": 37,
+        "depth": 37,
+        "height": 184,
+        "diameter": 20
+      },
+      "bbox_cm_WxDxH": [
+        37,
+        37,
+        184
+      ]
+    },
+    {
+      "id": "PQ200",
+      "name": "Piquet de clôture béton, 2 m",
+      "category": "Clôture",
+      "file": "glb/PQ200.glb",
+      "sizeKB": 12,
+      "dimensions_cm": {
+        "width": 10,
+        "depth": 10,
+        "height": 200
+      },
+      "bbox_cm_WxDxH": [
+        10,
+        10.2,
+        200
+      ]
+    },
+    {
+      "id": "PQ250",
+      "name": "Piquet de clôture béton, 2,50 m",
+      "category": "Clôture",
+      "file": "glb/PQ250.glb",
+      "sizeKB": 16,
+      "dimensions_cm": {
+        "width": 10,
+        "depth": 10,
+        "height": 250
+      },
+      "bbox_cm_WxDxH": [
+        10,
+        10.2,
+        250
+      ]
+    },
+    {
+      "id": "DOGHOME",
+      "name": "Niche DogHome",
+      "category": "Niches",
+      "file": "glb/DOGHOME.glb",
+      "sizeKB": 131,
+      "dimensions_cm": {
+        "width": 85,
+        "depth": 93,
+        "height": 97
+      },
+      "bbox_cm_WxDxH": [
+        91,
+        102.2,
+        96.4
+      ]
+    },
+    {
+      "id": "PUITS",
+      "name": "Puits décoratif",
+      "category": "Puits",
+      "file": "glb/PUITS.glb",
+      "sizeKB": 1328,
+      "dimensions_cm": {
+        "width": 170,
+        "depth": 170,
+        "height": 83,
+        "diameter": 120
+      },
+      "bbox_cm_WxDxH": [
+        170,
+        170,
+        177.5
+      ]
+    },
+    {
+      "id": "DALBOIS",
+      "name": "Dallage Bois",
+      "category": "Dallages",
+      "file": "glb/DALBOIS.glb",
+      "sizeKB": 115,
+      "dimensions_cm": {
+        "width": 50,
+        "depth": 50,
+        "height": 4
+      },
+      "bbox_cm_WxDxH": [
+        201.2,
+        100.4,
+        4
+      ]
+    },
+    {
+      "id": "DAL301",
+      "name": "Dallage 301",
+      "category": "Dallages",
+      "file": "glb/DAL301.glb",
+      "sizeKB": 86,
+      "dimensions_cm": {
+        "width": 30,
+        "depth": 30,
+        "height": 3
+      },
+      "bbox_cm_WxDxH": [
+        121.2,
+        60.4,
+        3
+      ]
+    },
+    {
+      "id": "DALTAPIS",
+      "name": "Dallage Tapis",
+      "category": "Dallages",
+      "file": "glb/DALTAPIS.glb",
+      "sizeKB": 103,
+      "dimensions_cm": {
+        "width": 30,
+        "depth": 30,
+        "height": 3
+      },
+      "bbox_cm_WxDxH": [
+        121.2,
+        60.4,
+        3
+      ]
+    },
+    {
+      "id": "DALBRIQUE",
+      "name": "Dallage Brique",
+      "category": "Dallages",
+      "file": "glb/DALBRIQUE.glb",
+      "sizeKB": 101,
+      "dimensions_cm": {
+        "width": 30,
+        "depth": 30,
+        "height": 3
+      },
+      "bbox_cm_WxDxH": [
+        121.2,
+        60.4,
+        3
+      ]
+    },
+    {
+      "id": "DALTAPIS1",
+      "name": "Dallage Tapis 1",
+      "category": "Dallages",
+      "file": "glb/DALTAPIS1.glb",
+      "sizeKB": 162,
+      "dimensions_cm": {
+        "width": 40,
+        "depth": 40,
+        "height": 3
+      },
+      "bbox_cm_WxDxH": [
+        161.2,
+        80.4,
+        3
+      ]
+    },
+    {
+      "id": "DAL50R",
+      "name": "Dallage 50R",
+      "category": "Dallages",
+      "file": "glb/DAL50R.glb",
+      "sizeKB": 29,
+      "dimensions_cm": {
+        "width": 50,
+        "depth": 50,
+        "height": 3
+      },
+      "bbox_cm_WxDxH": [
+        201.2,
+        100.4,
+        3
+      ]
+    },
+    {
+      "id": "DAL45",
+      "name": "Dallage 45",
+      "category": "Dallages",
+      "file": "glb/DAL45.glb",
+      "sizeKB": 29,
+      "dimensions_cm": {
+        "width": 45,
+        "depth": 45,
+        "height": 3
+      },
+      "bbox_cm_WxDxH": [
+        181.2,
+        90.4,
+        3
+      ]
+    },
+    {
+      "id": "DALHUIT",
+      "name": "Dallage Huit",
+      "category": "Dallages",
+      "file": "glb/DALHUIT.glb",
+      "sizeKB": 222,
+      "dimensions_cm": {
+        "width": 27,
+        "depth": 27,
+        "height": 2
+      },
+      "bbox_cm_WxDxH": [
+        109.6,
+        55.6,
+        2
+      ]
+    },
+    {
+      "id": "DALHUITR",
+      "name": "Dallage Huit R",
+      "category": "Dallages",
+      "file": "glb/DALHUITR.glb",
+      "sizeKB": 480,
+      "dimensions_cm": {
+        "width": 27,
+        "depth": 27,
+        "height": 2
+      },
+      "bbox_cm_WxDxH": [
+        109.6,
+        55.6,
+        2
+      ]
+    },
+    {
+      "id": "DALMOULIN",
+      "name": "Dallage Moulin",
+      "category": "Dallages",
+      "file": "glb/DALMOULIN.glb",
+      "sizeKB": 374,
+      "dimensions_cm": {
+        "width": 25,
+        "depth": 25,
+        "height": 3
+      },
+      "bbox_cm_WxDxH": [
+        101.2,
+        50.4,
+        3
+      ]
+    },
+    {
+      "id": "DALPLINTHE",
+      "name": "Plinthe de dallage",
+      "category": "Dallages",
+      "file": "glb/DALPLINTHE.glb",
+      "sizeKB": 8,
+      "dimensions_cm": {
+        "width": 40,
+        "depth": 10,
+        "height": 3
+      },
+      "bbox_cm_WxDxH": [
+        40,
+        10,
+        3
+      ]
+    }
+  ]
+}

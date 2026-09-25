@@ -1,17 +1,19 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { addToCart, cartCount, readCart, readFinish, writeFinish } from "@/lib/cart";
 import { FINISHES, DEFAULT_FINISH } from "@/lib/finishes";
+import ModelViewer from "@/components/ModelViewer";
+import { CATEGORY_TEASERS } from "@/lib/marketing";
 import type { Product } from "@/lib/catalog";
 
 export default function ProductView({
   product,
-  viewerBaseSrc,
+  glbSrc,
   has3D,
 }: {
   product: Product;
-  viewerBaseSrc: string;
+  glbSrc: string;
   has3D: boolean;
 }) {
   const [ready, setReady] = useState(false);
@@ -19,8 +21,7 @@ export default function ProductView({
   const [qty, setQty] = useState(1);
   const [feedback, setFeedback] = useState("");
   const [cartTotal, setCartTotal] = useState(0);
-  const viewerSrcRef = useRef<string | null>(null);
-  const iframeRef = useRef<HTMLIFrameElement>(null);
+  const teaser = CATEGORY_TEASERS[product.category];
 
   useEffect(() => {
     const f = readFinish(DEFAULT_FINISH);
@@ -30,15 +31,9 @@ export default function ProductView({
     setReady(true);
   }, []);
 
-  if (viewerSrcRef.current === null && ready) {
-    const sep = viewerBaseSrc.includes("?") ? "&" : "?";
-    viewerSrcRef.current = `${viewerBaseSrc}${sep}finish=${finish}`;
-  }
-
   function selectFinish(id: string) {
     setFinish(id);
     writeFinish(id);
-    iframeRef.current?.contentWindow?.postMessage({ type: "set-finish", finish: id }, "*");
   }
 
   function onAddToCart() {
@@ -51,29 +46,22 @@ export default function ProductView({
   return (
     <div className="grid grid-cols-1 gap-8 lg:grid-cols-[1.5fr_1fr]">
       <div>
-        <div className="relative overflow-hidden rounded-lg border border-line bg-[#1b1d2a]">
-          {ready && has3D && viewerSrcRef.current ? (
-            <iframe
-              ref={iframeRef}
-              src={viewerSrcRef.current}
-              title={`Vue 3D — ${product.id} ${product.name}`}
-              className="block h-[64vh] max-h-[600px] w-full border-0"
+        <div className="relative h-[64vh] max-h-[600px] overflow-hidden rounded-xl border border-line bg-surface-soft">
+          {ready && has3D ? (
+            <ModelViewer
+              src={glbSrc}
+              alt={`Vue 3D — ${product.id} ${product.name}`}
+              finish={finish}
             />
           ) : (
-            <div className="flex h-[64vh] max-h-[600px] w-full flex-col justify-end gap-3 bg-ink p-8">
-              <span className="font-heading text-lg font-medium text-white">
-                {has3D ? "Chargement de la vue 3D…" : "Vue 3D bientôt disponible"}
-              </span>
-              <span className="max-w-md text-sm text-white/70">
-                {has3D
-                  ? ""
-                  : "La photographie du produit s'affiche ici dès qu'elle est fournie."}
-              </span>
+            <div className="flex h-full w-full items-center justify-center text-sm text-ink-faint">
+              {has3D ? "Chargement de la vue 3D…" : "Vue 3D bientôt disponible"}
             </div>
           )}
         </div>
         <div className="flex flex-wrap gap-6 px-2 py-4 text-xs text-ink-faint">
-          <span>Glisser pour orienter · molette pour zoomer</span>
+          <span>Glissez pour tourner l&apos;objet · molette pour zoomer</span>
+          <span>Sur mobile, visualisez-le chez vous en réalité augmentée</span>
         </div>
       </div>
 
@@ -82,7 +70,10 @@ export default function ProductView({
           <span className="text-xs uppercase tracking-widest text-brand-600">
             Réf. {product.id} · {product.category}
           </span>
-          <h1 className="font-heading text-3xl font-medium leading-tight text-ink">{product.name}</h1>
+          <h1 className="font-heading text-3xl font-semibold leading-tight text-ink">
+            {product.name}
+          </h1>
+          {teaser && <p className="text-base leading-relaxed text-ink">{teaser}</p>}
           <p className="text-sm leading-relaxed text-ink-soft">{product.description}</p>
         </div>
 

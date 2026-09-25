@@ -1,11 +1,11 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import ModelViewer from "@/components/ModelViewer";
+import { DEFAULT_FINISH } from "@/lib/finishes";
 
-// Live three.js contexts are expensive, so a card's iframe only mounts while
-// it is near the viewport and unmounts again once it scrolls away — the same
-// spirit as the original catalog's WebGL context pooling, without a global
-// pool manager.
+// A 3D scene per card is expensive, so a thumbnail only mounts while it is
+// near the viewport and unmounts once it scrolls away.
 export default function ProductThumb({ src, title }: { src: string; title: string }) {
   const ref = useRef<HTMLDivElement>(null);
   const [visible, setVisible] = useState(false);
@@ -14,7 +14,7 @@ export default function ProductThumb({ src, title }: { src: string; title: strin
     const el = ref.current;
     if (!el) return;
     const io = new IntersectionObserver(([entry]) => setVisible(entry.isIntersecting), {
-      rootMargin: "200px 0px",
+      rootMargin: "300px 0px",
       threshold: 0.01,
     });
     io.observe(el);
@@ -22,16 +22,9 @@ export default function ProductThumb({ src, title }: { src: string; title: strin
   }, []);
 
   return (
-    <div ref={ref} className="aspect-[4/3] w-full bg-[#1b1d2a]">
+    <div ref={ref} className="aspect-[4/3] w-full bg-surface-soft">
       {visible ? (
-        <iframe
-          src={src}
-          title={title}
-          loading="lazy"
-          scrolling="no"
-          tabIndex={-1}
-          className="pointer-events-none block h-full w-full border-0"
-        />
+        <ModelViewer src={src} alt={title} finish={DEFAULT_FINISH} interactive={false} />
       ) : null}
     </div>
   );
