@@ -6,18 +6,28 @@ const config: Config = {
     extend: {
       colors: {
         // Palette officielle STD — ne pas sortir de ces couleurs.
-        // Rouge logo #C0392B, vert feuilles #7CB342, vert herbe #43A047.
+        // Terracotta du logo #C73E1D (cercle + texte), vert feuille #7CB342.
+        // Le terracotta porte les boutons et les accents ; le vert reste un
+        // accent secondaire (liens, survols, végétal), jamais un aplat.
         brand: {
-          50: "#fbeeec",
-          100: "#f5d6d2",
-          200: "#e8aaa2",
-          300: "#db7d72",
-          400: "#cf5a4b",
-          500: "#c0392b", // rouge principal (maison + texte du logo)
-          600: "#a52f23",
-          700: "#83251c",
-          800: "#611b14",
-          900: "#3f110d",
+          50: "#fbf0ec",
+          100: "#f6ddd4",
+          200: "#ecbbaa",
+          300: "#e09880",
+          400: "#d66b4b",
+          500: "#c73e1d", // terracotta du logo
+          600: "#a83318",
+          700: "#882913",
+          800: "#661f0e",
+          900: "#45150a",
+        },
+        // Pierre et sable : les fonds chauds qui remplacent les aplats verts.
+        // C'est la couleur du calcaire, pas un gris froid.
+        sable: {
+          50: "#faf7f3",
+          100: "#f3ece3",
+          200: "#e7dbcc",
+          300: "#d5c3ac",
         },
         leaf: {
           50: "#f1f8e9",

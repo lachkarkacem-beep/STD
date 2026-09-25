@@ -236,7 +236,7 @@ export default function FloatingGallery({
   }, [products, router]);
 
   return (
-    <div className="relative h-[52vh] min-h-72 overflow-hidden rounded-xl border border-line bg-gradient-to-b from-surface via-leaf-50 to-leaf-100 sm:h-[58vh]">
+    <div className="relative h-[52vh] min-h-72 overflow-hidden rounded-xl border border-line bg-gradient-to-b from-surface via-sable-50 to-sable-200 sm:h-[58vh]">
       <div ref={mountRef} className="h-full w-full" />
 
       {survol && (

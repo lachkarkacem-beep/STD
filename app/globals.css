@@ -33,8 +33,10 @@
   .btn-primary {
     @apply btn border-brand-500 bg-brand-500 text-white hover:border-brand-600 hover:bg-brand-600;
   }
+  /* Le vert reste un accent : il tient le trait et le texte du bouton
+     secondaire, le survol passe par le sable et non par un aplat vert. */
   .btn-secondary {
-    @apply btn border-grass-500 bg-transparent text-grass-600 hover:bg-leaf-50;
+    @apply btn border-grass-500 bg-transparent text-grass-600 hover:bg-sable-100;
   }
   .card {
     @apply rounded-xl border border-line bg-surface shadow-card;

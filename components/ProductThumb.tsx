@@ -25,7 +25,7 @@ export default function ProductThumb({ src, title }: { src: string; title: strin
     <div
       ref={ref}
       title={title}
-      className="aspect-[4/3] w-full bg-gradient-to-b from-leaf-50 to-leaf-100"
+      className="aspect-[4/3] w-full bg-gradient-to-b from-sable-50 to-sable-200"
     >
       {visible ? (
         <Viewer3D src={src} finish={DEFAULT_FINISH} interactive={false} autoRotate />

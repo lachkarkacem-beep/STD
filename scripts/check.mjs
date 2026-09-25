@@ -1131,5 +1131,69 @@ console.log("\n18. Bande défilante de l'accueil\n");
   }
 }
 
+console.log("\n19. Ton des textes et palette du logo\n");
+
+{
+  // Les formules que la charte proscrit. Elles reviennent seules dès qu'on
+  // retouche un texte sans y penser — autant que le harnais les arrête.
+  const PROSCRITES = [
+    /d[ée]couvr(ez|ir)\b/i,
+    /plongez\b/i,
+    /laissez-vous\b/i,
+    /s[ée]duire\b/i,
+    /exp[ée]rience unique/i,
+    /au c(œ|oe)ur de/i,
+    /sublime[rz]\b/i,
+    /univers raffin/i,
+    /\bmerveille/i,
+  ];
+
+  // Les fichiers qui portent du texte affiché au visiteur.
+  const TEXTES = [
+    "lib/marketing.ts",
+    "lib/company.ts",
+    "lib/advice.ts",
+    "lib/garden/presets.mjs",
+    "app/page.tsx",
+    "app/previsualiser/page.tsx",
+  ];
+
+  for (const rel of TEXTES) {
+    const src = fs.readFileSync(path.join(ROOT, rel), "utf8");
+    // On ignore les lignes de commentaire : marketing.ts cite justement la
+    // liste des formules interdites pour la rappeler au rédacteur.
+    const corps = src
+      .split("\n")
+      .filter((l) => !/^\s*(\/\/|\*|\/\*)/.test(l))
+      .join("\n");
+    for (const motif of PROSCRITES) {
+      const trouve = corps.match(motif);
+      ok(!trouve, `${rel} : pas de formule proscrite`, trouve ? `« ${trouve[0]} »` : "");
+    }
+  }
+
+  // La palette doit rester celle du logo, au hex près.
+  const tw = fs.readFileSync(path.join(ROOT, "tailwind.config.ts"), "utf8");
+  ok(tw.includes("#c73e1d"), "le rouge principal est le terracotta du logo (#C73E1D)");
+  ok(!/#c0392b/i.test(tw), "l'ancien rouge #C0392B a disparu de la palette");
+  ok(tw.includes("#7cb342"), "le vert feuille du logo (#7CB342) est en place");
+  ok(tw.includes("#ffffff"), "le blanc du logo est en place");
+
+  // Le vert ne doit plus servir d'aplat : les fonds passent par le sable.
+  for (const rel of fs
+    .readdirSync(path.join(ROOT, "components"), { recursive: true })
+    .filter((f) => typeof f === "string" && f.endsWith(".tsx"))) {
+    const src = fs.readFileSync(path.join(ROOT, "components", rel), "utf8");
+    ok(
+      !/\bbg-leaf-(50|100|200)\b/.test(src),
+      `components/${rel} : pas d'aplat vert (le fond chaud passe par sable-*)`
+    );
+    ok(
+      !/\b(from|via|to)-leaf-(50|100|200)\b/.test(src),
+      `components/${rel} : pas de dégradé vert en fond`
+    );
+  }
+}
+
 console.log(`\n${fail === 0 ? "TOUT PASSE" : "DES CONTROLES ECHOUENT"} — ${pass} succès, ${fail} échecs\n`);
 process.exit(fail === 0 ? 0 : 1);

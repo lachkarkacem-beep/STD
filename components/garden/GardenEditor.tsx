@@ -320,7 +320,7 @@ export default function GardenEditor({ products }: { products: EditorProduct[] }
                 key={p.id}
                 type="button"
                 onClick={() => addProduct(p.id)}
-                className="flex w-full flex-col items-start gap-0.5 rounded-lg px-3 py-2 text-left hover:bg-leaf-50"
+                className="flex w-full flex-col items-start gap-0.5 rounded-lg px-3 py-2 text-left hover:bg-sable-100"
               >
                 <span className="text-sm text-ink">{p.name}</span>
                 <span className="text-xs text-ink-faint">Réf. {p.id}</span>
@@ -362,7 +362,7 @@ export default function GardenEditor({ products }: { products: EditorProduct[] }
                   key={p.id}
                   type="button"
                   onClick={() => loadPreset(p.id)}
-                  className="group rounded-lg border border-line p-3 text-left transition-colors hover:border-grass-500 hover:bg-leaf-50"
+                  className="group rounded-lg border border-line p-3 text-left transition-colors hover:border-grass-500 hover:bg-sable-100"
                 >
                   <span className="flex items-baseline gap-2">
                     <span className="font-heading text-base font-normal text-ink">{p.label}</span>
@@ -415,7 +415,7 @@ export default function GardenEditor({ products }: { products: EditorProduct[] }
                 onClick={() => selected && sceneRef.current?.rotate(selected.id, -ROTATION_STEP)}
                 aria-label="Pivoter de 15° vers la gauche"
                 title="Pivoter à gauche (Maj + R)"
-                className="h-9 w-9 rounded-full text-lg text-ink-soft hover:bg-leaf-50 hover:text-grass-700 disabled:opacity-30 disabled:hover:bg-transparent"
+                className="h-9 w-9 rounded-full text-lg text-ink-soft hover:bg-sable-100 hover:text-grass-700 disabled:opacity-30 disabled:hover:bg-transparent"
               >
                 ↺
               </button>
@@ -428,7 +428,7 @@ export default function GardenEditor({ products }: { products: EditorProduct[] }
                 onClick={() => selected && sceneRef.current?.rotate(selected.id, ROTATION_STEP)}
                 aria-label="Pivoter de 15° vers la droite"
                 title="Pivoter à droite (R)"
-                className="h-9 w-9 rounded-full text-lg text-ink-soft hover:bg-leaf-50 hover:text-grass-700 disabled:opacity-30 disabled:hover:bg-transparent"
+                className="h-9 w-9 rounded-full text-lg text-ink-soft hover:bg-sable-100 hover:text-grass-700 disabled:opacity-30 disabled:hover:bg-transparent"
               >
                 ↻
               </button>
@@ -441,7 +441,7 @@ export default function GardenEditor({ products }: { products: EditorProduct[] }
                   onClick={duplicate}
                   title="Dupliquer"
                   aria-label="Dupliquer la pièce"
-                  className="h-9 w-9 rounded-full text-ink-soft hover:bg-leaf-50 hover:text-grass-700"
+                  className="h-9 w-9 rounded-full text-ink-soft hover:bg-sable-100 hover:text-grass-700"
                 >
                   ⧉
                 </button>
@@ -484,7 +484,7 @@ export default function GardenEditor({ products }: { products: EditorProduct[] }
               }}
               className={`rounded-full border px-3 py-1 text-xs ${
                 camera === m
-                  ? "border-grass-500 bg-leaf-50 text-grass-700"
+                  ? "border-grass-500 bg-sable-100 text-grass-700"
                   : "border-line text-ink-soft hover:border-leaf-400"
               }`}
             >
@@ -542,7 +542,7 @@ export default function GardenEditor({ products }: { products: EditorProduct[] }
                   }}
                   className={`rounded-full border px-3 py-1 text-xs ${
                     building === k
-                      ? "border-grass-500 bg-leaf-50 text-grass-700"
+                      ? "border-grass-500 bg-sable-100 text-grass-700"
                       : "border-line text-ink-soft hover:border-leaf-400"
                   }`}
                 >

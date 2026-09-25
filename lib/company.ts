@@ -8,20 +8,20 @@ export const COMPANY = {
   phone: "+216 98 985 647",
   phoneHref: "tel:+21698985647",
   facebook: "https://www.facebook.com/people/Société-Tunisienne-de-Décoration/61554999095756/",
-  tagline: "La pierre qui embellit vos jardins et vos maisons",
+  tagline: "Pierre reconstituée pour le jardin et la terrasse",
 };
 
 export const ACTIVITIES = [
   {
     title: "Pierre reconstituée",
-    body: "Maçonnerie paysagère et fabrication d'éléments décoratifs : colonnes, vasques, puits, dallages et murets, façonnés dans notre atelier de Bizerte.",
+    body: "Maçonnerie paysagère et éléments décoratifs : colonnes, vasques, puits, dallages, murets. Tout est moulé à l'atelier, sur la route de Bizerte.",
   },
   {
-    title: "Bacs à fleurs et pots de jardin",
-    body: "Notre cœur de métier : une cinquantaine de modèles moulés en série, déclinés en cinq coloris, pour les terrasses, les allées et les espaces collectifs.",
+    title: "Bacs et pots",
+    body: "C'est le gros de notre production. Une cinquantaine de modèles au moule, cinq coloris, pour les terrasses, les allées et les espaces collectifs.",
   },
   {
-    title: "Lestage pour panneaux solaires",
-    body: "Blocs en béton haute résistance d'environ 35 kg, conçus pour lester les installations photovoltaïques. Fabrication sur commande — consultez-nous pour vos volumes.",
+    title: "Lestage photovoltaïque",
+    body: "Blocs béton d'environ 35 kg pour lester les installations solaires. Sur commande — dites-nous les volumes et le calendrier.",
   },
 ];

@@ -77,7 +77,7 @@ export default function ProductView({
           className={`relative h-[64vh] max-h-[600px] overflow-hidden rounded-xl border transition-colors ${
             moment === "nuit"
               ? "border-ink bg-ink"
-              : "border-leaf-200 bg-gradient-to-b from-leaf-50 to-leaf-100"
+              : "border-sable-200 bg-gradient-to-b from-sable-50 to-sable-200"
           }`}
         >
           {ready && has3D ? (
@@ -96,7 +96,7 @@ export default function ProductView({
           )}
         </div>
         {veilleuse && has3D && (
-          <div className="mt-4 flex flex-wrap items-center gap-3 rounded-xl border border-leaf-200 bg-leaf-50 px-4 py-3">
+          <div className="mt-4 flex flex-wrap items-center gap-3 rounded-xl border border-sable-200 bg-sable-100 px-4 py-3">
             <button
               type="button"
               onClick={() => setMoment((m) => (m === "nuit" ? "jour" : "nuit"))}
@@ -198,8 +198,8 @@ export default function ProductView({
                 onClick={() => setSpecies(null)}
                 className={`rounded-full border px-4 py-1.5 text-sm ${
                   species === null
-                    ? "border-grass-500 bg-leaf-50 font-medium text-grass-700"
-                    : "border-line text-ink-soft hover:border-leaf-300"
+                    ? "border-grass-500 bg-sable-100 font-medium text-grass-700"
+                    : "border-line text-ink-soft hover:border-sable-300"
                 }`}
               >
                 Sans
@@ -211,8 +211,8 @@ export default function ProductView({
                   onClick={() => setSpecies(s.id)}
                   className={`rounded-full border px-4 py-1.5 text-sm ${
                     species === s.id
-                      ? "border-grass-500 bg-leaf-50 font-medium text-grass-700"
-                      : "border-line text-ink-soft hover:border-leaf-300"
+                      ? "border-grass-500 bg-sable-100 font-medium text-grass-700"
+                      : "border-line text-ink-soft hover:border-sable-300"
                   }`}
                 >
                   {s.label}
@@ -253,14 +253,14 @@ export default function ProductView({
         </div>
 
         {advice && (
-          <div className="flex flex-col gap-3 rounded-xl border border-leaf-200 bg-leaf-50 p-5">
+          <div className="flex flex-col gap-3 rounded-xl border border-sable-200 bg-sable-100 p-5">
             <h2 className="font-heading text-xl font-normal text-ink">Le conseil du paysagiste</h2>
             <p className="text-sm leading-relaxed text-ink-soft">{advice.usage}</p>
             <p className="text-sm leading-relaxed text-ink-soft">{advice.associations}</p>
             <p className="text-sm leading-relaxed text-ink-soft">{advice.style}</p>
 
             {plantable && advice.plantes.length > 0 && (
-              <div className="flex flex-wrap items-center gap-2 border-t border-leaf-200 pt-3">
+              <div className="flex flex-wrap items-center gap-2 border-t border-sable-200 pt-3">
                 <span className="text-xs uppercase tracking-wide text-grass-700">À essayer</span>
                 {advice.plantes.map((id) => {
                   const espece = PLANT_SPECIES.find((s) => s.id === id);
@@ -273,7 +273,7 @@ export default function ProductView({
                       className={`rounded-full border px-3 py-1 text-xs transition-colors ${
                         species === id
                           ? "border-grass-500 bg-white font-medium text-grass-700"
-                          : "border-leaf-300 text-ink-soft hover:border-grass-500"
+                          : "border-sable-300 text-ink-soft hover:border-grass-500"
                       }`}
                     >
                       {espece.label}

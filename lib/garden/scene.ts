@@ -535,7 +535,7 @@ export class GardenScene {
     const holder = this.selectedId ? this.objects.get(this.selectedId) : null;
     if (!holder) return;
     const box = new THREE.Box3().setFromObject(holder);
-    this.selection = new THREE.Box3Helper(box, new THREE.Color("#c0392b"));
+    this.selection = new THREE.Box3Helper(box, new THREE.Color("#c73e1d"));
     this.scene.add(this.selection);
   }
 

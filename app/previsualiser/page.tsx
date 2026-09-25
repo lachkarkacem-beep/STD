@@ -22,9 +22,10 @@ export default function PrevisualiserPage() {
     <div className="mx-auto max-w-[1400px] px-6 py-10">
       <h1 className="mb-2 text-3xl font-normal text-ink sm:text-4xl">Prévisualiser mon jardin</h1>
       <p className="mb-8 max-w-2xl text-sm leading-relaxed text-ink-soft">
-        Composez votre espace comme vous l&apos;imaginez : posez les pièces sur la pelouse,
-        déplacez-les, changez leur coloris et leur plantation. Partez d&apos;un exemple si vous
-        préférez, puis envoyez votre composition en demande de devis.
+        Posez les pièces au sol, déplacez-les, changez le coloris et la plantation. Tout est à
+        l&apos;échelle : si deux pièces ne tiennent pas côte à côte ici, elles ne tiendront pas
+        chez vous. Les exemples ci-dessous sont des aménagements complets — partez-en si c&apos;est
+        plus simple, puis envoyez le tout en demande de devis.
       </p>
       <GardenEditor products={products} />
     </div>

@@ -51,7 +51,7 @@ export default async function AdminDevisPage() {
           {q.message && <p className="text-sm italic text-ink-soft">« {q.message} »</p>}
 
           {q.status === "answered" ? (
-            <div className="rounded-md border border-leaf-300 bg-leaf-50 p-4">
+            <div className="rounded-md border border-sable-300 bg-sable-100 p-4">
               <p className="mb-1 text-xs font-medium uppercase tracking-wide text-grass-700">
                 Réponse envoyée{q.replied_at ? ` · ${formatDate(q.replied_at)}` : ""}
               </p>

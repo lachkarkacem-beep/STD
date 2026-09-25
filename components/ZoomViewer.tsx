@@ -59,7 +59,7 @@ export default function ZoomViewer({
           </button>
         </div>
 
-        <div className="flex-1 bg-gradient-to-b from-leaf-50 to-leaf-100">
+        <div className="flex-1 bg-gradient-to-b from-sable-50 to-sable-200">
           <Viewer3D src={src} finish={finish} autoRotate={false} />
         </div>
 

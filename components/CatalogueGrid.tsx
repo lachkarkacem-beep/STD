@@ -57,7 +57,7 @@ export default function CatalogueGrid({
 
   return (
     <div ref={topRef}>
-      <div className="mb-6 flex flex-wrap items-center gap-3 rounded-xl border border-leaf-200 bg-leaf-50 px-4 py-3">
+      <div className="mb-6 flex flex-wrap items-center gap-3 rounded-xl border border-sable-200 bg-sable-100 px-4 py-3">
         <button
           type="button"
           onClick={() => setGalerie((v) => !v)}
@@ -73,7 +73,7 @@ export default function CatalogueGrid({
         <span className="text-xs leading-snug text-ink-soft">
           {galerie
             ? "Survolez une pièce pour l'agrandir, cliquez-la pour ouvrir sa fiche."
-            : "Une galerie en volume : les modèles 3D du catalogue suspendus en apesanteur."}
+            : "Les modèles du catalogue en volume, vus de tous les côtés."}
         </span>
       </div>
 

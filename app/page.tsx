@@ -15,17 +15,17 @@ export default function HomePage() {
   const featured = products.slice(0, 3);
 
   const stats = [
-    { value: String(products.length), label: "Références au catalogue" },
-    { value: String(products.filter(has3D).length), label: "Modèles 3D consultables" },
-    { value: "5", label: "Coloris disponibles" },
-    { value: "24-48h", label: "Réponse à votre devis" },
+    { value: String(products.length), label: "Références" },
+    { value: String(products.filter(has3D).length), label: "Modèles 3D" },
+    { value: "5", label: "Coloris" },
+    { value: "24-48h", label: "Réponse au devis" },
   ];
 
   return (
     <div>
       <header className="mx-auto grid max-w-6xl grid-cols-1 items-center gap-10 px-6 pb-12 pt-16 lg:grid-cols-[minmax(0,1fr)_minmax(280px,380px)]">
         <div>
-          <span className="mb-4 block text-xs font-semibold uppercase tracking-widest text-grass-600">
+          <span className="mb-4 block text-xs font-semibold uppercase tracking-widest text-brand-600">
             {HERO.kicker}
           </span>
           <h1 className="max-w-3xl text-5xl font-normal leading-[1.08] tracking-tight text-ink sm:text-6xl">
@@ -60,10 +60,10 @@ export default function HomePage() {
 
       <section className="mb-16">
         <div className="mx-auto mb-4 max-w-6xl px-6">
-          <h2 className="text-2xl font-normal text-ink sm:text-3xl">La collection en apesanteur</h2>
+          <h2 className="text-2xl font-normal text-ink sm:text-3xl">Quelques pièces, en volume</h2>
           <p className="mt-2 max-w-2xl text-sm leading-relaxed text-ink-soft">
-            Les pièces passent devant vous, doucement. Posez le regard sur celle qui vous
-            arrête — elle ralentit, et s&apos;ouvre d&apos;un clic.
+            Elles défilent. Arrêtez le regard sur l&apos;une d&apos;elles : elle ralentit, et
+            le clic ouvre sa fiche.
           </p>
         </div>
         <GalleryRibbon products={products.map((p) => ({ id: p.id, name: p.name }))} />
@@ -82,8 +82,8 @@ export default function HomePage() {
 
       <section className="mx-auto mb-16 max-w-6xl px-6">
         <div className="mb-8 flex items-baseline gap-6">
-          <h2 className="text-2xl font-normal text-ink sm:text-3xl">Nos familles de produits</h2>
-          <Link href="/catalogue" className="ml-auto text-sm text-brand-600 hover:text-brand-700">
+          <h2 className="text-2xl font-normal text-ink sm:text-3xl">Les familles</h2>
+          <Link href="/catalogue" className="ml-auto text-sm text-grass-600 hover:text-grass-700">
             Tout le catalogue
           </Link>
         </div>
@@ -94,7 +94,7 @@ export default function HomePage() {
               href={`/catalogue?cat=${encodeURIComponent(cat.id)}`}
               className="card flex flex-col gap-2 p-6 transition-colors hover:border-leaf-400"
             >
-              <span className="text-xs font-semibold text-grass-600">
+              <span className="text-xs font-semibold text-brand-600">
                 {products.filter((p) => p.category === cat.id).length} références
               </span>
               <span className="text-base font-semibold text-ink">{cat.label}</span>
@@ -123,8 +123,8 @@ export default function HomePage() {
 
       <section className="mx-auto mb-16 max-w-6xl px-6">
         <div className="mb-6 flex items-baseline gap-6">
-          <h2 className="text-2xl font-normal text-ink sm:text-3xl">Quelques pièces</h2>
-          <span className="text-xs text-ink-faint">Vue 3D interactive sur chaque fiche</span>
+          <h2 className="text-2xl font-normal text-ink sm:text-3xl">En ce moment</h2>
+          <span className="text-xs text-ink-faint">Vue 3D sur chaque fiche</span>
         </div>
         <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {featured.map((p) => (
@@ -141,7 +141,7 @@ export default function HomePage() {
                 </div>
               )}
               <div className="flex flex-col gap-1 border-t border-line p-5">
-                <span className="text-xs font-semibold text-grass-600">Réf. {p.id}</span>
+                <span className="text-xs font-semibold text-brand-600">Réf. {p.id}</span>
                 <span className="text-sm font-semibold text-ink">{p.name}</span>
                 <span className="text-xs text-ink-faint">{dimLine(p)}</span>
               </div>
@@ -152,7 +152,7 @@ export default function HomePage() {
 
       <section className="mx-auto mb-16 max-w-6xl px-6">
         <div className="mb-8 flex items-baseline gap-6">
-          <h2 className="text-2xl font-normal text-ink sm:text-3xl">Nos métiers</h2>
+          <h2 className="text-2xl font-normal text-ink sm:text-3xl">Ce qu&apos;on fait</h2>
           <span className="ml-auto text-xs text-ink-faint">Atelier de {COMPANY.city}</span>
         </div>
         <div className="grid grid-cols-1 gap-6 sm:grid-cols-3">
@@ -166,11 +166,11 @@ export default function HomePage() {
       </section>
 
       <section className="mx-auto mb-16 max-w-6xl px-6">
-        <div className="rounded-xl border border-leaf-200 bg-leaf-50 p-8">
+        <div className="rounded-xl border border-sable-200 bg-sable-100 p-8">
           <h2 className="mb-3 text-xl font-normal text-ink">{AUDIENCE.title}</h2>
           <p className="max-w-3xl text-sm leading-relaxed text-ink-soft">{AUDIENCE.body}</p>
           <p className="mt-4 text-sm text-ink-soft">
-            Un conseil, une visite de l&apos;atelier ?{" "}
+            Une question, ou passer voir l&apos;atelier ?{" "}
             <a href={COMPANY.phoneHref} className="text-brand-600 hover:text-brand-700">
               {COMPANY.phone}
             </a>
