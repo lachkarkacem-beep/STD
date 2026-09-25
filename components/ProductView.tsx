@@ -1,9 +1,10 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { addToCart, cartCount, readCart, readFinish, writeFinish } from "@/lib/cart";
 import { FINISHES, DEFAULT_FINISH } from "@/lib/finishes";
-import ModelViewer from "@/components/ModelViewer";
+import { PLANT_SPECIES } from "@/lib/plants";
+import Viewer3D from "@/components/Viewer3D";
 import { CATEGORY_TEASERS } from "@/lib/marketing";
 import type { Product } from "@/lib/catalog";
 
@@ -11,17 +12,36 @@ export default function ProductView({
   product,
   glbSrc,
   has3D,
+  plantable,
 }: {
   product: Product;
   glbSrc: string;
   has3D: boolean;
+  plantable: boolean;
 }) {
   const [ready, setReady] = useState(false);
   const [finish, setFinish] = useState(DEFAULT_FINISH);
+  const [species, setSpecies] = useState<string | null>(null);
   const [qty, setQty] = useState(1);
   const [feedback, setFeedback] = useState("");
   const [cartTotal, setCartTotal] = useState(0);
   const teaser = CATEGORY_TEASERS[product.category];
+  const exportRef = useRef<((withPlants: boolean) => Promise<Blob>) | null>(null);
+
+  const onExportReady = useCallback((fn: (withPlants: boolean) => Promise<Blob>) => {
+    exportRef.current = fn;
+  }, []);
+
+  async function downloadGlb(withPlants: boolean) {
+    if (!exportRef.current) return;
+    const blob = await exportRef.current(withPlants);
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `${product.id}${withPlants ? "-plante" : ""}.glb`;
+    a.click();
+    URL.revokeObjectURL(url);
+  }
 
   useEffect(() => {
     const f = readFinish(DEFAULT_FINISH);
@@ -48,20 +68,35 @@ export default function ProductView({
       <div>
         <div className="relative h-[64vh] max-h-[600px] overflow-hidden rounded-xl border border-leaf-200 bg-gradient-to-b from-leaf-50 to-leaf-100">
           {ready && has3D ? (
-            <ModelViewer
-              src={glbSrc}
-              alt={`Vue 3D — ${product.id} ${product.name}`}
-              finish={finish}
-            />
+            <Viewer3D src={glbSrc} finish={finish} species={species} onExportReady={onExportReady} />
           ) : (
             <div className="flex h-full w-full items-center justify-center text-sm text-ink-faint">
               {has3D ? "Chargement de la vue 3D…" : "Vue 3D bientôt disponible"}
             </div>
           )}
         </div>
-        <div className="flex flex-wrap gap-6 px-2 py-4 text-xs text-ink-faint">
+        <div className="flex flex-wrap items-center gap-4 px-2 py-4 text-xs text-ink-faint">
           <span>Glissez pour tourner l&apos;objet · molette pour zoomer</span>
-          <span>Sur mobile, visualisez-le chez vous en réalité augmentée</span>
+          {has3D && (
+            <span className="ml-auto flex gap-3">
+              <button
+                type="button"
+                onClick={() => downloadGlb(false)}
+                className="text-brand-600 hover:text-brand-700"
+              >
+                Télécharger le modèle 3D
+              </button>
+              {species && (
+                <button
+                  type="button"
+                  onClick={() => downloadGlb(true)}
+                  className="text-brand-600 hover:text-brand-700"
+                >
+                  …avec les plantes
+                </button>
+              )}
+            </span>
+          )}
         </div>
       </div>
 
@@ -107,6 +142,48 @@ export default function ProductView({
           </div>
         </div>
 
+        {plantable && (
+          <div className="flex flex-col gap-4">
+            <div className="flex items-baseline gap-3">
+              <span className="text-xs uppercase tracking-widest text-ink-faint">Plantation</span>
+              <span className="text-sm text-ink-soft">
+                {species ? PLANT_SPECIES.find((s) => s.id === species)?.label : "Bac nu"}
+              </span>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              <button
+                type="button"
+                onClick={() => setSpecies(null)}
+                className={`rounded-full border px-4 py-1.5 text-sm ${
+                  species === null
+                    ? "border-grass-500 bg-leaf-50 font-medium text-grass-700"
+                    : "border-line text-ink-soft hover:border-leaf-300"
+                }`}
+              >
+                Sans
+              </button>
+              {PLANT_SPECIES.map((s) => (
+                <button
+                  key={s.id}
+                  type="button"
+                  onClick={() => setSpecies(s.id)}
+                  className={`rounded-full border px-4 py-1.5 text-sm ${
+                    species === s.id
+                      ? "border-grass-500 bg-leaf-50 font-medium text-grass-700"
+                      : "border-line text-ink-soft hover:border-leaf-300"
+                  }`}
+                >
+                  {s.label}
+                </button>
+              ))}
+            </div>
+            <p className="text-xs leading-relaxed text-ink-faint">
+              Les végétaux sont une suggestion d&apos;aménagement : ils ne sont pas vendus avec la
+              pièce et ne suivent pas le choix de coloris.
+            </p>
+          </div>
+        )}
+
         <div className="flex flex-col gap-4">
           <div className="flex items-center gap-3">
             <label htmlFor="qty" className="text-xs uppercase tracking-widest text-ink-faint">
@@ -132,6 +209,12 @@ export default function ProductView({
           </div>
           {feedback && <span className="text-sm text-grass-700">{feedback}</span>}
         </div>
+
+        {product.notes && (
+          <p className="rounded-lg border border-line bg-surface-soft p-4 text-xs leading-relaxed text-ink-soft">
+            {product.notes}
+          </p>
+        )}
       </div>
     </div>
   );

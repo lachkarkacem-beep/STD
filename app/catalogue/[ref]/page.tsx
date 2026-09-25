@@ -1,6 +1,14 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { getProduct, dimLine, has3D, glbSrc, specRows, relatedProducts } from "@/lib/catalog";
+import {
+  getProduct,
+  dimLine,
+  has3D,
+  glbSrc,
+  isPlantable,
+  specRows,
+  relatedProducts,
+} from "@/lib/catalog";
 import ProductView from "@/components/ProductView";
 
 export default function ProductPage({ params }: { params: { ref: string } }) {
@@ -11,7 +19,12 @@ export default function ProductPage({ params }: { params: { ref: string } }) {
 
   return (
     <div className="mx-auto max-w-6xl px-6 py-10">
-      <ProductView product={product} glbSrc={glbSrc(product)} has3D={has3D(product)} />
+      <ProductView
+        product={product}
+        glbSrc={glbSrc(product)}
+        has3D={has3D(product)}
+        plantable={isPlantable(product)}
+      />
 
       <table className="mt-10 w-full max-w-md border-collapse">
         <tbody>

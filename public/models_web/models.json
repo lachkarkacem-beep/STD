@@ -50,7 +50,8 @@
         82,
         43,
         40
-      ]
+      ],
+      "plantable": true
     },
     {
       "id": "B84",
@@ -67,7 +68,8 @@
         82,
         30,
         40
-      ]
+      ],
+      "plantable": true
     },
     {
       "id": "B42",
@@ -84,7 +86,8 @@
         35,
         35,
         40
-      ]
+      ],
+      "plantable": true
     },
     {
       "id": "B62",
@@ -101,7 +104,8 @@
         35,
         35,
         60
-      ]
+      ],
+      "plantable": true
     },
     {
       "id": "B58",
@@ -118,7 +122,8 @@
         35.4,
         40,
         43
-      ]
+      ],
+      "plantable": true
     },
     {
       "id": "B30",
@@ -136,7 +141,8 @@
         41,
         41,
         41
-      ]
+      ],
+      "plantable": true
     },
     {
       "id": "BS225",
@@ -153,7 +159,8 @@
         108,
         58,
         70
-      ]
+      ],
+      "plantable": true
     },
     {
       "id": "BS150",
@@ -170,7 +177,8 @@
         58,
         58,
         70
-      ]
+      ],
+      "plantable": true
     },
     {
       "id": "BS160",
@@ -187,7 +195,8 @@
         58,
         58,
         70
-      ]
+      ],
+      "plantable": true
     },
     {
       "id": "P2008",
@@ -205,7 +214,8 @@
         90,
         100.6,
         90
-      ]
+      ],
+      "plantable": true
     },
     {
       "id": "B900",
@@ -222,7 +232,8 @@
         100,
         38,
         40
-      ]
+      ],
+      "plantable": true
     },
     {
       "id": "B729",
@@ -239,7 +250,8 @@
         80,
         38,
         40
-      ]
+      ],
+      "plantable": true
     },
     {
       "id": "B753",
@@ -256,7 +268,8 @@
         100,
         31,
         36
-      ]
+      ],
+      "plantable": true
     },
     {
       "id": "B40",
@@ -273,7 +286,8 @@
         70,
         30,
         30
-      ]
+      ],
+      "plantable": true
     },
     {
       "id": "B366",
@@ -290,7 +304,8 @@
         60,
         30,
         30
-      ]
+      ],
+      "plantable": true
     },
     {
       "id": "B41",
@@ -307,7 +322,8 @@
         40,
         40,
         25
-      ]
+      ],
+      "plantable": true
     },
     {
       "id": "B27",
@@ -324,7 +340,8 @@
         45,
         45,
         23
-      ]
+      ],
+      "plantable": true
     },
     {
       "id": "B80",
@@ -341,7 +358,8 @@
         60,
         60,
         37
-      ]
+      ],
+      "plantable": true
     },
     {
       "id": "B537",
@@ -358,7 +376,8 @@
         80,
         30,
         32
-      ]
+      ],
+      "plantable": true
     },
     {
       "id": "B780",
@@ -375,7 +394,8 @@
         100,
         32,
         36
-      ]
+      ],
+      "plantable": true
     },
     {
       "id": "B800",
@@ -392,7 +412,8 @@
         80,
         41,
         36
-      ]
+      ],
+      "plantable": true
     },
     {
       "id": "C255",
@@ -410,7 +431,8 @@
         58.5,
         57,
         290
-      ]
+      ],
+      "plantable": false
     },
     {
       "id": "C250",
@@ -428,7 +450,8 @@
         34,
         34,
         225
-      ]
+      ],
+      "plantable": false
     },
     {
       "id": "C251",
@@ -446,7 +469,8 @@
         34,
         34,
         225
-      ]
+      ],
+      "plantable": false
     },
     {
       "id": "C2501",
@@ -464,7 +488,8 @@
         37,
         37,
         231
-      ]
+      ],
+      "plantable": false
     },
     {
       "id": "C2025",
@@ -482,7 +507,8 @@
         35,
         35,
         210
-      ]
+      ],
+      "plantable": false
     },
     {
       "id": "C300",
@@ -500,7 +526,8 @@
         47,
         47,
         243
-      ]
+      ],
+      "plantable": false
     },
     {
       "id": "C400",
@@ -518,7 +545,8 @@
         60,
         60,
         237
-      ]
+      ],
+      "plantable": false
     },
     {
       "id": "C2013",
@@ -536,7 +564,8 @@
         31,
         31,
         210
-      ]
+      ],
+      "plantable": false
     },
     {
       "id": "FRZ",
@@ -554,7 +583,8 @@
         37,
         37,
         216
-      ]
+      ],
+      "plantable": false
     },
     {
       "id": "C2010",
@@ -572,7 +602,8 @@
         37,
         37,
         184
-      ]
+      ],
+      "plantable": false
     },
     {
       "id": "PQ200",
@@ -589,7 +620,8 @@
         10,
         10.2,
         200
-      ]
+      ],
+      "plantable": false
     },
     {
       "id": "PQ250",
@@ -606,7 +638,8 @@
         10,
         10.2,
         250
-      ]
+      ],
+      "plantable": false
     },
     {
       "id": "DOGHOME",
@@ -623,7 +656,8 @@
         91,
         102.2,
         96.4
-      ]
+      ],
+      "plantable": false
     },
     {
       "id": "PUITS",
@@ -641,7 +675,8 @@
         170,
         170,
         177.5
-      ]
+      ],
+      "plantable": false
     },
     {
       "id": "DALBOIS",
@@ -658,7 +693,8 @@
         201.2,
         100.4,
         4
-      ]
+      ],
+      "plantable": false
     },
     {
       "id": "DAL301",
@@ -675,7 +711,8 @@
         121.2,
         60.4,
         3
-      ]
+      ],
+      "plantable": false
     },
     {
       "id": "DALTAPIS",
@@ -692,7 +729,8 @@
         121.2,
         60.4,
         3
-      ]
+      ],
+      "plantable": false
     },
     {
       "id": "DALBRIQUE",
@@ -709,7 +747,8 @@
         121.2,
         60.4,
         3
-      ]
+      ],
+      "plantable": false
     },
     {
       "id": "DALTAPIS1",
@@ -726,7 +765,8 @@
         161.2,
         80.4,
         3
-      ]
+      ],
+      "plantable": false
     },
     {
       "id": "DAL50R",
@@ -743,7 +783,8 @@
         201.2,
         100.4,
         3
-      ]
+      ],
+      "plantable": false
     },
     {
       "id": "DAL45",
@@ -760,7 +801,8 @@
         181.2,
         90.4,
         3
-      ]
+      ],
+      "plantable": false
     },
     {
       "id": "DALHUIT",
@@ -777,7 +819,8 @@
         109.6,
         55.6,
         2
-      ]
+      ],
+      "plantable": false
     },
     {
       "id": "DALHUITR",
@@ -794,7 +837,8 @@
         109.6,
         55.6,
         2
-      ]
+      ],
+      "plantable": false
     },
     {
       "id": "DALMOULIN",
@@ -811,7 +855,8 @@
         101.2,
         50.4,
         3
-      ]
+      ],
+      "plantable": false
     },
     {
       "id": "DALPLINTHE",
@@ -828,7 +873,98 @@
         40,
         10,
         3
-      ]
+      ],
+      "plantable": false
+    },
+    {
+      "id": "B136",
+      "name": "Banc à dossier",
+      "category": "Tables et bancs",
+      "file": "glb/B136.glb",
+      "sizeKB": 54,
+      "dimensions_cm": {
+        "width": 136,
+        "depth": 70,
+        "height": 95
+      },
+      "bbox_cm_WxDxH": [
+        136,
+        70,
+        95
+      ],
+      "plantable": false
+    },
+    {
+      "id": "B200",
+      "name": "Banc à disques",
+      "category": "Tables et bancs",
+      "file": "glb/B200.glb",
+      "sizeKB": 234,
+      "dimensions_cm": {
+        "width": 200,
+        "depth": 90,
+        "height": 90
+      },
+      "bbox_cm_WxDxH": [
+        200,
+        90,
+        90
+      ],
+      "plantable": false
+    },
+    {
+      "id": "BANCSIMPLE",
+      "name": "Banc simple",
+      "category": "Tables et bancs",
+      "file": "glb/BANCSIMPLE.glb",
+      "sizeKB": 51,
+      "dimensions_cm": {
+        "width": 136,
+        "depth": 45,
+        "height": 50
+      },
+      "bbox_cm_WxDxH": [
+        136,
+        45,
+        50
+      ],
+      "plantable": false
+    },
+    {
+      "id": "TABLE",
+      "name": "Table de jardin",
+      "category": "Tables et bancs",
+      "file": "glb/TABLE.glb",
+      "sizeKB": 51,
+      "dimensions_cm": {
+        "width": 155,
+        "depth": 80,
+        "height": 80
+      },
+      "bbox_cm_WxDxH": [
+        155,
+        80,
+        80
+      ],
+      "plantable": false
+    },
+    {
+      "id": "TABOURET",
+      "name": "Tabouret",
+      "category": "Tables et bancs",
+      "file": "glb/TABOURET.glb",
+      "sizeKB": 58,
+      "dimensions_cm": {
+        "width": 45,
+        "depth": 45,
+        "height": 55
+      },
+      "bbox_cm_WxDxH": [
+        45,
+        45,
+        55
+      ],
+      "plantable": false
     }
   ]
 }

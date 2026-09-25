@@ -78,6 +78,8 @@ export const CATEGORY_TEASERS: Record<string, string> = {
     "Le charme méditerranéen dans toute sa simplicité : un puits décoratif et son arceau en fer forgé, comme au cœur d'un vieux village.",
   Dallages:
     "Des dalles et pavés autobloquants aux motifs chaleureux — bois, tapis, brique — pour habiller vos allées et vos terrasses.",
+  "Tables et bancs":
+    "De quoi s'asseoir et se retrouver dehors : bancs, tables et tabourets en pierre, rehaussés d'un décor de carreaux, qui restent en place toute l'année.",
 };
 
 export const CATALOGUE_INTRO =

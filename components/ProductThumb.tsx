@@ -1,11 +1,11 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import ModelViewer from "@/components/ModelViewer";
+import Viewer3D from "@/components/Viewer3D";
 import { DEFAULT_FINISH } from "@/lib/finishes";
 
-// A 3D scene per card is expensive, so a thumbnail only mounts while it is
-// near the viewport and unmounts once it scrolls away.
+// Une scène 3D par carte coûte cher : la vignette ne se monte que lorsqu'elle
+// approche de l'écran, et se démonte une fois éloignée.
 export default function ProductThumb({ src, title }: { src: string; title: string }) {
   const ref = useRef<HTMLDivElement>(null);
   const [visible, setVisible] = useState(false);
@@ -24,10 +24,11 @@ export default function ProductThumb({ src, title }: { src: string; title: strin
   return (
     <div
       ref={ref}
+      title={title}
       className="aspect-[4/3] w-full bg-gradient-to-b from-leaf-50 to-leaf-100"
     >
       {visible ? (
-        <ModelViewer src={src} alt={title} finish={DEFAULT_FINISH} interactive={false} />
+        <Viewer3D src={src} finish={DEFAULT_FINISH} interactive={false} autoRotate />
       ) : null}
     </div>
   );

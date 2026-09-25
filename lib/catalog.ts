@@ -14,7 +14,7 @@ export type Product = {
   category: string;
   shape?: string;
   dimensions: Dimensions;
-  weight?: number;
+  weight?: number | null;
   weightPerM2?: number;
   piecesPerM2?: number;
   image?: string;
@@ -42,7 +42,16 @@ export type CatalogDb = {
 
 const catalog = db as unknown as CatalogDb;
 
-const GLB_IDS = new Set((models as { models: { id: string }[] }).models.map((m) => m.id));
+type ModelEntry = { id: string; plantable?: boolean };
+const MODEL_ENTRIES = (models as { models: ModelEntry[] }).models;
+const GLB_IDS = new Set(MODEL_ENTRIES.map((m) => m.id));
+const PLANTABLE_IDS = new Set(MODEL_ENTRIES.filter((m) => m.plantable).map((m) => m.id));
+
+// Un bac est plantable s'il expose une cavité de terre (matériau « soil »
+// dans le GLB). 21 références sur 51 ; vérifié par `npm run check`.
+export function isPlantable(p: Product) {
+  return PLANTABLE_IDS.has(p.id);
+}
 
 export function getCompany() {
   return catalog.company;
@@ -126,7 +135,8 @@ export function specRows(p: Product) {
         { label: "Poids au m²", value: `${p.weightPerM2} kg` },
         { label: "Pièces au m²", value: String(p.piecesPerM2).replace(".", ",") },
       ]
-    : [{ label: "Poids", value: `${p.weight} kg` }];
+    : // Les 5 références de la page 21 sont livrées sans poids communiqué.
+      [{ label: "Poids", value: p.weight ? `${p.weight} kg` : "—" }];
 
   return [
     ...dims,
