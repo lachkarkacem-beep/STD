@@ -2,7 +2,7 @@
 
 import { useEffect, useRef } from "react";
 import "leaflet/dist/leaflet.css";
-import { ATELIER } from "@/lib/geo.mjs";
+import { ATELIER, orthodromie } from "@/lib/geo.mjs";
 import { COMPANY } from "@/lib/company";
 
 // Carte de l'atelier.
@@ -17,29 +17,46 @@ import { COMPANY } from "@/lib/company";
 const TUILES =
   "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}";
 
-export default function AtelierMap() {
+const ZOOM_ATELIER = 16;
+
+export type Depart = {
+  lat: number;
+  lon: number;
+  label: string;
+  distance: string;
+  duree: string | null;
+};
+
+export default function AtelierMap({ depart }: { depart?: Depart | null }) {
   const mountRef = useRef<HTMLDivElement>(null);
+  const carteRef = useRef<import("leaflet").Map | null>(null);
+  const LRef = useRef<typeof import("leaflet") | null>(null);
+  // Ce que le tracé a posé sur la carte, pour pouvoir tout retirer d'un coup
+  // au calcul suivant.
+  const tracéRef = useRef<import("leaflet").Layer[]>([]);
 
   useEffect(() => {
     const mount = mountRef.current;
     if (!mount) return;
 
     let disposed = false;
-    let carte: import("leaflet").Map | null = null;
+    let observer: ResizeObserver | null = null;
 
     (async () => {
       const L = (await import("leaflet")).default;
       if (disposed || !mountRef.current) return;
+      LRef.current = L;
 
-      carte = L.map(mount, {
+      const carte = L.map(mount, {
         center: [ATELIER.lat, ATELIER.lon],
-        zoom: 16,
+        zoom: ZOOM_ATELIER,
         // Le défilement de la page ne doit pas être capté par la carte quand
         // on la traverse : on zoome à la molette seulement après un clic.
         scrollWheelZoom: false,
         zoomControl: true,
         attributionControl: true,
       });
+      carteRef.current = carte;
 
       L.tileLayer(TUILES, {
         maxZoom: 19,
@@ -85,17 +102,85 @@ export default function AtelierMap() {
 
       // La carte est montée dans un bloc qui vient d'apparaître : ses tuiles
       // se calculent sur une taille parfois encore nulle.
-      const observer = new ResizeObserver(() => carte?.invalidateSize());
+      observer = new ResizeObserver(() => carte.invalidateSize());
       observer.observe(mount);
-
-      return () => observer.disconnect();
     })();
 
     return () => {
       disposed = true;
-      carte?.remove();
+      observer?.disconnect();
+      carteRef.current?.remove();
+      carteRef.current = null;
     };
   }, []);
+
+  // Tracé du trajet. Se rejoue à chaque nouveau calcul de distance.
+  useEffect(() => {
+    const L = LRef.current;
+    const carte = carteRef.current;
+    if (!L || !carte) return;
+
+    for (const couche of tracéRef.current) carte.removeLayer(couche);
+    tracéRef.current = [];
+
+    if (!depart) {
+      carte.flyTo([ATELIER.lat, ATELIER.lon], ZOOM_ATELIER, { duration: 0.8 });
+      return;
+    }
+
+    const couches: import("leaflet").Layer[] = [];
+
+    // Le trait est en pointillés, et non plein : il dit une distance directe,
+    // pas un itinéraire routier. Un trait plein promettrait un tracé de route
+    // que nous n'avons pas.
+    const ligne = L.polyline(orthodromie(depart, ATELIER) as [number, number][], {
+      color: "#c73e1d",
+      weight: 3,
+      opacity: 0.9,
+      dashArray: "8 9",
+      lineCap: "round",
+    }).addTo(carte);
+    couches.push(ligne);
+
+    const pinDepart = L.marker([depart.lat, depart.lon], {
+      icon: L.divIcon({
+        className: "depart-pin",
+        html: `
+          <span class="depart-pin__point"></span>
+          <span class="depart-pin__label">${depart.label}</span>
+        `,
+        iconSize: [18, 18],
+        iconAnchor: [9, 9],
+      }),
+      title: depart.label,
+      alt: `Votre point de départ : ${depart.label}`,
+    }).addTo(carte);
+    couches.push(pinDepart);
+
+    // L'étiquette de distance au milieu du trait, comme sur une carte
+    // routière. Sans marqueur porteur, Leaflet n'a pas d'objet à positionner.
+    const points = orthodromie(depart, ATELIER);
+    const milieu = points[Math.floor(points.length / 2)];
+    const etiquette = L.marker(milieu as [number, number], {
+      icon: L.divIcon({
+        className: "trajet-chip",
+        html: `<span>${depart.distance}${depart.duree ? ` · ${depart.duree}` : " à vol d'oiseau"}</span>`,
+        iconSize: [0, 0],
+      }),
+      interactive: false,
+      keyboard: false,
+    }).addTo(carte);
+    couches.push(etiquette);
+
+    tracéRef.current = couches;
+
+    // Les deux extrémités doivent tenir à l'écran, avec assez de marge pour
+    // que les étiquettes ne débordent pas du cadre.
+    carte.flyToBounds(
+      L.latLngBounds([depart.lat, depart.lon], [ATELIER.lat, ATELIER.lon]),
+      { padding: [60, 60], maxZoom: 14, duration: 1 }
+    );
+  }, [depart]);
 
   return (
     <div

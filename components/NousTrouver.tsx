@@ -16,9 +16,19 @@ type Resultat = {
   routier: boolean;
   depuis: string;
   volOiseau: number;
+  depart: { lat: number; lon: number };
 };
 
-const ITINERAIRE = `https://www.google.com/maps/dir/?api=1&destination=${ATELIER.lat},${ATELIER.lon}`;
+const MAPS = `https://www.google.com/maps/dir/?api=1&destination=${ATELIER.lat},${ATELIER.lon}`;
+
+/**
+ * Lien d'itinéraire. Une fois le départ connu, on le passe à Google Maps :
+ * le visiteur y trouve le tracé routier réel, que nous ne calculons pas.
+ */
+function lienItineraire(resultat: Resultat | null) {
+  if (!resultat) return MAPS;
+  return `${MAPS}&origin=${resultat.depart.lat},${resultat.depart.lon}`;
+}
 
 export default function NousTrouver() {
   const sectionRef = useRef<HTMLElement>(null);
@@ -109,7 +119,19 @@ export default function NousTrouver() {
 
       <div className="mt-8 overflow-hidden rounded-xl border border-sable-200 bg-surface shadow-card">
         {visible ? (
-          <AtelierMap />
+          <AtelierMap
+            depart={
+              resultat
+                ? {
+                    lat: resultat.depart.lat,
+                    lon: resultat.depart.lon,
+                    label: resultat.depuis,
+                    distance: resultat.distance,
+                    duree: resultat.duree,
+                  }
+                : null
+            }
+          />
         ) : (
           <div className="flex h-[320px] w-full items-center justify-center bg-sable-100 text-sm text-ink-faint sm:h-[420px]">
             Chargement de la carte…
@@ -129,12 +151,12 @@ export default function NousTrouver() {
             </p>
             <div>
               <a
-                href={ITINERAIRE}
+                href={lienItineraire(resultat)}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="btn-secondary"
               >
-                Ouvrir l&apos;itinéraire
+                {resultat ? "Itinéraire routier" : "Ouvrir l'itinéraire"}
               </a>
             </div>
           </div>
@@ -170,6 +192,21 @@ export default function NousTrouver() {
                 >
                   Me localiser
                 </button>
+                {resultat && (
+                  // Rend la carte à l'atelier : sinon on reste bloqué sur le
+                  // cadrage large du dernier calcul.
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setResultat(null);
+                      setErreur(null);
+                      setSaisie("");
+                    }}
+                    className="text-sm text-ink-faint underline-offset-4 hover:text-ink-soft hover:underline"
+                  >
+                    Effacer
+                  </button>
+                )}
               </div>
             </form>
 
@@ -193,7 +230,8 @@ export default function NousTrouver() {
                         {resultat.volOiseau < 1
                           ? "moins d'un kilomètre"
                           : `${Math.round(resultat.volOiseau)} km`}
-                        ). Le trajet réel dépend de la route prise.
+                        ) — c&apos;est elle que le pointillé trace sur la carte. Pour la route
+                        elle-même, ouvrez l&apos;itinéraire.
                       </p>
                     </>
                   ) : (

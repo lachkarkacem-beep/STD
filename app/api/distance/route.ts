@@ -68,6 +68,9 @@ export async function GET(request: Request) {
     return NextResponse.json({
       ...trajet({ lat, lon }),
       depuis: "Votre position",
+      // Renvoyées telles quelles : c'est avec elles que la carte trace la
+      // ligne jusqu'à l'atelier.
+      depart: { lat, lon },
       source: "position",
     });
   }
@@ -82,6 +85,7 @@ export async function GET(request: Request) {
     return NextResponse.json({
       ...trajet(ville),
       depuis: ville.nom,
+      depart: { lat: ville.lat, lon: ville.lon },
       source: "villes",
     });
   }
@@ -97,6 +101,7 @@ export async function GET(request: Request) {
     return NextResponse.json({
       ...trajet(point),
       depuis: point.label,
+      depart: { lat: point.lat, lon: point.lon },
       source: "nominatim",
     });
   } catch {

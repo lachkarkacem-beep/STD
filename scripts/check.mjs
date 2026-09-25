@@ -1275,6 +1275,87 @@ console.log("\n19. Distance jusqu'à l'atelier\n");
   }
   ok(new Set(VILLES.map((v) => v.nom)).size === VILLES.length, "aucune ville en double");
 
+  // Tracé du trajet sur la carte.
+  {
+    const { orthodromie } = geo;
+
+    // Les trajets tunisiens sont presque nord-sud : sur eux, une interpolation
+    // à plat donnerait le même trait, et ne prouverait rien. Les départs
+    // lointains — un visiteur français, un client italien — ont la composante
+    // est-ouest qui met le calcul à l'épreuve.
+    const departs = [
+      ...["Bizerte", "Tunis", "Sfax", "Tataouine"].map((n) => ({
+        nom: n,
+        ...VILLES.find((v) => v.nom === n),
+      })),
+      { nom: "Paris", lat: 48.8566, lon: 2.3522 },
+      { nom: "Milan", lat: 45.4642, lon: 9.19 },
+      { nom: "Istanbul", lat: 41.0082, lon: 28.9784 },
+    ];
+
+    for (const ville of departs) {
+      const nom = ville.nom;
+      const pts = orthodromie(ville, ATELIER, 48);
+
+      ok(pts.length === 49, `${nom} : 48 segments tracés`, `${pts.length} points`);
+
+      // Les extrémités doivent tomber EXACTEMENT sur les deux lieux : un
+      // trait qui part à côté du marqueur se voit tout de suite.
+      ok(
+        Math.abs(pts[0][0] - ville.lat) < 1e-9 && Math.abs(pts[0][1] - ville.lon) < 1e-9,
+        `${nom} : le trait part du point de départ`
+      );
+      ok(
+        Math.abs(pts[pts.length - 1][0] - ATELIER.lat) < 1e-9 &&
+          Math.abs(pts[pts.length - 1][1] - ATELIER.lon) < 1e-9,
+        `${nom} : le trait arrive sur l'atelier`
+      );
+
+      // Invariant qui tient tout : la somme des segments doit valoir
+      // l'orthodromie. Une erreur d'interpolation allongerait le chemin.
+      let somme = 0;
+      for (let i = 1; i < pts.length; i++) {
+        somme += haversine(
+          { lat: pts[i - 1][0], lon: pts[i - 1][1] },
+          { lat: pts[i][0], lon: pts[i][1] }
+        );
+      }
+      const direct = haversine(ville, ATELIER);
+      ok(
+        Math.abs(somme - direct) < Math.max(0.01, direct * 1e-6),
+        `${nom} : le tracé suit le plus court chemin`,
+        `${somme.toFixed(4)} km de trait pour ${direct.toFixed(4)} km`
+      );
+
+      // Chaque point reste dans la boîte des deux extrémités, à la marge de
+      // courbure près : un grand cercle bombe vers le pôle, mais jamais au
+      // point de sortir du cadrage que la carte va choisir.
+      const latMin = Math.min(ville.lat, ATELIER.lat) - 0.5;
+      const latMax = Math.max(ville.lat, ATELIER.lat) + 2;
+      const lonMin = Math.min(ville.lon, ATELIER.lon) - 0.5;
+      const lonMax = Math.max(ville.lon, ATELIER.lon) + 0.5;
+      for (const [la, lo] of pts) {
+        ok(
+          la >= latMin && la <= latMax && lo >= lonMin && lo <= lonMax,
+          `${nom} : le tracé reste dans le cadre`,
+          `${la.toFixed(3)}, ${lo.toFixed(3)}`
+        );
+      }
+    }
+
+    // Deux points confondus : pas de division par zéro, et un trait dégénéré
+    // plutôt qu'une erreur.
+    const nul = orthodromie(ATELIER, ATELIER);
+    ok(Array.isArray(nul) && nul.length >= 2, "un départ confondu avec l'atelier ne casse rien");
+    ok(Number.isFinite(nul[0][0]) && Number.isFinite(nul[0][1]), "le tracé dégénéré reste fini");
+
+    // Le trait doit rester en pointillés : plein, il promettrait un tracé
+    // routier que nous n'avons pas.
+    const carteSrc = fs.readFileSync(path.join(ROOT, "components/AtelierMap.tsx"), "utf8");
+    ok(/dashArray/.test(carteSrc), "le trait du trajet est en pointillés, pas plein");
+    ok(carteSrc.includes("orthodromie"), "le trait suit l'orthodromie calculée");
+  }
+
   // La carte ne doit pas réclamer de clé : c'est ce qui la rend déployable.
   const carte = fs.readFileSync(path.join(ROOT, "components/AtelierMap.tsx"), "utf8");
   ok(!/api[_-]?key|access[_-]?token/i.test(carte), "la carte ne dépend d'aucune clé d'API");

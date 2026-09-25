@@ -167,6 +167,60 @@
   background: theme(colors.grass.600);
 }
 
+/* Le point de départ : discret, pour que le logo de l'atelier reste la pièce
+   principale de la carte. Un disque vert cerclé de blanc, et son étiquette. */
+.depart-pin {
+  background: none;
+  border: 0;
+}
+.depart-pin__point {
+  position: absolute;
+  inset: 0;
+  border-radius: 9999px;
+  background: theme(colors.grass.500);
+  border: 3px solid #fff;
+  box-shadow: 0 2px 7px rgba(43, 43, 43, 0.4);
+}
+.depart-pin__label {
+  position: absolute;
+  left: 50%;
+  top: 24px;
+  transform: translateX(-50%);
+  max-width: 190px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  border-radius: 9999px;
+  background: rgba(255, 255, 255, 0.94);
+  padding: 3px 10px;
+  font-size: 11px;
+  font-weight: 500;
+  color: theme(colors.ink.DEFAULT);
+  box-shadow: 0 2px 8px rgba(43, 43, 43, 0.25);
+}
+
+/* L'étiquette de distance, posée au milieu du trait. Elle n'a pas d'icône
+   propre : c'est le texte lui-même qu'on centre sur le point. */
+.trajet-chip {
+  background: none;
+  border: 0;
+}
+.trajet-chip span {
+  position: absolute;
+  left: 0;
+  top: 0;
+  transform: translate(-50%, -50%);
+  white-space: nowrap;
+  border-radius: 9999px;
+  background: theme(colors.brand.500);
+  padding: 4px 11px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  color: #fff;
+  box-shadow: 0 2px 9px rgba(43, 43, 43, 0.35);
+}
+
 /* La bulle : celle de Leaflet a ses propres coins, son ombre et sa flèche.
    On la ramène à la carte du site. */
 .atelier-popup .leaflet-popup-content-wrapper {
