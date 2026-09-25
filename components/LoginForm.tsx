@@ -3,23 +3,26 @@
 import { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+import { isSupabaseConfigured } from "@/lib/supabase/config";
+import BackendUnavailable from "@/components/BackendUnavailable";
 
 export default function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const next = searchParams.get("next") || "/compte";
-  const supabase = createClient();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
+  if (!isSupabaseConfigured) return <BackendUnavailable />;
+
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
     setLoading(true);
     setError(null);
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    const { error } = await createClient().auth.signInWithPassword({ email, password });
     setLoading(false);
     if (error) {
       setError("Identifiants incorrects. Vérifiez votre e-mail et votre mot de passe.");

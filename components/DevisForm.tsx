@@ -9,7 +9,6 @@ import type { CatalogDb } from "@/lib/catalog";
 
 export default function DevisForm({ userId }: { userId: string }) {
   const router = useRouter();
-  const supabase = createClient();
 
   const [cart, setCart] = useState<CartLine[]>([]);
   const [db, setDb] = useState<CatalogDb | null>(null);
@@ -46,7 +45,7 @@ export default function DevisForm({ userId }: { userId: string }) {
       qty: l.qty,
     }));
 
-    const { error } = await supabase.from("quotes").insert({
+    const { error } = await createClient().from("quotes").insert({
       user_id: userId,
       items,
       message: message || null,

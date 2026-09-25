@@ -1,5 +1,6 @@
 import { createServerClient, type CookieOptions } from "@supabase/ssr";
 import { cookies } from "next/headers";
+import { SUPABASE_ANON_KEY, SUPABASE_URL } from "@/lib/supabase/config";
 
 // Use inside Server Components, Server Actions and Route Handlers.
 // Server Components can't write cookies, so a set()/remove() call from one
@@ -8,29 +9,25 @@ import { cookies } from "next/headers";
 export function createClient() {
   const cookieStore = cookies();
 
-  return createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        get(name: string) {
-          return cookieStore.get(name)?.value;
-        },
-        set(name: string, value: string, options: CookieOptions) {
-          try {
-            cookieStore.set({ name, value, ...options });
-          } catch {
-            // called from a Server Component — ignore, middleware handles it
-          }
-        },
-        remove(name: string, options: CookieOptions) {
-          try {
-            cookieStore.set({ name, value: "", ...options });
-          } catch {
-            // called from a Server Component — ignore, middleware handles it
-          }
-        },
+  return createServerClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+    cookies: {
+      get(name: string) {
+        return cookieStore.get(name)?.value;
       },
-    }
-  );
+      set(name: string, value: string, options: CookieOptions) {
+        try {
+          cookieStore.set({ name, value, ...options });
+        } catch {
+          // called from a Server Component — ignore, middleware handles it
+        }
+      },
+      remove(name: string, options: CookieOptions) {
+        try {
+          cookieStore.set({ name, value: "", ...options });
+        } catch {
+          // called from a Server Component — ignore, middleware handles it
+        }
+      },
+    },
+  });
 }

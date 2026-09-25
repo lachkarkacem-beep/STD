@@ -3,10 +3,11 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+import { isSupabaseConfigured } from "@/lib/supabase/config";
+import BackendUnavailable from "@/components/BackendUnavailable";
 
 export default function SignupForm() {
   const router = useRouter();
-  const supabase = createClient();
 
   const [fullName, setFullName] = useState("");
   const [jobTitle, setJobTitle] = useState("");
@@ -16,12 +17,14 @@ export default function SignupForm() {
   const [loading, setLoading] = useState(false);
   const [confirmEmailSent, setConfirmEmailSent] = useState(false);
 
+  if (!isSupabaseConfigured) return <BackendUnavailable />;
+
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
     setLoading(true);
     setError(null);
 
-    const { data, error } = await supabase.auth.signUp({
+    const { data, error } = await createClient().auth.signUp({
       email,
       password,
       options: { data: { full_name: fullName, job_title: jobTitle } },

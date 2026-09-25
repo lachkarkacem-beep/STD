@@ -1,14 +1,21 @@
 import { createServerClient, type CookieOptions } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
+import { SUPABASE_ANON_KEY, SUPABASE_URL, isSupabaseConfigured } from "@/lib/supabase/config";
 
 const PROTECTED_PREFIXES = ["/compte", "/devis", "/admin"];
 
 export async function middleware(request: NextRequest) {
   let response = NextResponse.next({ request: { headers: request.headers } });
 
+  // No backend configured: keep the protected areas closed rather than
+  // crashing, and let the sign-in page explain the situation.
+  if (!isSupabaseConfigured) {
+    return NextResponse.redirect(new URL("/connexion", request.url));
+  }
+
   const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    SUPABASE_URL,
+    SUPABASE_ANON_KEY,
     {
       cookies: {
         get(name: string) {
