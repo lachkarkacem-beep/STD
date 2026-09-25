@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { getCategories, getProducts, dimLine, has3D, glbSrc } from "@/lib/catalog";
 import { HERO, VALUE_PROPS, STEPS, AUDIENCE, FINAL_CTA } from "@/lib/marketing";
+import { ACTIVITIES, COMPANY } from "@/lib/company";
 import ProductThumb from "@/components/ProductThumb";
 
 export default function HomePage() {
@@ -128,9 +129,32 @@ export default function HomePage() {
       </section>
 
       <section className="mx-auto mb-16 max-w-6xl px-6">
+        <div className="mb-8 flex items-baseline gap-6">
+          <h2 className="text-2xl font-normal text-ink sm:text-3xl">Nos métiers</h2>
+          <span className="ml-auto text-xs text-ink-faint">Atelier de {COMPANY.city}</span>
+        </div>
+        <div className="grid grid-cols-1 gap-6 sm:grid-cols-3">
+          {ACTIVITIES.map((a) => (
+            <div key={a.title} className="card flex flex-col gap-2 p-6">
+              <h3 className="text-xl font-normal text-ink">{a.title}</h3>
+              <p className="text-sm leading-relaxed text-ink-soft">{a.body}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      <section className="mx-auto mb-16 max-w-6xl px-6">
         <div className="rounded-xl border border-leaf-200 bg-leaf-50 p-8">
           <h2 className="mb-3 text-xl font-normal text-ink">{AUDIENCE.title}</h2>
           <p className="max-w-3xl text-sm leading-relaxed text-ink-soft">{AUDIENCE.body}</p>
+          <p className="mt-4 text-sm text-ink-soft">
+            Un conseil, une visite de l&apos;atelier ?{" "}
+            <a href={COMPANY.phoneHref} className="text-brand-600 hover:text-brand-700">
+              {COMPANY.phone}
+            </a>
+            {" · "}
+            <span className="text-ink-faint">{COMPANY.address}</span>
+          </p>
         </div>
       </section>
 

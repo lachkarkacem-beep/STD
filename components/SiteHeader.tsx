@@ -20,6 +20,9 @@ export default async function SiteHeader() {
           <Link href="/catalogue" className="hover:text-brand-600">
             Catalogue
           </Link>
+          <Link href="/previsualiser" className="hover:text-brand-600">
+            Prévisualiser
+          </Link>
           <Link href="/flipbook" className="hover:text-brand-600">
             Catalogue photo
           </Link>

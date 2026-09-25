@@ -184,5 +184,53 @@ for (const { id, soil } of plantable) {
   }
 }
 
+console.log("\n3. Exemples d'aménagement : références valides et pièces au sol\n");
+
+// Les presets sont du TypeScript ; on lit le fichier plutôt que de l'importer,
+// pour garder ce harnais sans étape de compilation.
+const presetSrc = fs.readFileSync(path.join(ROOT, "lib/garden/presets.ts"), "utf8");
+const presetRefs = [...presetSrc.matchAll(/ref:\s*"([A-Z0-9]+)"/g)].map((m) => m[1]);
+const presetSpecies = [...presetSrc.matchAll(/species:\s*"([a-z]+)"/g)].map((m) => m[1]);
+const knownRefs = new Set(db.products.map((p) => p.id));
+const knownSpecies = new Set(PLANT_SPECIES.map((s) => s.id));
+
+ok(presetRefs.length > 0, "les exemples déclarent des références");
+for (const ref of new Set(presetRefs)) {
+  ok(knownRefs.has(ref), `exemple : la référence ${ref} existe au catalogue`);
+}
+for (const s of new Set(presetSpecies)) {
+  ok(knownSpecies.has(s), `exemple : l'espèce ${s} existe`);
+}
+// Une plantation n'a de sens que sur un bac qui a une cavité.
+const plantableIds = new Set(plantable.map((p) => p.id));
+const pairs = [...presetSrc.matchAll(/ref:\s*"([A-Z0-9]+)"[^}]*species:\s*"([a-z]+)"/g)];
+for (const [, ref, species] of pairs) {
+  ok(plantableIds.has(ref), `exemple : ${ref} peut accueillir « ${species} »`);
+}
+
+console.log("\n4. Sauvegarde du projet : aller-retour à l'identique\n");
+
+// Ce que l'éditeur écrit dans localStorage et relit ensuite.
+const project = [
+  { id: "a1", ref: "PUITS", finish: "blanc", species: null, x: 0, z: 0, rotation: 0 },
+  { id: "b2", ref: "B105", finish: "saumon", species: "lavande", x: -2.2, z: 1.4, rotation: Math.PI / 12 },
+  { id: "c3", ref: "DOGHOME", finish: "gris", species: null, x: 4.2, z: 2.6, rotation: -Math.PI / 4 },
+];
+const reloaded = JSON.parse(JSON.stringify(project));
+ok(reloaded.length === project.length, "le projet rechargé a le même nombre de pièces");
+for (let i = 0; i < project.length; i++) {
+  const a = project[i];
+  const b = reloaded[i];
+  ok(
+    a.ref === b.ref && a.finish === b.finish && a.species === b.species,
+    `pièce ${i} : référence, coloris et plantation conservés`
+  );
+  ok(
+    Math.abs(a.x - b.x) < 1e-9 && Math.abs(a.z - b.z) < 1e-9 && Math.abs(a.rotation - b.rotation) < 1e-9,
+    `pièce ${i} : position et orientation conservées`
+  );
+  ok(knownRefs.has(b.ref), `pièce ${i} : la référence existe toujours au catalogue`);
+}
+
 console.log(`\n${fail === 0 ? "TOUT PASSE" : "DES CONTROLES ECHOUENT"} — ${pass} succès, ${fail} échecs\n`);
 process.exit(fail === 0 ? 0 : 1);
