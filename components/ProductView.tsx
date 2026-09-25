@@ -46,7 +46,7 @@ export default function ProductView({
   return (
     <div className="grid grid-cols-1 gap-8 lg:grid-cols-[1.5fr_1fr]">
       <div>
-        <div className="relative h-[64vh] max-h-[600px] overflow-hidden rounded-xl border border-line bg-surface-soft">
+        <div className="relative h-[64vh] max-h-[600px] overflow-hidden rounded-xl border border-leaf-200 bg-gradient-to-b from-leaf-50 to-leaf-100">
           {ready && has3D ? (
             <ModelViewer
               src={glbSrc}

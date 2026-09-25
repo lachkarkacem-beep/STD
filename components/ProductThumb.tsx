@@ -22,7 +22,10 @@ export default function ProductThumb({ src, title }: { src: string; title: strin
   }, []);
 
   return (
-    <div ref={ref} className="aspect-[4/3] w-full bg-surface-soft">
+    <div
+      ref={ref}
+      className="aspect-[4/3] w-full bg-gradient-to-b from-leaf-50 to-leaf-100"
+    >
       {visible ? (
         <ModelViewer src={src} alt={title} finish={DEFAULT_FINISH} interactive={false} />
       ) : null}

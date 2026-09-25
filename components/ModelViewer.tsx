@@ -21,6 +21,7 @@ declare global {
         "camera-controls"?: boolean | string;
         "auto-rotate"?: boolean | string;
         "shadow-intensity"?: string;
+        "shadow-softness"?: string;
         "touch-action"?: string;
         "interaction-prompt"?: string;
         exposure?: string;
@@ -84,13 +85,16 @@ export default function ModelViewer({
       auto-rotate
       ar={interactive ? true : undefined}
       ar-modes="webxr scene-viewer quick-look"
-      shadow-intensity="1"
-      exposure="1.1"
+      shadow-intensity="1.4"
+      shadow-softness="0.8"
+      exposure="0.95"
       touch-action={interactive ? "pan-y" : "none"}
       interaction-prompt="none"
       loading="lazy"
       className={className}
-      style={{ width: "100%", height: "100%", backgroundColor: "#f2f2f2" }}
+      // Transparent so the container's tint shows through: white stone on a
+      // white ground was washing the pieces out.
+      style={{ width: "100%", height: "100%", backgroundColor: "transparent" }}
     />
   );
 }
