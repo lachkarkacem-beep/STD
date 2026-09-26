@@ -50,6 +50,10 @@
   .badge-answered {
     @apply inline-flex items-center rounded-full bg-leaf-50 px-3 py-1 text-xs font-medium text-grass-700;
   }
+  /* Prise en charge, mais pas encore répondue : ni l'attente ni le fait. */
+  .badge-encours {
+    @apply inline-flex items-center rounded-full bg-sable-200 px-3 py-1 text-xs font-medium text-ink-soft;
+  }
 
   /* Feuilletage du catalogue : la page entrante pivote depuis le bord vers
      lequel on tourne, comme une feuille qu'on rabat. Les deux sens sont le

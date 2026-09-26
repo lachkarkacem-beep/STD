@@ -1,10 +1,12 @@
 import Image from "next/image";
 import Link from "next/link";
 import { getUserAndProfile } from "@/lib/auth";
+import { estAdmin } from "@/lib/roles";
 import LogoutButton from "@/components/LogoutButton";
 
 export default async function SiteHeader() {
   const { user, profile } = await getUserAndProfile();
+  const admin = estAdmin(profile);
 
   return (
     <header className="border-b border-line bg-white">
@@ -26,11 +28,15 @@ export default async function SiteHeader() {
           <Link href="/flipbook" className="hover:text-grass-700">
             Catalogue papier
           </Link>
-          <Link href="/devis" className="hover:text-grass-700">
-            Mon devis
-          </Link>
+          {/* L'administrateur ne dépose pas de demande : le lien n'a pas lieu
+              d'être chez lui. La page le refuse de toute façon. */}
+          {!admin && (
+            <Link href="/devis" className="hover:text-grass-700">
+              Mon devis
+            </Link>
+          )}
 
-          {profile?.role === "admin" && (
+          {admin && (
             <Link href="/admin" className="font-medium text-brand-600 hover:text-brand-700">
               Admin
             </Link>

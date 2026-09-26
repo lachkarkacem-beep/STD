@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { clearCart, readCart, removeLine, type CartLine } from "@/lib/cart";
 import { FINISHES } from "@/lib/finishes";
+import { STATUT_INITIAL } from "@/lib/devis-statuts.mjs";
 import type { CatalogDb } from "@/lib/catalog";
 
 export default function DevisForm({ userId }: { userId: string }) {
@@ -49,11 +50,21 @@ export default function DevisForm({ userId }: { userId: string }) {
       user_id: userId,
       items,
       message: message || null,
+      // Explicite, même si la base a ce défaut : le statut de départ fait
+      // partie de ce que le harnais vérifie.
+      status: STATUT_INITIAL,
     });
 
     setSubmitting(false);
     if (error) {
-      setError("Impossible d'envoyer la demande. Réessayez.");
+      // La règle d'insertion refuse l'administrateur et les demandes déposées
+      // pour autrui : on le dit, plutôt qu'un « réessayez » qui ne mène nulle
+      // part.
+      setError(
+        /row-level security|policy/i.test(error.message)
+          ? "Ce compte ne peut pas déposer de demande de devis."
+          : "L'envoi n'a pas abouti. Réessayez, ou appelez-nous."
+      );
       return;
     }
 

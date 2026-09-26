@@ -1379,7 +1379,225 @@ console.log("\n19. Distance jusqu'à l'atelier\n");
   );
 }
 
-console.log("\n20. Ton des textes et palette du logo\n");
+console.log("\n20. Rôles, statuts et sécurité des devis\n");
+
+{
+  const {
+    STATUTS,
+    IDS_STATUTS,
+    STATUT_INITIAL,
+    estStatutValide,
+    estClos,
+    rang,
+    trierPourAdmin,
+    lienWhatsApp,
+    erreurTelephone,
+  } = await import("../lib/devis-statuts.mjs");
+
+  const sql = fs.readFileSync(
+    path.join(ROOT, "supabase/migrations/0002_roles_statuts_telephone.sql"),
+    "utf8"
+  );
+  const init = fs.readFileSync(path.join(ROOT, "supabase/migrations/0001_init.sql"), "utf8");
+  const roles = fs.readFileSync(path.join(ROOT, "lib/roles.ts"), "utf8");
+
+  // --- Les quatre statuts, dans l'ordre demandé -----------------------------
+  const attendus = [
+    "demandé",
+    "en_cours_de_traitement",
+    "réponse_envoyée_email",
+    "réponse_envoyée_whatsapp",
+  ];
+  ok(IDS_STATUTS.length === 4, "quatre statuts, pas un de plus", `${IDS_STATUTS.length}`);
+  attendus.forEach((id, i) => {
+    ok(IDS_STATUTS[i] === id, `statut ${i + 1} : « ${id} »`, `trouvé « ${IDS_STATUTS[i]} »`);
+  });
+  ok(STATUT_INITIAL === "demandé", "une demande naît au statut « demandé »");
+
+  // Le code et la base doivent s'accorder : une valeur ici que la contrainte
+  // SQL refuse ferait échouer l'enregistrement sans qu'on sache pourquoi.
+  for (const id of IDS_STATUTS) {
+    ok(sql.includes(`'${id}'`), `la contrainte SQL accepte « ${id} »`);
+  }
+  ok(
+    /default 'demandé'/.test(sql),
+    "la base pose « demandé » par défaut, comme le formulaire"
+  );
+  // Et l'inverse : rien dans le SQL qui ne soit pas dans le module.
+  const dansSql = [...sql.matchAll(/'(demandé|en_cours[a-z_]*|réponse_[a-zà-ÿ_]*)'/g)].map((m) => m[1]);
+  for (const v of new Set(dansSql)) {
+    ok(IDS_STATUTS.includes(v), `« ${v} » du SQL existe dans le module`);
+  }
+
+  ok(estStatutValide("demandé"), "un statut connu est accepté");
+  ok(!estStatutValide("answered"), "l'ancien statut anglais est refusé");
+  ok(!estStatutValide("n'importe quoi"), "un statut inventé est refusé");
+  ok(!estClos("demandé") && !estClos("en_cours_de_traitement"), "les deux premiers restent à traiter");
+  ok(
+    estClos("réponse_envoyée_email") && estClos("réponse_envoyée_whatsapp"),
+    "les deux derniers sont des demandes traitées"
+  );
+  for (let i = 1; i < IDS_STATUTS.length; i++) {
+    ok(rang(IDS_STATUTS[i]) > rang(IDS_STATUTS[i - 1]), "les rangs suivent l'ordre d'avancement");
+  }
+  for (const s of STATUTS) {
+    ok(!!s.admin && !!s.client, `« ${s.id} » a un libellé des deux côtés`);
+  }
+
+  // --- Tri de la liste d'administration ------------------------------------
+  {
+    const demandes = [
+      { id: "a", status: "réponse_envoyée_email", created_at: "2026-09-25T10:00:00Z" },
+      { id: "b", status: "demandé", created_at: "2026-09-20T10:00:00Z" },
+      { id: "c", status: "en_cours_de_traitement", created_at: "2026-09-24T10:00:00Z" },
+      { id: "d", status: "demandé", created_at: "2026-09-26T10:00:00Z" },
+    ];
+    const ordre = trierPourAdmin(demandes).map((q) => q.id);
+    ok(
+      ordre.join("") === "dbca",
+      "à traiter d'abord, puis les plus récentes",
+      `ordre obtenu : ${ordre.join(", ")}`
+    );
+    ok(demandes[0].id === "a", "le tri ne remue pas le tableau d'origine");
+  }
+
+  // --- Téléphone -----------------------------------------------------------
+  ok(erreurTelephone("") !== null, "un téléphone vide est refusé");
+  ok(erreurTelephone("   ") !== null, "des espaces ne font pas un téléphone");
+  ok(erreurTelephone("12345") !== null, "un numéro trop court est refusé");
+  ok(erreurTelephone("1234567890123456789") !== null, "un numéro trop long est refusé");
+  ok(erreurTelephone("pas un numéro") !== null, "des lettres sont refusées");
+  ok(erreurTelephone("98 985 647") === null, "un numéro tunisien local est accepté");
+  ok(erreurTelephone("+216 98 985 647") === null, "la forme internationale est acceptée");
+  ok(erreurTelephone("(216) 98-985-647") === null, "parenthèses et tirets sont tolérés");
+
+  // --- WhatsApp ------------------------------------------------------------
+  ok(lienWhatsApp("98 985 647") === "https://wa.me/21698985647", "indicatif ajouté au numéro local");
+  ok(
+    lienWhatsApp("+216 98 985 647") === "https://wa.me/21698985647",
+    "la forme internationale donne le même lien"
+  );
+  ok(
+    lienWhatsApp("0021698985647") === "https://wa.me/21698985647",
+    "le préfixe 00 est ramené à la forme internationale"
+  );
+  ok(lienWhatsApp(null) === null, "pas de numéro, pas de lien");
+  ok(lienWhatsApp("123") === null, "un numéro inexploitable ne donne pas de lien");
+  ok(
+    (lienWhatsApp("98985647", "Bonjour & merci") ?? "").includes("text=Bonjour%20%26%20merci"),
+    "le message d'amorce est échappé"
+  );
+
+  // --- Un seul administrateur ----------------------------------------------
+  ok(
+    roles.includes('"lachkarkacem@gmail.com"'),
+    "l'adresse administratrice est celle qui a été fixée"
+  );
+  ok(
+    /role === "admin"[\s\S]{0,80}estEmailAdmin/.test(roles),
+    "être administrateur exige le rôle ET l'adresse, pas l'un ou l'autre"
+  );
+  ok(
+    /profiles_single_admin_idx/.test(sql),
+    "la base interdit un second compte administrateur"
+  );
+  ok(
+    /set role = 'user'[\s\S]{0,120}lower\(email\) <> 'lachkarkacem@gmail\.com'/.test(sql),
+    "tout autre compte administrateur existant est rétrogradé"
+  );
+  ok(
+    /case[\s\S]{0,200}lower\(new\.email\) = 'lachkarkacem@gmail\.com'[\s\S]{0,80}'admin'/.test(sql),
+    "le rôle est décidé en base d'après l'adresse, jamais par le formulaire"
+  );
+
+  // Le formulaire d'inscription ne doit rien envoyer qui touche au rôle.
+  const signup = fs.readFileSync(path.join(ROOT, "components/SignupForm.tsx"), "utf8");
+  ok(
+    !/role\s*:/.test(signup),
+    "le formulaire public n'envoie aucun rôle"
+  );
+  ok(signup.includes("telephone"), "le formulaire demande le téléphone");
+
+  // --- La faille corrigée ---------------------------------------------------
+  //
+  // La politique d'origine autorisait un utilisateur à mettre à jour sa propre
+  // ligne de profil sans restreindre les colonnes : n'importe quel compte
+  // pouvait donc se donner le rôle « admin » avec la seule clé publique.
+  ok(
+    /profiles: user updates own row/.test(init),
+    "la migration d'origine contenait bien la politique trop permissive"
+  );
+  ok(
+    /profiles_guard/.test(sql),
+    "un garde-fou empêche désormais de changer son propre rôle"
+  );
+  ok(
+    /new\.role is distinct from old\.role[\s\S]{0,120}raise exception/.test(sql),
+    "changer de rôle depuis un compte client lève une erreur"
+  );
+  ok(
+    /lower\(new\.email\) is distinct from lower\(old\.email\)[\s\S]{0,120}raise exception/.test(sql),
+    "changer son adresse depuis un compte client lève une erreur"
+  );
+
+  // --- L'administrateur ne dépose pas de demande ---------------------------
+  ok(
+    /for insert[\s\S]{0,120}not public\.is_admin\(\)/.test(sql),
+    "la base refuse une demande de devis déposée par l'administrateur"
+  );
+  const pageDevis = fs.readFileSync(path.join(ROOT, "app/devis/page.tsx"), "utf8");
+  ok(pageDevis.includes("estAdmin"), "la page devis refuse l'administrateur côté serveur");
+  const entete = fs.readFileSync(path.join(ROOT, "components/SiteHeader.tsx"), "utf8");
+  ok(
+    /!admin &&[\s\S]{0,160}\/devis/.test(entete),
+    "le menu ne propose pas « Mon devis » à l'administrateur"
+  );
+  // Ce qui compte n'est pas le vocabulaire mais le chemin : aucune page
+  // d'administration ne doit offrir de lien vers le formulaire de devis.
+  for (const rel of ["app/admin/page.tsx", "app/admin/layout.tsx", "app/admin/devis/page.tsx"]) {
+    const src = fs.readFileSync(path.join(ROOT, rel), "utf8");
+    ok(
+      !/href=["']\/devis["']/.test(src),
+      `${rel} : aucun lien vers le formulaire de devis`
+    );
+  }
+
+  // --- Une demande envoyée ne se modifie plus ------------------------------
+  ok(
+    /for update[\s\S]{0,120}using \(public\.is_admin\(\)\)/.test(sql),
+    "seul l'administrateur met à jour une demande"
+  );
+  ok(!/for delete/.test(sql) && !/for delete/.test(init), "aucune suppression n'est permise");
+
+  // --- Les actions d'administration vérifient le rôle ----------------------
+  const actions = fs.readFileSync(path.join(ROOT, "app/admin/devis/actions.ts"), "utf8");
+  ok(actions.includes("exigerAdmin"), "les actions d'administration exigent le rôle");
+  const appels = (actions.match(/export async function/g) ?? []).length;
+  const gardes = (actions.match(/await exigerAdmin\(\)/g) ?? []).length;
+  ok(
+    gardes >= appels - 1,
+    "chaque action exportée passe par le contrôle de rôle",
+    `${gardes} contrôles pour ${appels} actions`
+  );
+  ok(
+    /estStatutValide\(statut\)/.test(actions),
+    "un statut envoyé depuis l'extérieur est validé avant écriture"
+  );
+
+  // --- Le profil porte bien ce que la fiche demande ------------------------
+  const types = fs.readFileSync(path.join(ROOT, "lib/supabase/types.ts"), "utf8");
+  for (const champ of ["id", "email", "full_name", "job_title", "telephone", "role", "created_at"]) {
+    ok(new RegExp(`\\b${champ}\\b`).test(types), `le profil porte « ${champ} »`);
+  }
+  for (const champ of ["user_id", "items", "message", "status", "created_at", "updated_at"]) {
+    ok(new RegExp(`\\b${champ}\\b`).test(types), `la demande porte « ${champ} »`);
+  }
+  ok(/profiles_email_unique_idx/.test(sql), "l'unicité de l'adresse est posée en base");
+  ok(/quotes_touch_updated_at/.test(sql), "la date de modification se met à jour toute seule");
+  ok(!/'client'/.test(types), "le rôle « client » a disparu des types");
+}
+
+console.log("\n21. Ton des textes et palette du logo\n");
 
 {
   // Les formules que la charte proscrit. Elles reviennent seules dès qu'on

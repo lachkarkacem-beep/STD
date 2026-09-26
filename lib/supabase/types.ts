@@ -1,5 +1,5 @@
-// Hand-written to match supabase/migrations/0001_init.sql. Regenerate with
-// `supabase gen types typescript` once the project is live if the schema grows.
+// Écrits à la main d'après supabase/migrations/. À régénérer avec
+// `supabase gen types typescript` si le schéma grossit.
 
 export type QuoteItem = {
   ref: string;
@@ -8,12 +8,21 @@ export type QuoteItem = {
   qty: number;
 };
 
+/** Les quatre statuts. La liste fait foi dans lib/devis-statuts.mjs. */
+export type QuoteStatus =
+  | "demandé"
+  | "en_cours_de_traitement"
+  | "réponse_envoyée_email"
+  | "réponse_envoyée_whatsapp";
+
 export type Profile = {
   id: string;
   email: string;
   full_name: string | null;
   job_title: string | null;
-  role: "client" | "admin";
+  telephone: string | null;
+  /** Un seul compte porte « admin », et c'est l'adresse fixée en base. */
+  role: "user" | "admin";
   created_at: string;
 };
 
@@ -22,11 +31,12 @@ export type Quote = {
   user_id: string;
   items: QuoteItem[];
   message: string | null;
-  status: "pending" | "answered";
+  status: QuoteStatus;
   reply: string | null;
   replied_at: string | null;
   replied_by: string | null;
   created_at: string;
+  updated_at: string;
 };
 
 export type Database = {
