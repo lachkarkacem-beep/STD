@@ -236,7 +236,10 @@ export default function FloatingGallery({
   }, [products, router]);
 
   return (
-    <div className="relative h-[52vh] min-h-72 overflow-hidden rounded-xl border border-line bg-gradient-to-b from-surface via-sable-50 to-sable-200 sm:h-[58vh]">
+    // Le fond partait du blanc pur : des pièces en pierre claire y étaient
+    // invisibles. Il descend maintenant vers la pierre chaude, ce qui leur
+    // donne un sol sur quoi se détacher.
+    <div className="relative h-[52vh] min-h-72 overflow-hidden rounded-xl border border-sable-200 bg-gradient-to-b from-sable-50 via-sable-200 to-sable-300 sm:h-[58vh]">
       <div ref={mountRef} className="h-full w-full" />
 
       {survol && (

@@ -271,19 +271,31 @@ export default function GalleryRibbon({
     };
   }, [products, router]);
 
-  return (
-    <div className="relative h-52 overflow-hidden sm:h-64">
-      <div ref={mountRef} className="h-full w-full" />
+  // Les bords s'estompent par un MASQUE, et non par deux voiles de couleur
+  // posés par-dessus. Les voiles devaient reprendre la teinte du fond : dès
+  // que celui-ci changeait, ils laissaient deux bandes claires sur les côtés.
+  // Le masque efface le contenu lui-même, donc il tient sur n'importe quel
+  // fond et il n'y a plus deux couleurs à garder d'accord.
+  const estompeBords =
+    "linear-gradient(to right, transparent 0%, #000 7%, #000 93%, transparent 100%)";
 
-      {/* Les bords s'estompent : les pièces entrent et sortent du champ sans
-          qu'on voie jamais le raccord. */}
+  return (
+    <div className="relative h-52 overflow-hidden bg-gradient-to-b from-sable-50 via-sable-200 to-sable-300 sm:h-64">
+      {/* Une lueur au centre : elle détache les pièces du fond sans éclaircir
+          les bords, où elles sortent du champ. */}
       <div
         aria-hidden
-        className="pointer-events-none absolute inset-y-0 left-0 w-20 bg-gradient-to-r from-page to-transparent sm:w-32"
+        className="pointer-events-none absolute inset-0"
+        style={{
+          background:
+            "radial-gradient(60% 75% at 50% 45%, rgba(255,255,255,0.55) 0%, rgba(255,255,255,0) 70%)",
+        }}
       />
+
       <div
-        aria-hidden
-        className="pointer-events-none absolute inset-y-0 right-0 w-20 bg-gradient-to-l from-page to-transparent sm:w-32"
+        ref={mountRef}
+        className="relative h-full w-full"
+        style={{ WebkitMaskImage: estompeBords, maskImage: estompeBords }}
       />
 
       {survol && (

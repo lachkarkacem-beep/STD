@@ -1770,6 +1770,36 @@ console.log("\n20. Rôles, statuts et sécurité des devis\n");
     "l'administrateur peut tenir les fiches clients"
   );
 
+  // --- Les pièces 3D doivent se détacher de leur fond ----------------------
+  //
+  // Les modèles sont en pierre très claire. Posés sur le fond de page, qui
+  // est presque blanc, ils étaient invisibles — on ne voyait qu'un bandeau
+  // vide. Les deux galeries doivent donc porter leur propre fond chaud.
+  //
+  // Et leurs bords s'estompent par un MASQUE, jamais par un voile de couleur :
+  // un voile doit reprendre la teinte du fond, et laisse deux bandes claires
+  // dès que celle-ci change.
+  for (const rel of ["components/GalleryRibbon.tsx", "components/FloatingGallery.tsx"]) {
+    const src = fs.readFileSync(path.join(ROOT, rel), "utf8");
+    ok(
+      /bg-gradient-to-b from-sable/.test(src),
+      `${rel} : la galerie porte un fond chaud, pas celui de la page`
+    );
+    ok(
+      !/from-surface\b|from-white\b|from-page\b/.test(src),
+      `${rel} : le fond ne part pas du blanc, où la pierre claire disparaît`
+    );
+  }
+
+  {
+    const ruban = fs.readFileSync(path.join(ROOT, "components/GalleryRibbon.tsx"), "utf8");
+    ok(/maskImage/.test(ruban), "la bande estompe ses bords par un masque");
+    ok(
+      !/from-page to-transparent|from-transparent/.test(ruban),
+      "la bande n'utilise plus de voile coloré sur les bords"
+    );
+  }
+
   // --- Le numéro d'exemple n'est pas celui de l'atelier --------------------
   //
   // Proposer le vrai numéro de l'entreprise en exemple, c'est se le faire
