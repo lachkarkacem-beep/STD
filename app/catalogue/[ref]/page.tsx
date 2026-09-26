@@ -10,8 +10,12 @@ import {
   relatedProducts,
 } from "@/lib/catalog";
 import ProductView from "@/components/ProductView";
+import { getUserAndProfile } from "@/lib/auth";
 
-export default function ProductPage({ params }: { params: { ref: string } }) {
+export default async function ProductPage({ params }: { params: { ref: string } }) {
+  // Le téléchargement demande un compte : c'est le serveur qui le sait, pas
+  // le navigateur.
+  const { user } = await getUserAndProfile();
   const product = getProduct(params.ref);
   if (!product) notFound();
 
@@ -24,6 +28,7 @@ export default function ProductPage({ params }: { params: { ref: string } }) {
         glbSrc={glbSrc(product)}
         has3D={has3D(product)}
         plantable={isPlantable(product)}
+        connecte={!!user}
       />
 
       <table className="mt-10 w-full max-w-md border-collapse">

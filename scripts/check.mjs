@@ -1870,7 +1870,228 @@ console.log("\n20. Rôles, statuts et sécurité des devis\n");
   ok(!/'client'/.test(types), "le rôle « client » a disparu des types");
 }
 
-console.log("\n21. Ton des textes et palette du logo\n");
+console.log("\n21. Formats de téléchargement\n");
+
+{
+  const { colladaDocument, mtlDocument, identifiant, echappeXml, FORMATS, estFormatConnu } =
+    await import("../lib/export/formats.mjs");
+
+  // Un cube, sommets déjà dans le repère du monde.
+  const cube = {
+    name: "Bac d'essai",
+    material: "body",
+    positions: [
+      0, 0, 0, 1, 0, 0, 1, 1, 0, 0, 1, 0,
+      0, 0, 1, 1, 0, 1, 1, 1, 1, 0, 1, 1,
+    ],
+    normals: [
+      0, 0, -1, 0, 0, -1, 0, 0, -1, 0, 0, -1,
+      0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1,
+    ],
+    indices: [0, 1, 2, 0, 2, 3, 4, 6, 5, 4, 7, 6],
+  };
+  const matieres = [
+    { id: "body", color: [0.95, 0.94, 0.92] },
+    { id: "molding", color: [0.81, 0.78, 0.75] },
+  ];
+
+  const dae = colladaDocument({ nom: "B105", meshes: [cube], matieres });
+
+  // --- Le XML doit être bien formé ----------------------------------------
+  //
+  // Node n'a pas d'analyseur XML : on en écrit un minimal, qui empile les
+  // balises ouvrantes et vérifie que chaque fermante correspond. Un fichier
+  // mal formé est refusé par tous les logiciels, sans message utile.
+  function balancesXml(xml) {
+    const pile = [];
+    const motif = /<(\/?)([A-Za-z_][\w.-]*)([^>]*?)(\/?)>/g;
+    let m;
+    while ((m = motif.exec(xml))) {
+      const [, fermante, nom, attributs, autoFermante] = m;
+      if (attributs.includes("<")) return `attribut suspect dans <${nom}>`;
+      if (autoFermante) continue;
+      if (fermante) {
+        const attendu = pile.pop();
+        if (attendu !== nom) return `</${nom}> alors qu'on attendait </${attendu}>`;
+      } else {
+        pile.push(nom);
+      }
+    }
+    return pile.length ? `balises non fermées : ${pile.join(", ")}` : null;
+  }
+
+  const sansEntete = dae.replace(/<\?xml[^>]*\?>/, "");
+  const defaut = balancesXml(sansEntete);
+  ok(defaut === null, "le document Collada est bien formé", defaut ?? "");
+
+  ok(dae.startsWith('<?xml version="1.0" encoding="utf-8"?>'), "il porte son en-tête XML");
+  ok(/<COLLADA[^>]+version="1\.4\.1"/.test(dae), "il se déclare en Collada 1.4.1");
+  ok(/<up_axis>Y_UP<\/up_axis>/.test(dae), "l'axe vertical est Y, comme dans les GLB livrés");
+  ok(/<unit meter="1"/.test(dae), "l'unité est le mètre : une pièce arrive à sa taille réelle");
+
+  // --- Les données doivent être cohérentes ---------------------------------
+  const tabPositions = dae.match(/<float_array id="geom-0-positions-tab" count="(\d+)">([^<]*)<\/float_array>/);
+  ok(!!tabPositions, "le tableau des positions est présent");
+  const valeurs = tabPositions[2].trim().split(/\s+/);
+  ok(
+    Number(tabPositions[1]) === cube.positions.length,
+    "le compte annoncé est celui des positions",
+    `${tabPositions[1]} au lieu de ${cube.positions.length}`
+  );
+  ok(
+    valeurs.length === cube.positions.length,
+    "autant de nombres que de coordonnées",
+    `${valeurs.length} au lieu de ${cube.positions.length}`
+  );
+  ok(valeurs.every((v) => Number.isFinite(Number(v))), "toutes les coordonnées sont des nombres");
+
+  const accesseur = dae.match(/<accessor source="#geom-0-positions-tab" count="(\d+)" stride="3">/);
+  ok(
+    Number(accesseur[1]) === cube.positions.length / 3,
+    "l'accesseur annonce le bon nombre de sommets",
+    `${accesseur?.[1]} au lieu de ${cube.positions.length / 3}`
+  );
+
+  const tri = dae.match(/<triangles count="(\d+)"/);
+  ok(
+    Number(tri[1]) === cube.indices.length / 3,
+    "le nombre de triangles est juste",
+    `${tri?.[1]} au lieu de ${cube.indices.length / 3}`
+  );
+
+  // Avec des normales, Collada cite DEUX indices par sommet. Se tromper ici
+  // produit un fichier qui s'ouvre mais dont la géométrie part en morceaux.
+  const p = dae.match(/<p>([^<]*)<\/p>/)[1].trim().split(/\s+/).map(Number);
+  ok(
+    p.length === cube.indices.length * 2,
+    "chaque sommet cite sa position ET sa normale",
+    `${p.length} indices au lieu de ${cube.indices.length * 2}`
+  );
+  const nbSommets = cube.positions.length / 3;
+  ok(
+    p.every((i) => Number.isInteger(i) && i >= 0 && i < nbSommets),
+    "aucun indice ne sort du tableau des sommets"
+  );
+  // Les deux décalages doivent pointer le même sommet.
+  let apparies = true;
+  for (let i = 0; i < p.length; i += 2) if (p[i] !== p[i + 1]) apparies = false;
+  ok(apparies, "position et normale désignent bien le même sommet");
+
+  // --- Matières ------------------------------------------------------------
+  for (const m of matieres) {
+    ok(dae.includes(`${m.id}-materiau`), `la matière « ${m.id} » est déclarée`);
+    ok(dae.includes(`${m.id}-effet`), `l'effet de « ${m.id} » est déclaré`);
+  }
+  // Toute matière citée par une géométrie doit exister.
+  for (const ref of [...dae.matchAll(/target="#([\w-]+)-materiau"/g)].map((m) => m[1])) {
+    ok(
+      matieres.some((m) => identifiant(m.id) === ref),
+      `la matière « ${ref} » citée par la scène existe`
+    );
+  }
+  // Et tout lien symbolique doit être résolu.
+  const symboles = [...dae.matchAll(/symbol="([\w-]+)"/g)].map((m) => m[1]);
+  for (const s of symboles) {
+    ok(dae.includes(`material="${s}"`), `le lien « ${s} » correspond à une géométrie`);
+  }
+
+  // --- Caractères interdits ------------------------------------------------
+  //
+  // Les noms de pièces portent des apostrophes et des accents. Non échappés,
+  // ils cassent le XML — et « Bac d'essai » en contient justement un.
+  const dangereux = colladaDocument({
+    nom: `A & B <test> "guillemets"`,
+    meshes: [{ ...cube, name: `Pièce d'angle & compagnie <b>` }],
+    matieres,
+  });
+  ok(balancesXml(dangereux.replace(/<\?xml[^>]*\?>/, "")) === null, "un nom à caractères spéciaux ne casse pas le document");
+  ok(!/name="[^"]*&(?!amp;|lt;|gt;|quot;|apos;)/.test(dangereux), "les esperluettes sont échappées");
+  ok(echappeXml(`a<b&c"d'e`) === "a&lt;b&amp;c&quot;d&apos;e", "l'échappement couvre les cinq caractères");
+
+  // --- Sans normales -------------------------------------------------------
+  const sansNormales = colladaDocument({
+    meshes: [{ ...cube, normals: null }],
+    matieres,
+  });
+  ok(balancesXml(sansNormales.replace(/<\?xml[^>]*\?>/, "")) === null, "un modèle sans normales reste bien formé");
+  const pSans = sansNormales.match(/<p>([^<]*)<\/p>/)[1].trim().split(/\s+/);
+  ok(
+    pSans.length === cube.indices.length,
+    "sans normales, un seul indice par sommet",
+    `${pSans.length} au lieu de ${cube.indices.length}`
+  );
+  ok(!sansNormales.includes('semantic="NORMAL"'), "aucune entrée de normale n'est déclarée");
+
+  // --- Identifiants --------------------------------------------------------
+  ok(identifiant("body") === "body", "un identifiant simple est conservé");
+  ok(identifiant("pas japonais") === "pas_japonais", "les espaces deviennent des tirets bas");
+  ok(identifiant("Bordure ajourée") === "Bordure_ajouree", "les accents sont réduits");
+  ok(/^[A-Za-z_]/.test(identifiant("2008")), "un identifiant ne commence jamais par un chiffre");
+  ok(identifiant("BP27-100") === "BP27-100", "les tirets des références sont gardés");
+
+  // --- MTL -----------------------------------------------------------------
+  const mtl = mtlDocument(matieres);
+  for (const m of matieres) {
+    ok(mtl.includes(`newmtl ${identifiant(m.id)}`), `le MTL déclare « ${m.id} »`);
+  }
+  ok(
+    (mtl.match(/^newmtl /gm) ?? []).length === matieres.length,
+    "une entrée MTL par matière, sans doublon"
+  );
+  ok(/Kd 0\.95 0\.94 0\.92/.test(mtl), "la couleur diffuse est reportée telle quelle");
+  ok(!/NaN|undefined/.test(mtl), "aucune valeur manquante dans le MTL");
+  ok(!/NaN|undefined/.test(dae), "aucune valeur manquante dans le Collada");
+
+  // --- La liste des formats ------------------------------------------------
+  ok(FORMATS.length >= 4, "au moins quatre formats proposés");
+  for (const f of FORMATS) {
+    ok(!!f.id && !!f.label && !!f.extension && !!f.note, `le format ${f.id} est complètement décrit`);
+    ok(estFormatConnu(f.id), `« ${f.id} » est reconnu`);
+  }
+  ok(!estFormatConnu("fbx"), "le FBX n'est PAS annoncé : nous ne savons pas l'écrire");
+  ok(!estFormatConnu("rfa"), "le RFA n'est PAS annoncé : seul Revit sait en produire");
+  ok(new Set(FORMATS.map((f) => f.id)).size === FORMATS.length, "aucun format en double");
+
+  // --- Chaque format annoncé doit être réellement produit ------------------
+  //
+  // Annoncer un format qu'on ne sait pas écrire est pire que ne pas le
+  // proposer : le visiteur clique et n'obtient rien.
+  const viewer = fs.readFileSync(path.join(ROOT, "components/Viewer3D.tsx"), "utf8");
+  for (const f of FORMATS) {
+    ok(
+      new RegExp(`format === "${f.id}"`).test(viewer),
+      `la visionneuse sait produire le format « ${f.id} »`
+    );
+  }
+  ok(
+    /throw new Error\(`Format inconnu/.test(viewer),
+    "un format non prévu lève une erreur au lieu de rendre un fichier vide"
+  );
+
+  // L'OBJ part avec son fichier de matières, et l'OBJ doit le citer.
+  ok(/rattacheMtl/.test(viewer), "l'OBJ cite son fichier de matières (mtllib)");
+  const adaptateur = fs.readFileSync(path.join(ROOT, "lib/export/depuis-three.mjs"), "utf8");
+  ok(
+    /getNormalMatrix/.test(adaptateur),
+    "les normales sont transformées par la matrice normale, pas par celle du monde"
+  );
+  ok(/matrixWorld/.test(adaptateur), "les sommets sont ramenés dans le repère du monde");
+
+  // --- Le téléchargement demande un compte ---------------------------------
+  const panneau = fs.readFileSync(path.join(ROOT, "components/TelechargerModele.tsx"), "utf8");
+  ok(/connecte/.test(panneau), "le panneau de téléchargement connaît l'état de connexion");
+  ok(
+    /if \(!connecte\)[\s\S]{0,600}\/inscription/.test(panneau),
+    "sans compte, on est invité à s'inscrire plutôt que de télécharger"
+  );
+  const fiche = fs.readFileSync(path.join(ROOT, "app/catalogue/[ref]/page.tsx"), "utf8");
+  ok(
+    /getUserAndProfile/.test(fiche),
+    "l'état de connexion vient du serveur, pas du navigateur"
+  );
+}
+
+console.log("\n22. Ton des textes et palette du logo\n");
 
 {
   // Les formules que la charte proscrit. Elles reviennent seules dès qu'on

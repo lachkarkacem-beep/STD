@@ -20,7 +20,9 @@ type Props = {
   autoRotate?: boolean;
   interactive?: boolean;
   className?: string;
-  onExportReady?: (exporter: (withPlants: boolean) => Promise<Blob>) => void;
+  onExportReady?: (
+    exporter: (format: string, withPlants: boolean, nom: string) => Promise<Blob>
+  ) => void;
 };
 
 export default function Viewer3D({
@@ -251,18 +253,58 @@ export default function Viewer3D({
   // Export GLB, avec ou sans les plantes.
   useEffect(() => {
     if (!onExportReady || status !== "pret") return;
-    onExportReady(async (withPlants: boolean) => {
+
+    onExportReady(async (format: string, withPlants: boolean, nom: string) => {
       const s = stateRef.current as {
+        THREE?: typeof import("three");
         model?: import("three").Object3D;
         plantation?: import("three").Object3D;
       };
-      const { GLTFExporter } = await import("three/examples/jsm/exporters/GLTFExporter.js");
+      const THREE = s.THREE!;
       const model = s.model!;
       const plantation = s.plantation;
+
+      // Le modèle est converti tel qu'il est à l'écran, coloris et plantation
+      // compris : ce qu'on télécharge est ce qu'on voit.
       if (!withPlants && plantation) model.remove(plantation);
       try {
-        const buffer = await new GLTFExporter().parseAsync(model, { binary: true });
-        return new Blob([buffer as ArrayBuffer], { type: "model/gltf-binary" });
+        if (format === "glb") {
+          const { GLTFExporter } = await import("three/examples/jsm/exporters/GLTFExporter.js");
+          const buffer = await new GLTFExporter().parseAsync(model, { binary: true });
+          return new Blob([buffer as ArrayBuffer], { type: "model/gltf-binary" });
+        }
+
+        if (format === "dae") {
+          const { versCollada } = await import("@/lib/export/depuis-three.mjs");
+          return new Blob([versCollada(THREE, model, nom)], {
+            type: "model/vnd.collada+xml",
+          });
+        }
+
+        if (format === "stl") {
+          const { STLExporter } = await import("three/examples/jsm/exporters/STLExporter.js");
+          return new Blob([new STLExporter().parse(model, { binary: false })], {
+            type: "model/stl",
+          });
+        }
+
+        if (format === "obj") {
+          // L'OBJ et ses matières sont deux fichiers : sans archive, le
+          // second serait oublié et la pièce arriverait en gris.
+          const [{ OBJExporter }, { versMtl, rattacheMtl }, JSZipMod] = await Promise.all([
+            import("three/examples/jsm/exporters/OBJExporter.js"),
+            import("@/lib/export/depuis-three.mjs"),
+            import("jszip"),
+          ]);
+          const JSZip = JSZipMod.default;
+          const obj = rattacheMtl(new OBJExporter().parse(model), `${nom}.mtl`);
+          const zip = new JSZip();
+          zip.file(`${nom}.obj`, obj);
+          zip.file(`${nom}.mtl`, versMtl(THREE, model));
+          return zip.generateAsync({ type: "blob" });
+        }
+
+        throw new Error(`Format inconnu : ${format}`);
       } finally {
         if (!withPlants && plantation) model.add(plantation);
       }

@@ -8,6 +8,7 @@ import Viewer3D from "@/components/Viewer3D";
 import { CATEGORY_TEASERS } from "@/lib/marketing";
 import { adviceFor } from "@/lib/advice";
 import { isVeilleuse } from "@/lib/garden/lights.mjs";
+import TelechargerModele from "@/components/TelechargerModele";
 import type { Product } from "@/lib/catalog";
 
 export default function ProductView({
@@ -15,11 +16,14 @@ export default function ProductView({
   glbSrc,
   has3D,
   plantable,
+  connecte,
 }: {
   product: Product;
   glbSrc: string;
   has3D: boolean;
   plantable: boolean;
+  /** Le téléchargement des modèles demande un compte. */
+  connecte: boolean;
 }) {
   const [ready, setReady] = useState(false);
   const [finish, setFinish] = useState(DEFAULT_FINISH);
@@ -33,22 +37,12 @@ export default function ProductView({
   const [cartTotal, setCartTotal] = useState(0);
   const teaser = CATEGORY_TEASERS[product.category];
   const advice = adviceFor(product.category);
-  const exportRef = useRef<((withPlants: boolean) => Promise<Blob>) | null>(null);
+  type Exporteur = (format: string, avecPlantes: boolean, nom: string) => Promise<Blob>;
+  const exportRef = useRef<Exporteur | null>(null);
 
-  const onExportReady = useCallback((fn: (withPlants: boolean) => Promise<Blob>) => {
+  const onExportReady = useCallback((fn: Exporteur) => {
     exportRef.current = fn;
   }, []);
-
-  async function downloadGlb(withPlants: boolean) {
-    if (!exportRef.current) return;
-    const blob = await exportRef.current(withPlants);
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `${product.id}${withPlants ? "-plante" : ""}.glb`;
-    a.click();
-    URL.revokeObjectURL(url);
-  }
 
   useEffect(() => {
     const f = readFinish(DEFAULT_FINISH);
@@ -117,29 +111,18 @@ export default function ProductView({
           </div>
         )}
 
-        <div className="flex flex-wrap items-center gap-4 px-2 py-4 text-xs text-ink-faint">
-          <span>Glissez pour tourner l&apos;objet · molette pour zoomer</span>
-          {has3D && (
-            <span className="ml-auto flex gap-3">
-              <button
-                type="button"
-                onClick={() => downloadGlb(false)}
-                className="text-brand-600 hover:text-brand-700"
-              >
-                Télécharger le modèle 3D
-              </button>
-              {species && (
-                <button
-                  type="button"
-                  onClick={() => downloadGlb(true)}
-                  className="text-brand-600 hover:text-brand-700"
-                >
-                  …avec les plantes
-                </button>
-              )}
-            </span>
-          )}
+        <div className="px-2 py-3 text-xs text-ink-faint">
+          Glissez pour tourner l&apos;objet · molette pour zoomer
         </div>
+
+        {has3D && (
+          <TelechargerModele
+            reference={product.id}
+            exporteur={() => exportRef.current}
+            avecPlantes={!!species}
+            connecte={connecte}
+          />
+        )}
       </div>
 
       <div className="flex flex-col gap-8">
