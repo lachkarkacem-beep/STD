@@ -38,13 +38,22 @@ export async function changerStatut(quoteId: string, statut: string) {
   if (!estStatutValide(statut)) throw new Error("Statut inconnu.");
   const { supabase } = await exigerAdmin();
 
-  const { error } = await supabase
+  const { data, error } = await supabase
     .from("quotes")
     .update({ status: statut })
-    .eq("id", quoteId);
+    .eq("id", quoteId)
+    .select("id");
 
   if (error) throw new Error(error.message);
+  // Une règle d'accès qui refuse ne lève pas d'erreur : elle rend zéro ligne.
+  // Sans ce contrôle, le statut semblait changer et revenait à l'affichage
+  // suivant.
+  if (!data || data.length === 0) {
+    throw new Error("La base a refusé le changement de statut : aucune ligne modifiée.");
+  }
+
   revalidatePath("/admin/devis");
+  revalidatePath(`/admin/devis/${quoteId}`);
   revalidatePath("/compte");
 }
 
@@ -59,7 +68,7 @@ export async function replyToQuote(quoteId: string, reply: string, statut: strin
 
   const { supabase, user } = await exigerAdmin();
 
-  const { error } = await supabase
+  const { data, error } = await supabase
     .from("quotes")
     .update({
       reply: texte,
@@ -67,9 +76,15 @@ export async function replyToQuote(quoteId: string, reply: string, statut: strin
       replied_at: new Date().toISOString(),
       replied_by: user.id,
     })
-    .eq("id", quoteId);
+    .eq("id", quoteId)
+    .select("id");
 
   if (error) throw new Error(error.message);
+  if (!data || data.length === 0) {
+    throw new Error("La base a refusé l'enregistrement de la réponse : aucune ligne modifiée.");
+  }
+
   revalidatePath("/admin/devis");
+  revalidatePath(`/admin/devis/${quoteId}`);
   revalidatePath("/compte");
 }

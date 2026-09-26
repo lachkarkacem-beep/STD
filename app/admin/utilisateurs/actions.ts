@@ -52,11 +52,24 @@ export async function mettreAJourTelephone(userId: string, telephone: string) {
 
   const supabase = await exigerAdmin();
 
-  const { error } = await supabase
+  // `.select()` n'est pas décoratif : quand une règle d'accès refuse une mise
+  // à jour, PostgREST répond « succès, zéro ligne modifiée » — sans erreur.
+  // Sans ce retour, l'action se croyait accomplie et le numéro disparaissait
+  // en silence.
+  const { data, error } = await supabase
     .from("profiles")
     .update({ telephone: brut || null })
-    .eq("id", userId);
+    .eq("id", userId)
+    .select("id");
 
   if (error) throw new Error(error.message);
+  if (!data || data.length === 0) {
+    throw new Error(
+      "La base a refusé la modification : aucune ligne changée. La règle d'accès " +
+        "« profiles: l'administrateur met à jour » est probablement absente — " +
+        "appliquez la migration 0003."
+    );
+  }
+
   revalidatePath("/admin/utilisateurs");
 }

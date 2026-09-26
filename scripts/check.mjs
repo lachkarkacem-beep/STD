@@ -1758,11 +1758,42 @@ console.log("\n20. Rôles, statuts et sécurité des devis\n");
   }
 
   // L'administrateur doit pouvoir compléter une fiche client — les comptes
-  // créés avant le champ téléphone n'en ont pas.
+  // créés avant le champ téléphone n'en ont pas. La règle peut vivre dans
+  // n'importe quelle migration : on les lit toutes.
+  const toutLeSql = fs
+    .readdirSync(path.join(ROOT, "supabase/migrations"))
+    .filter((f) => f.endsWith(".sql"))
+    .map((f) => fs.readFileSync(path.join(ROOT, "supabase/migrations", f), "utf8"))
+    .join("\n");
   ok(
-    /create policy "profiles: l'administrateur met à jour"/.test(sql),
+    /create policy "profiles: l'administrateur met à jour"/.test(toutLeSql),
     "l'administrateur peut tenir les fiches clients"
   );
+
+  // --- Une écriture refusée ne doit pas passer pour un succès --------------
+  //
+  // Quand une règle d'accès refuse une mise à jour, PostgREST répond
+  // « succès, zéro ligne modifiée » — sans erreur. Une action qui ne regarde
+  // que `error` se croit donc accomplie. C'est ce qui faisait disparaître en
+  // silence les téléphones saisis par l'administration.
+  for (const rel of ["app/admin/utilisateurs/actions.ts", "app/admin/devis/actions.ts"]) {
+    const src = fs.readFileSync(path.join(ROOT, rel), "utf8");
+
+    // Chaque `.update(` doit être suivi d'un `.select(` : sans lui, aucune
+    // ligne ne revient et l'on ne peut rien vérifier.
+    const updates = (src.match(/\.update\(/g) ?? []).length;
+    const selects = (src.match(/\.select\("id"\)/g) ?? []).length;
+    ok(
+      selects >= updates,
+      `${rel} : chaque mise à jour redemande les lignes touchées`,
+      `${updates} mise(s) à jour pour ${selects} select`
+    );
+
+    ok(
+      /data\.length === 0|!data \|\| data\.length === 0/.test(src),
+      `${rel} : une mise à jour sans effet lève une erreur au lieu de se taire`
+    );
+  }
 
   ok(/profiles_email_unique_idx/.test(sql), "l'unicité de l'adresse est posée en base");
   ok(/quotes_touch_updated_at/.test(sql), "la date de modification se met à jour toute seule");
