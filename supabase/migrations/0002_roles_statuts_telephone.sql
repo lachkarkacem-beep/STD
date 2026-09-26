@@ -160,7 +160,12 @@ create trigger profiles_guard_trigger
 -- Il n'a pas non plus de bouton pour le faire dans l'interface, mais une règle
 -- d'interface n'est pas une règle : celle-ci tient même si l'on appelle l'API
 -- directement.
+-- Chaque politique est supprimée sous SON PROPRE nom avant d'être créée, et
+-- pas seulement sous l'ancien. Sans cela, un second passage échouait sur
+-- « policy ... already exists » : l'ancien nom avait disparu au premier
+-- passage, le nouveau était déjà là.
 drop policy if exists "quotes: user creates own quote" on public.quotes;
+drop policy if exists "quotes: seul un client dépose une demande" on public.quotes;
 create policy "quotes: seul un client dépose une demande"
   on public.quotes for insert
   with check (user_id = auth.uid() and not public.is_admin());
@@ -168,8 +173,20 @@ create policy "quotes: seul un client dépose une demande"
 -- quotes: une demande envoyée ne se modifie plus côté client. Seul
 -- l'administrateur change le statut ou répond.
 drop policy if exists "quotes: admin replies to any quote" on public.quotes;
+drop policy if exists "quotes: seul l'administrateur met à jour" on public.quotes;
 create policy "quotes: seul l'administrateur met à jour"
   on public.quotes for update
+  using (public.is_admin())
+  with check (public.is_admin());
+
+-- profiles: l'administrateur tient les fiches clients.
+--
+-- Il complète notamment les téléphones des comptes créés avant que le champ
+-- n'existe. Il ne peut pas pour autant toucher au rôle ni à l'adresse : le
+-- déclencheur ci-dessus s'applique à lui comme aux autres.
+drop policy if exists "profiles: l'administrateur met à jour" on public.profiles;
+create policy "profiles: l'administrateur met à jour"
+  on public.profiles for update
   using (public.is_admin())
   with check (public.is_admin());
 

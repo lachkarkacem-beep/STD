@@ -1488,6 +1488,40 @@ console.log("\n20. Rôles, statuts et sécurité des devis\n");
     "le message d'amorce est échappé"
   );
 
+  // --- Le numéro est stocké tel qu'on l'a reçu -----------------------------
+  //
+  // On ne reformate pas : « 98 985 647 » doit rester lisible comme le client
+  // l'a écrit. La mise au format international n'a lieu que pour fabriquer le
+  // lien WhatsApp, sans toucher à ce qui est en base.
+  {
+    const actionsTel = fs.readFileSync(
+      path.join(ROOT, "app/admin/utilisateurs/actions.ts"),
+      "utf8"
+    );
+    ok(
+      /telephone:\s*brut\s*\|\|\s*null/.test(actionsTel),
+      "le téléphone est enregistré tel quel, sans reformatage"
+    );
+    ok(
+      !/replace\(\/\\D/.test(actionsTel),
+      "l'enregistrement ne retire pas les espaces du numéro"
+    );
+    ok(actionsTel.includes("exigerAdmin"), "modifier un téléphone exige le rôle administrateur");
+    ok(
+      actionsTel.includes("erreurTelephone"),
+      "un numéro invalide est refusé avant écriture"
+    );
+
+    // Vider le champ doit rester possible : c'est ainsi qu'on retire un
+    // numéro faux.
+    ok(/if \(brut\)/.test(actionsTel), "un numéro peut être effacé");
+
+    // Et le lien WhatsApp se fabrique à partir du brut, sans l'altérer.
+    const avant = "98 985 647";
+    ok(lienWhatsApp(avant) === "https://wa.me/21698985647", "le lien part du numéro brut");
+    ok(avant === "98 985 647", "fabriquer le lien ne modifie pas le numéro");
+  }
+
   // --- Un seul administrateur ----------------------------------------------
   ok(
     roles.includes('"lachkarkacem@gmail.com"'),
@@ -1592,6 +1626,61 @@ console.log("\n20. Rôles, statuts et sécurité des devis\n");
   for (const champ of ["user_id", "items", "message", "status", "created_at", "updated_at"]) {
     ok(new RegExp(`\\b${champ}\\b`).test(types), `la demande porte « ${champ} »`);
   }
+  // --- La migration doit pouvoir être rejouée ------------------------------
+  //
+  // Elle annonce qu'on peut la passer deux fois sans dommage. Elle ne le
+  // pouvait pas : chaque politique était supprimée sous son ANCIEN nom puis
+  // créée sous un nouveau, si bien qu'un second passage butait sur
+  // « policy ... already exists ». Le contrôle vaut pour toutes les
+  // migrations, celles à venir comprises.
+  for (const fichier of fs
+    .readdirSync(path.join(ROOT, "supabase/migrations"))
+    .filter((f) => f.endsWith(".sql"))) {
+    const src = fs.readFileSync(path.join(ROOT, "supabase/migrations", fichier), "utf8");
+
+    for (const m of src.matchAll(/create policy\s+"([^"]+)"\s+on\s+([\w.]+)/g)) {
+      const [, nom, table] = m;
+      const drop = new RegExp(
+        `drop policy if exists\\s+"${nom.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}"\\s+on\\s+${table.replace(/\./g, "\\.")}`
+      );
+      ok(
+        drop.test(src),
+        `${fichier} : la politique « ${nom} » est supprimée avant d'être créée`
+      );
+    }
+
+    for (const m of src.matchAll(/add constraint\s+(\w+)/g)) {
+      const nom = m[1];
+      ok(
+        new RegExp(`drop constraint if exists\\s+${nom}`).test(src),
+        `${fichier} : la contrainte « ${nom} » est supprimée avant d'être ajoutée`
+      );
+    }
+
+    for (const m of src.matchAll(/create trigger\s+(\w+)/g)) {
+      const nom = m[1];
+      ok(
+        new RegExp(`drop trigger if exists\\s+${nom}`).test(src),
+        `${fichier} : le déclencheur « ${nom} » est supprimé avant d'être créé`
+      );
+    }
+
+    // Un index ou une table créés sans garde échoueraient aussi au second tour.
+    for (const m of src.matchAll(/create (unique )?index (?!if not exists)/g)) {
+      ok(false, `${fichier} : un index est créé sans « if not exists »`, m[0]);
+    }
+    for (const m of src.matchAll(/create table (?!if not exists)/g)) {
+      ok(false, `${fichier} : une table est créée sans « if not exists »`, m[0]);
+    }
+  }
+
+  // L'administrateur doit pouvoir compléter une fiche client — les comptes
+  // créés avant le champ téléphone n'en ont pas.
+  ok(
+    /create policy "profiles: l'administrateur met à jour"/.test(sql),
+    "l'administrateur peut tenir les fiches clients"
+  );
+
   ok(/profiles_email_unique_idx/.test(sql), "l'unicité de l'adresse est posée en base");
   ok(/quotes_touch_updated_at/.test(sql), "la date de modification se met à jour toute seule");
   ok(!/'client'/.test(types), "le rôle « client » a disparu des types");

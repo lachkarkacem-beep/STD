@@ -71,23 +71,34 @@ $$;
 alter table public.profiles enable row level security;
 alter table public.quotes enable row level security;
 
+-- Chaque politique est supprimée avant d'être créée : « create policy » n'a
+-- pas de forme « if not exists », et ce fichier doit pouvoir être rejoué.
+drop policy if exists "profiles: read own or admin reads all" on public.profiles;
 create policy "profiles: read own or admin reads all"
   on public.profiles for select
   using (id = auth.uid() or public.is_admin());
 
+-- ATTENTION : cette politique, telle quelle, laisse un utilisateur changer
+-- n'importe quelle colonne de sa propre ligne — « role » comprise. C'est une
+-- faille. La migration 0002 pose le déclencheur qui la referme ; ne déployez
+-- pas ce fichier seul.
+drop policy if exists "profiles: user updates own row" on public.profiles;
 create policy "profiles: user updates own row"
   on public.profiles for update
   using (id = auth.uid())
   with check (id = auth.uid());
 
+drop policy if exists "quotes: read own or admin reads all" on public.quotes;
 create policy "quotes: read own or admin reads all"
   on public.quotes for select
   using (user_id = auth.uid() or public.is_admin());
 
+drop policy if exists "quotes: user creates own quote" on public.quotes;
 create policy "quotes: user creates own quote"
   on public.quotes for insert
   with check (user_id = auth.uid());
 
+drop policy if exists "quotes: admin replies to any quote" on public.quotes;
 create policy "quotes: admin replies to any quote"
   on public.quotes for update
   using (public.is_admin())

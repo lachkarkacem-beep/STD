@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import TelephoneClient from "@/components/TelephoneClient";
 import type { Profile } from "@/lib/supabase/types";
 
 function formatDate(iso: string) {
@@ -66,7 +67,9 @@ export default async function AdminUsersPage({
                 <td className="px-4 py-3 font-medium text-ink">{c.full_name ?? "—"}</td>
                 <td className="px-4 py-3 text-ink-soft">{c.job_title ?? "—"}</td>
                 <td className="px-4 py-3 text-ink-soft">{c.email}</td>
-                <td className="px-4 py-3 text-ink-soft">{c.telephone ?? "—"}</td>
+                <td className="px-4 py-3">
+                  <TelephoneClient userId={c.id} telephone={c.telephone} nom={c.full_name} />
+                </td>
                 <td className="px-4 py-3 text-ink-faint">{formatDate(c.created_at)}</td>
                 <td className="px-4 py-3 text-ink-faint">{quoteCounts.get(c.id) ?? 0}</td>
               </tr>
