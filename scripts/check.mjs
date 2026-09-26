@@ -1588,7 +1588,27 @@ console.log("\n20. Rôles, statuts et sécurité des devis\n");
   );
   // Ce qui compte n'est pas le vocabulaire mais le chemin : aucune page
   // d'administration ne doit offrir de lien vers le formulaire de devis.
-  for (const rel of ["app/admin/page.tsx", "app/admin/layout.tsx", "app/admin/devis/page.tsx"]) {
+  // Une liste d'administration ne doit jamais taire une erreur de lecture :
+  // une panne ressemblerait à une boîte vide, et un client attendrait pour
+  // rien.
+  for (const rel of ["app/admin/devis/page.tsx", "app/admin/devis/[id]/page.tsx"]) {
+    const src = fs.readFileSync(path.join(ROOT, rel), "utf8");
+    ok(
+      /const \{ data, error \}/.test(src),
+      `${rel} : l'erreur de la requête est recueillie`
+    );
+    ok(
+      /if \(error/.test(src),
+      `${rel} : une erreur de lecture est montrée, pas confondue avec une liste vide`
+    );
+  }
+
+  for (const rel of [
+    "app/admin/page.tsx",
+    "app/admin/layout.tsx",
+    "app/admin/devis/page.tsx",
+    "app/admin/devis/[id]/page.tsx",
+  ]) {
     const src = fs.readFileSync(path.join(ROOT, rel), "utf8");
     ok(
       !/href=["']\/devis["']/.test(src),

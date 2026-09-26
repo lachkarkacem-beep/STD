@@ -28,10 +28,27 @@ export default async function AdminDevisPage({
   searchParams: { statut?: string };
 }) {
   const supabase = createClient();
-  const { data } = await supabase
+  const { data, error } = await supabase
     .from("quotes")
     .select("*, profile:profiles(full_name, email, job_title, telephone)")
     .order("created_at", { ascending: false });
+
+  // Une requête qui échoue ne doit JAMAIS ressembler à une boîte vide : on
+  // croirait n'avoir aucune demande alors qu'un client attend une réponse.
+  if (error) {
+    return (
+      <div className="card border-brand-200 bg-brand-50 p-6">
+        <h2 className="mb-2 text-lg font-normal text-ink">
+          Les demandes n&apos;ont pas pu être lues
+        </h2>
+        <p className="text-sm leading-relaxed text-ink-soft">
+          La base a refusé la requête. Ce n&apos;est pas une boîte vide : il peut y avoir des
+          demandes en attente.
+        </p>
+        <p className="mt-3 font-mono text-xs text-brand-700">{error.message}</p>
+      </div>
+    );
+  }
 
   const toutes = (data as unknown as QuoteRow[] | null) ?? [];
 
@@ -107,12 +124,21 @@ export default async function AdminDevisPage({
             <ul className="flex flex-col gap-1 text-sm text-ink">
               {q.items.map((item, i) => (
                 <li key={i}>
-                  Réf. {item.ref} — {item.name} · {item.finish} · quantité {item.qty}
+                  Réf. {item.ref} — {item.name} · {item.finish} ·{" "}
+                  <span className="font-medium">quantité {item.qty}</span>
                 </li>
               ))}
             </ul>
 
             {q.message && <p className="text-sm italic text-ink-soft">« {q.message} »</p>}
+
+            {/* La fiche complète : articles, poids, coordonnées, historique. */}
+            <Link
+              href={`/admin/devis/${q.id}`}
+              className="btn-primary self-start"
+            >
+              Ouvrir la demande
+            </Link>
 
             {q.reply && (
               <div className="rounded-md border border-sable-300 bg-sable-100 p-4">
