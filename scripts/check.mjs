@@ -1770,6 +1770,46 @@ console.log("\n20. Rôles, statuts et sécurité des devis\n");
     "l'administrateur peut tenir les fiches clients"
   );
 
+  // --- Le numéro d'exemple n'est pas celui de l'atelier --------------------
+  //
+  // Proposer le vrai numéro de l'entreprise en exemple, c'est se le faire
+  // recopier : on se retrouve avec des fiches clients portant le numéro du
+  // standard.
+  {
+    const societe = fs.readFileSync(path.join(ROOT, "lib/company.ts"), "utf8");
+    const vrai = societe.match(/phone:\s*"([^"]+)"/)?.[1] ?? "";
+
+    // On compare les formes internationales, et non les chiffres bruts :
+    // « +216 98 985 647 » et « 98 985 647 » sont le MÊME numéro, et une
+    // comparaison naïve laissait passer le second. C'est la normalisation
+    // livrée qui sert de juge, celle du lien WhatsApp.
+    const memeNumero = (a, b) => {
+      const na = lienWhatsApp(a);
+      const nb = lienWhatsApp(b);
+      return !!na && na === nb;
+    };
+
+    ok(!!lienWhatsApp(vrai), "le numéro de l'atelier est lisible dans company.ts");
+    ok(
+      memeNumero("+216 98 985 647", "98 985 647"),
+      "la comparaison reconnaît un même numéro sous ses deux formes"
+    );
+
+    for (const rel of fs
+      .readdirSync(path.join(ROOT, "components"), { recursive: true })
+      .filter((f) => typeof f === "string" && f.endsWith(".tsx"))) {
+      const src = fs.readFileSync(path.join(ROOT, "components", rel), "utf8");
+      for (const m of src.matchAll(/placeholder="([^"]*)"/g)) {
+        if (m[1].replace(/\D+/g, "").length < 8) continue;
+        ok(
+          !memeNumero(m[1], vrai),
+          `components/${rel} : l'exemple de numéro n'est pas celui de l'atelier`,
+          `« ${m[1]} »`
+        );
+      }
+    }
+  }
+
   // --- Une écriture refusée ne doit pas passer pour un succès --------------
   //
   // Quand une règle d'accès refuse une mise à jour, PostgREST répond

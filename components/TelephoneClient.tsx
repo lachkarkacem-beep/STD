@@ -45,13 +45,15 @@ export default function TelephoneClient({
   if (edition) {
     return (
       <form onSubmit={enregistrer} className="flex flex-col gap-1">
+        {/* Le numéro d'exemple ne doit pas être celui de l'atelier : on le
+            recopierait sans y penser. */}
         <div className="flex items-center gap-2">
           <input
             type="tel"
             inputMode="tel"
             value={valeur}
             onChange={(e) => setValeur(e.target.value)}
-            placeholder="98 985 647"
+            placeholder="98123456"
             autoFocus
             className="input w-36 py-1 text-sm"
           />

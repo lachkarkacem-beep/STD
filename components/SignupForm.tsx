@@ -140,7 +140,7 @@ export default function SignupForm() {
           required
           autoComplete="tel"
           inputMode="tel"
-          placeholder="ex. 98 985 647"
+          placeholder="ex. 98123456"
           value={telephone}
           onChange={(e) => setTelephone(e.target.value)}
           className="input"
