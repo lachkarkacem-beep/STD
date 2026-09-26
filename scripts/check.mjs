@@ -1674,6 +1674,50 @@ console.log("\n20. Rôles, statuts et sécurité des devis\n");
     }
   }
 
+  // --- Le script de nettoyage ----------------------------------------------
+  //
+  // Il supprime des comptes pour de bon. Deux choses doivent tenir : que
+  // l'administration figure toujours dans la liste à conserver, et que la
+  // suppression des demandes des comptes gardés reste commentée — une
+  // sollicitation de client ne s'efface pas par défaut.
+  {
+    const purge = fs.readFileSync(path.join(ROOT, "supabase/maintenance/purge.sql"), "utf8");
+
+    const liste = purge.match(/insert into a_conserver \(email\) values([\s\S]*?);/);
+    ok(!!liste, "le script de nettoyage porte une liste de comptes à conserver");
+    ok(
+      (liste?.[1] ?? "").includes("lachkarkacem@gmail.com"),
+      "l'administration figure dans la liste à conserver"
+    );
+    ok(
+      /L''administration ne figure pas dans la liste[\s\S]{0,60}raise exception|raise exception[\s\S]{0,120}L''administration ne figure pas/.test(
+        purge
+      ),
+      "retirer l'administration de la liste fait échouer le script avant toute suppression"
+    );
+
+    // La seule suppression totale des devis doit rester commentée.
+    for (const ligne of purge.split("\n")) {
+      const t = ligne.trim();
+      if (t.startsWith("--")) continue;
+      ok(
+        !/^delete from public\.quotes;\s*$/.test(t),
+        "le script n'efface pas d'office les demandes des comptes conservés",
+        t
+      );
+    }
+
+    // Et il doit vérifier son travail plutôt que de faire confiance.
+    ok(
+      /raise exception[\s\S]{0,200}administrateur au lieu d''un seul/.test(purge),
+      "le script vérifie qu'il reste exactement un administrateur"
+    );
+    ok(
+      /a_conserver[\s\S]{0,400}not exists[\s\S]{0,200}raise exception/.test(purge),
+      "une adresse à conserver introuvable arrête le script"
+    );
+  }
+
   // L'administrateur doit pouvoir compléter une fiche client — les comptes
   // créés avant le champ téléphone n'en ont pas.
   ok(
