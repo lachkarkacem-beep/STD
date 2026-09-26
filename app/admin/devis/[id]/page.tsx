@@ -7,15 +7,16 @@ import { FINISHES } from "@/lib/finishes";
 import { statut as infoStatut, lienWhatsApp } from "@/lib/devis-statuts.mjs";
 import type { Quote } from "@/lib/supabase/types";
 
-type QuoteRow = Quote & {
-  profile: {
-    full_name: string | null;
-    email: string;
-    job_title: string | null;
-    telephone: string | null;
-    created_at: string;
-  } | null;
+type FicheClient = {
+  id: string;
+  full_name: string | null;
+  email: string;
+  job_title: string | null;
+  telephone: string | null;
+  created_at: string;
 };
+
+type QuoteRow = Quote & { profile: FicheClient | null };
 
 function dateLongue(iso: string) {
   return new Date(iso).toLocaleString("fr-FR", {
@@ -29,22 +30,36 @@ function dateLongue(iso: string) {
 
 export default async function DevisDetailPage({ params }: { params: { id: string } }) {
   const supabase = createClient();
+  // Deux requêtes, et non une jointure imbriquée : `quotes` pointe deux fois
+  // vers `profiles` (l'auteur par `user_id`, le répondant par `replied_by`),
+  // ce qui rend l'embarquement ambigu et fait échouer la requête.
   const { data, error } = await supabase
     .from("quotes")
-    .select("*, profile:profiles(full_name, email, job_title, telephone, created_at)")
+    .select("*")
     .eq("id", params.id)
     .single();
 
+  const devis = data as Quote | null;
+
+  const { data: fiche, error: erreurFiche } = devis
+    ? await supabase
+        .from("profiles")
+        .select("id, full_name, email, job_title, telephone, created_at")
+        .eq("id", devis.user_id)
+        .maybeSingle()
+    : { data: null, error: null };
+
   // « Introuvable » et « la requête a échoué » ne se disent pas de la même
   // façon : la première est un fait, la seconde une panne qu'il faut voir.
-  if (error && error.code !== "PGRST116") {
+  const incident = (error && error.code !== "PGRST116" ? error : null) ?? erreurFiche;
+  if (incident) {
     return (
       <div className="card border-brand-200 bg-brand-50 p-6">
         <h2 className="mb-2 text-lg font-normal text-ink">La demande n&apos;a pas pu être lue</h2>
         <p className="text-sm leading-relaxed text-ink-soft">
           La base a refusé la requête. La demande existe peut-être toujours.
         </p>
-        <p className="mt-3 font-mono text-xs text-brand-700">{error.message}</p>
+        <p className="mt-3 font-mono text-xs text-brand-700">{incident.message}</p>
         <Link href="/admin/devis" className="mt-4 inline-block text-sm text-brand-600 hover:text-grass-700">
           ‹ Toutes les demandes
         </Link>
@@ -52,8 +67,8 @@ export default async function DevisDetailPage({ params }: { params: { id: string
     );
   }
 
-  const q = data as unknown as QuoteRow | null;
-  if (!q) notFound();
+  if (!devis) notFound();
+  const q: QuoteRow = { ...devis, profile: (fiche as FicheClient | null) ?? null };
 
   const s = infoStatut(q.status);
   const whatsapp = lienWhatsApp(

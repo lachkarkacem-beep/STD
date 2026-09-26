@@ -1598,8 +1598,27 @@ console.log("\n20. Rôles, statuts et sécurité des devis\n");
       `${rel} : l'erreur de la requête est recueillie`
     );
     ok(
-      /if \(error/.test(src),
+      /if \((error|panne|incident)/.test(src),
       `${rel} : une erreur de lecture est montrée, pas confondue avec une liste vide`
+    );
+  }
+
+  // Pas de jointure imbriquée de « profiles » depuis « quotes ».
+  //
+  // La table des devis pointe DEUX FOIS vers les profils : par `user_id`,
+  // l'auteur, et par `replied_by`, celui qui a répondu. PostgREST refuse alors
+  // d'embarquer les profils sans qu'on lui dise par où — « more than one
+  // relationship was found » — et la page se vide. C'est arrivé en production :
+  // l'administration a cru n'avoir aucune demande alors qu'un client attendait.
+  for (const rel of fs
+    .readdirSync(path.join(ROOT, "app"), { recursive: true })
+    .filter((f) => typeof f === "string" && f.endsWith(".tsx"))) {
+    const src = fs.readFileSync(path.join(ROOT, "app", rel), "utf8");
+    if (!/from\("quotes"\)/.test(src)) continue;
+    ok(
+      !/profiles\s*\(/.test(src),
+      `app/${rel} : pas de jointure ambiguë entre quotes et profiles`,
+      "quotes référence profiles deux fois — il faut deux requêtes séparées"
     );
   }
 

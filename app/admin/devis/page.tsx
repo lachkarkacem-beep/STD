@@ -4,14 +4,15 @@ import GestionDevis from "@/components/GestionDevis";
 import { STATUTS, estStatutValide, statut as infoStatut, trierPourAdmin } from "@/lib/devis-statuts.mjs";
 import type { Quote } from "@/lib/supabase/types";
 
-type QuoteRow = Quote & {
-  profile: {
-    full_name: string | null;
-    email: string;
-    job_title: string | null;
-    telephone: string | null;
-  } | null;
+type FicheClient = {
+  id: string;
+  full_name: string | null;
+  email: string;
+  job_title: string | null;
+  telephone: string | null;
 };
+
+type QuoteRow = Quote & { profile: FicheClient | null };
 
 function formatDate(iso: string) {
   return new Date(iso).toLocaleString("fr-FR", {
@@ -28,14 +29,35 @@ export default async function AdminDevisPage({
   searchParams: { statut?: string };
 }) {
   const supabase = createClient();
+
+  // Deux requêtes plutôt qu'une jointure imbriquée.
+  //
+  // `quotes` pointe DEUX FOIS vers `profiles` — par `user_id` (l'auteur) et
+  // par `replied_by` (qui a répondu). Demander « joins-moi les profils » sans
+  // préciser lequel fait échouer la requête : « more than one relationship was
+  // found ». On pourrait lever l'ambiguïté par un indice de clé étrangère,
+  // mais cet indice dépend du nom de la contrainte en base et se casserait au
+  // moindre renommage. Deux requêtes et une jointure en mémoire ne peuvent
+  // pas se tromper.
   const { data, error } = await supabase
     .from("quotes")
-    .select("*, profile:profiles(full_name, email, job_title, telephone)")
+    .select("*")
     .order("created_at", { ascending: false });
+
+  const demandes = (data as Quote[] | null) ?? [];
+  const auteurs = [...new Set(demandes.map((q) => q.user_id))];
+
+  const { data: profils, error: erreurProfils } = auteurs.length
+    ? await supabase
+        .from("profiles")
+        .select("id, full_name, email, job_title, telephone")
+        .in("id", auteurs)
+    : { data: [] as FicheClient[], error: null };
 
   // Une requête qui échoue ne doit JAMAIS ressembler à une boîte vide : on
   // croirait n'avoir aucune demande alors qu'un client attend une réponse.
-  if (error) {
+  const panne = error ?? erreurProfils;
+  if (panne) {
     return (
       <div className="card border-brand-200 bg-brand-50 p-6">
         <h2 className="mb-2 text-lg font-normal text-ink">
@@ -45,12 +67,16 @@ export default async function AdminDevisPage({
           La base a refusé la requête. Ce n&apos;est pas une boîte vide : il peut y avoir des
           demandes en attente.
         </p>
-        <p className="mt-3 font-mono text-xs text-brand-700">{error.message}</p>
+        <p className="mt-3 font-mono text-xs text-brand-700">{panne.message}</p>
       </div>
     );
   }
 
-  const toutes = (data as unknown as QuoteRow[] | null) ?? [];
+  const parId = new Map(((profils as FicheClient[] | null) ?? []).map((p) => [p.id, p]));
+  const toutes: QuoteRow[] = demandes.map((q) => ({
+    ...q,
+    profile: parId.get(q.user_id) ?? null,
+  }));
 
   // Un filtre inconnu dans l'URL ne doit pas vider la liste sans explication :
   // on retombe sur « toutes ».
