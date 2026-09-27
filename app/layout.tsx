@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Analytics } from "@vercel/analytics/next";
 import SiteHeader from "@/components/SiteHeader";
 import SiteFooter from "@/components/SiteFooter";
 import "./globals.css";
@@ -25,6 +26,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <SiteHeader />
         <main className="flex-1">{children}</main>
         <SiteFooter />
+        {/* Mesure d'audience Vercel : pages vues et visiteurs, sans cookie et
+            sans identifiant qui suive quelqu'un d'un site à l'autre. Le script
+            n'est servi qu'en production, pas pendant le développement. */}
+        <Analytics />
       </body>
     </html>
   );
